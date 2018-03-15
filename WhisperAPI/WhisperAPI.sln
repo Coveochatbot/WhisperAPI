@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27130.2020
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WhisperAPI", "WhisperAPI\WhisperAPI.csproj", "{1724CAC2-401B-4BCF-BCBB-41CE2312CD70}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{0821DDA7-9D20-45F6-9123-4647EE6FE21A}"
+	ProjectSection(SolutionItems) = preProject
+		stylecop.json = stylecop.json
+		stylecop.ruleset = stylecop.ruleset
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WhisperAPI.Tests", "WhisperAPI.Tests\WhisperAPI.Tests.csproj", "{31510771-D0F1-4273-962B-BDF706AE1A79}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1724CAC2-401B-4BCF-BCBB-41CE2312CD70}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1724CAC2-401B-4BCF-BCBB-41CE2312CD70}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1724CAC2-401B-4BCF-BCBB-41CE2312CD70}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1724CAC2-401B-4BCF-BCBB-41CE2312CD70}.Release|Any CPU.Build.0 = Release|Any CPU
+		{31510771-D0F1-4273-962B-BDF706AE1A79}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{31510771-D0F1-4273-962B-BDF706AE1A79}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{31510771-D0F1-4273-962B-BDF706AE1A79}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{31510771-D0F1-4273-962B-BDF706AE1A79}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7871D545-C6F3-4362-969A-0B86D1729B4B}
+	EndGlobalSection
+EndGlobal
