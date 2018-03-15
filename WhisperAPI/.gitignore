@@ -35,3 +35,27 @@
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Build output
+WhisperAPI/bin/
+WhisperAPI.Tests/bin/
+WhisperAPI/obj/
+WhisperAPI.Tests/obj/
+
+# Artifacts of the IDE and build
+*.sln.ide/
+.vs/
+packages/
+*.suo
+*.user
+TestResults/
+OpenCover.Reports/
+OpenCover.Symbols/
+.nuget/NuGet.exe
+build/nuget/
+*.log
+
+# Visual Studio performance tools
+*.psess
+*.vsp
+*.vspx
