@@ -3,5 +3,5 @@ solution: WhisperAPI/WhisperAPI.sln
 dotnet: 2.0.0
 
 script:
-  - dotnet build ./WhisperAPI/WhisperAPI
+  - dotnet build ./WhisperAPI/WhisperAPI 
   - dotnet test ./WhisperAPI/WhisperAPI.Tests
