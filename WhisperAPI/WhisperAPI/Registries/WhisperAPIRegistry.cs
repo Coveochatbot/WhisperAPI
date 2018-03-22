@@ -10,7 +10,7 @@ namespace WhisperAPI.Registries
             this.For<ISuggestionsService>().Use<SuggestionsService>();
             this.For<IIndexSearch>().Use<IndexSearch>();
             this.For<IAPIKeyProvider>().Use<APIKeyProvider>();
-            this.For<IHttpClientWrapper>().Use<HttpClientWrapper>();
+            this.For<HttpClient>().Use<HttpClient>();
         }
     }
 }

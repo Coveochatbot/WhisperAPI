@@ -19,13 +19,13 @@ namespace WhisperAPI.Controllers
         [Route("")]
         public IActionResult GetSuggestions([FromBody] SearchQuerry searchQuerry)
         {
-            if (this.ModelState.IsValid)
+            if (searchQuerry?.Guid == null || searchQuerry?.Querry == null)
             {
-                return this.Ok(this._suggestionsService.GetSuggestion(searchQuerry.Querry).ToList());
+                return this.BadRequest();
             }
             else
             {
-                return this.BadRequest();
+                return this.Ok(this._suggestionsService.GetSuggestion(searchQuerry.Querry).ToList());
             }
         }
     }
