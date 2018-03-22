@@ -1,0 +1,6 @@
+.idea
+.tox
+.pytest_cache
+MANIFEST
+*/__pycache__
+**.pyc
