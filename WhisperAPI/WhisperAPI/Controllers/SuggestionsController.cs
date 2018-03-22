@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Linq;
+using Microsoft.AspNetCore.Mvc;
+using WhisperAPI.Models;
 using WhisperAPI.Services;
 
 namespace WhisperAPI.Controllers
@@ -13,10 +15,18 @@ namespace WhisperAPI.Controllers
             this._suggestionsService = suggestionsService;
         }
 
-        [HttpGet]
-        public IActionResult GetSuggestions()
+        [HttpPost]
+        [Route("")]
+        public IActionResult GetSuggestions([FromBody] SearchQuerry searchQuerry)
         {
-            return this.Ok("Hello World");
+            if (this.ModelState.IsValid)
+            {
+                return this.Ok(this._suggestionsService.GetSuggestion(searchQuerry.Querry).ToList());
+            }
+            else
+            {
+                return this.BadRequest();
+            }
         }
     }
 }

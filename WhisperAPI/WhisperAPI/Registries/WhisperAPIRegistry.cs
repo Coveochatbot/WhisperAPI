@@ -1,4 +1,5 @@
-﻿using WhisperAPI.Services;
+﻿using System.Net.Http;
+using WhisperAPI.Services;
 
 namespace WhisperAPI.Registries
 {
@@ -7,6 +8,9 @@ namespace WhisperAPI.Registries
         public WhisperApiRegistry()
         {
             this.For<ISuggestionsService>().Use<SuggestionsService>();
+            this.For<IIndexSearch>().Use<IndexSearch>();
+            this.For<IAPIKeyProvider>().Use<APIKeyProvider>();
+            this.For<IHttpClientWrapper>().Use<HttpClientWrapper>();
         }
     }
 }
