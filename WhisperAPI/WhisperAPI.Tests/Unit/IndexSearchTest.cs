@@ -15,7 +15,6 @@ namespace WhisperAPI.Tests.Unit
     public class IndexSearchTest
     {
         private IIndexSearch _indexSearch;
-        private Mock<IAPIKeyProvider> _apiKeyProviderMock;
         private HttpClient _httpClient;
 
         private SearchResult _searchResult;
@@ -33,9 +32,8 @@ namespace WhisperAPI.Tests.Unit
                 }));
 
             this._httpClient = new HttpClient(httpMessageHandler.Object);
-            this._apiKeyProviderMock = new Mock<IAPIKeyProvider>();
 
-            this._indexSearch = new IndexSearch(this._apiKeyProviderMock.Object, this._httpClient);
+            this._indexSearch = new IndexSearch(null, this._httpClient);
 
             this._searchResult = new SearchResult
             {
