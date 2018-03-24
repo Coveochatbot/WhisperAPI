@@ -4,8 +4,8 @@ namespace WhisperAPI.Models
 {
     public class SearchQuerry
     {
-        [JsonProperty("guid")]
-        public string Guid { get; set; }
+        [JsonProperty("chatkey")]
+        public string ChatKey { get; set; }
 
         [JsonProperty("querry")]
         public string Querry { get; set; }

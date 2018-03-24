@@ -31,12 +31,10 @@ namespace WhisperAPI.Services
 
             foreach (var result in searchResult.Elements)
             {
-                if (!this.IsElementValid(result))
+                if (this.IsElementValid(result))
                 {
-                    continue;
+                    documents.Add(new SuggestedDocument(result));
                 }
-
-                documents.Add(new SuggestedDocument(result));
             }
 
             return documents;
@@ -44,13 +42,7 @@ namespace WhisperAPI.Services
 
         private bool IsElementValid(ISearchResultElement result)
         {
-            if (result == null)
-            {
-                // error null result
-                return false;
-            }
-
-            if (result.Title == null || result.Uri == null || result.PrintableUri == null)
+            if (result?.Title == null || result?.Uri == null || result?.PrintableUri == null)
             {
                 // error null attributes
                 return false;

@@ -16,17 +16,14 @@ namespace WhisperAPI.Controllers
         }
 
         [HttpPost]
-        [Route("")]
         public IActionResult GetSuggestions([FromBody] SearchQuerry searchQuerry)
         {
-            if (searchQuerry?.Guid == null || searchQuerry?.Querry == null)
+            if (searchQuerry?.ChatKey == null || searchQuerry?.Querry == null)
             {
                 return this.BadRequest();
             }
-            else
-            {
-                return this.Ok(this._suggestionsService.GetSuggestion(searchQuerry.Querry).ToList());
-            }
+
+            return this.Ok(this._suggestionsService.GetSuggestion(searchQuerry.Querry).ToList());
         }
     }
 }

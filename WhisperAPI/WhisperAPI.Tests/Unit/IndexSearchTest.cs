@@ -14,51 +14,18 @@ namespace WhisperAPI.Tests.Unit
     [TestFixture]
     public class IndexSearchTest
     {
-        private IIndexSearch _indexSearchOK;
-        private IIndexSearch _indexSearchNotFound;
-        private IIndexSearch _indexSearchOKNoContent;
-
-        private SearchResult _searchResult;
+        private Mock<HttpMessageHandler> _httpMessageHandler;
+        private HttpClient _httpClient;
 
         [SetUp]
         public void SetUp()
         {
-            var httpMessageHandlerOK = new Mock<HttpMessageHandler>();
-            httpMessageHandlerOK.Protected()
-                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
-                .Returns(Task.FromResult(new HttpResponseMessage
-                {
-                    StatusCode = System.Net.HttpStatusCode.OK,
-                    Content = new StringContent("{\"totalCount\": 4,\"results\": [{\"title\": \"Available Coveo Cloud V2 Source Types\",\"uri\": \"https://onlinehelp.coveo.com/en/cloud/Available_Coveo_Cloud_V2_Source_Types.htm\",\"printableUri\": \"https://onlinehelp.coveo.com/en/cloud/Available_Coveo_Cloud_V2_Source_Types.htm\",\"score\": 4280       },{\"title\": \"Coveo Cloud Query Syntax Reference\",\"uri\": \"https://onlinehelp.coveo.com/en/cloud/Coveo_Cloud_Query_Syntax_Reference.htm\",\"printableUri\": \"https://onlinehelp.coveo.com/en/cloud/Coveo_Cloud_Query_Syntax_Reference.htm\",\"score\": 3900},{\"title\": \"Events\",\"uri\": \"https://developers.coveo.com/display/JsSearchV1/Page/27230520/27230472/27230573\",\"printableUri\": \"https://developers.coveo.com/display/JsSearchV1/Page/27230520/27230472/27230573\",\"score\": 2947},{\"title\": \"Coveo Facet Component (CoveoFacet)\",\"uri\": \"https://coveo.github.io/search-ui/components/facet.html\",\"printableUri\": \"https://coveo.github.io/search-ui/components/facet.html\",\"score\": 2932}]}")
-                }));
+           this._httpMessageHandler = new Mock<HttpMessageHandler>();
+        }
 
-            var httpMessageHandlerNotFound = new Mock<HttpMessageHandler>();
-            httpMessageHandlerNotFound.Protected()
-                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
-                .Returns(Task.FromResult(new HttpResponseMessage
-                {
-                    StatusCode = System.Net.HttpStatusCode.NotFound,
-                    Content = new StringContent("{\"totalCount\": 4,\"results\": [{\"title\": \"Available Coveo Cloud V2 Source Types\",\"uri\": \"https://onlinehelp.coveo.com/en/cloud/Available_Coveo_Cloud_V2_Source_Types.htm\",\"printableUri\": \"https://onlinehelp.coveo.com/en/cloud/Available_Coveo_Cloud_V2_Source_Types.htm\",\"score\": 4280       },{\"title\": \"Coveo Cloud Query Syntax Reference\",\"uri\": \"https://onlinehelp.coveo.com/en/cloud/Coveo_Cloud_Query_Syntax_Reference.htm\",\"printableUri\": \"https://onlinehelp.coveo.com/en/cloud/Coveo_Cloud_Query_Syntax_Reference.htm\",\"score\": 3900},{\"title\": \"Events\",\"uri\": \"https://developers.coveo.com/display/JsSearchV1/Page/27230520/27230472/27230573\",\"printableUri\": \"https://developers.coveo.com/display/JsSearchV1/Page/27230520/27230472/27230573\",\"score\": 2947},{\"title\": \"Coveo Facet Component (CoveoFacet)\",\"uri\": \"https://coveo.github.io/search-ui/components/facet.html\",\"printableUri\": \"https://coveo.github.io/search-ui/components/facet.html\",\"score\": 2932}]}")
-                }));
-
-            var httpMessageHandlerOKNoContent = new Mock<HttpMessageHandler>();
-            httpMessageHandlerOKNoContent.Protected()
-                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
-                .Returns(Task.FromResult(new HttpResponseMessage
-                {
-                    StatusCode = System.Net.HttpStatusCode.OK,
-                    Content = new StringContent(string.Empty)
-                }));
-
-            var httpClientOK = new HttpClient(httpMessageHandlerOK.Object);
-            var httpClientNotFound = new HttpClient(httpMessageHandlerNotFound.Object);
-            var httpClientOKNoContent = new HttpClient(httpMessageHandlerOKNoContent.Object);
-
-            this._indexSearchOK = new IndexSearch(null, httpClientOK);
-            this._indexSearchNotFound = new IndexSearch(null, httpClientNotFound);
-            this._indexSearchOKNoContent = new IndexSearch(null, httpClientOKNoContent);
-
-            this._searchResult = new SearchResult
+        public SearchResult GetList()
+        {
+            return new SearchResult
             {
                 NbrElements = 4,
                 Elements = new List<SearchResultElement>
@@ -99,25 +66,63 @@ namespace WhisperAPI.Tests.Unit
             };
         }
 
+        public StringContent GetStringContent()
+        {
+           return new StringContent("{\"totalCount\": 4,\"results\": [{\"title\": \"Available Coveo Cloud V2 Source Types\",\"uri\": \"https://onlinehelp.coveo.com/en/cloud/Available_Coveo_Cloud_V2_Source_Types.htm\",\"printableUri\": \"https://onlinehelp.coveo.com/en/cloud/Available_Coveo_Cloud_V2_Source_Types.htm\",\"score\": 4280       },{\"title\": \"Coveo Cloud Query Syntax Reference\",\"uri\": \"https://onlinehelp.coveo.com/en/cloud/Coveo_Cloud_Query_Syntax_Reference.htm\",\"printableUri\": \"https://onlinehelp.coveo.com/en/cloud/Coveo_Cloud_Query_Syntax_Reference.htm\",\"score\": 3900},{\"title\": \"Events\",\"uri\": \"https://developers.coveo.com/display/JsSearchV1/Page/27230520/27230472/27230573\",\"printableUri\": \"https://developers.coveo.com/display/JsSearchV1/Page/27230520/27230472/27230573\",\"score\": 2947},{\"title\": \"Coveo Facet Component (CoveoFacet)\",\"uri\": \"https://coveo.github.io/search-ui/components/facet.html\",\"printableUri\": \"https://coveo.github.io/search-ui/components/facet.html\",\"score\": 2932}]}");
+        }
+
         [Test]
         [TestCase("test")]
         public void Receive_ok_response_from_post_then_return_result(string querry)
         {
-            this._indexSearchOK.Search(querry).Should().BeEquivalentTo(this._searchResult);
+            this._httpMessageHandler.Protected()
+                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
+                .Returns(Task.FromResult(new HttpResponseMessage
+                {
+                    StatusCode = System.Net.HttpStatusCode.OK,
+                    Content = this.GetStringContent()
+                }));
+
+            this._httpClient = new HttpClient(this._httpMessageHandler.Object);
+            IIndexSearch indexSearchOK = new IndexSearch(null, this._httpClient);
+
+            indexSearchOK.Search(querry).Should().BeEquivalentTo(this.GetList());
         }
 
         [Test]
         [TestCase("test")]
         public void Receive_not_found_response_from_post_then_return_null(string querry)
         {
-            this._indexSearchNotFound.Search(querry).Should().BeEquivalentTo((SearchResult)null);
+            this._httpMessageHandler.Protected()
+                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
+                .Returns(Task.FromResult(new HttpResponseMessage
+                {
+                    StatusCode = System.Net.HttpStatusCode.NotFound,
+                    Content = this.GetStringContent()
+                }));
+
+            this._httpClient = new HttpClient(this._httpMessageHandler.Object);
+            IIndexSearch indexSearchNotFound = new IndexSearch(null, this._httpClient);
+
+            indexSearchNotFound.Search(querry).Should().BeEquivalentTo((SearchResult)null);
         }
 
         [Test]
         [TestCase("test")]
         public void Receive_ok_response_with_empty_content_from_post_then_return_null(string querry)
         {
-            this._indexSearchOKNoContent.Search(querry).Should().BeEquivalentTo((SearchResult)null);
+            this._httpMessageHandler.Protected()
+                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
+                .Returns(Task.FromResult(new HttpResponseMessage
+                {
+                    StatusCode = System.Net.HttpStatusCode.OK,
+                    Content = new StringContent(string.Empty)
+                }));
+
+            this._httpClient = new HttpClient(this._httpMessageHandler.Object);
+            IIndexSearch indexSearchOKNoContent = new IndexSearch(null, this._httpClient);
+
+            indexSearchOKNoContent.Search(querry).Should().BeEquivalentTo((SearchResult)null);
         }
     }
 }

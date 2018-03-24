@@ -1,8 +1,8 @@
-﻿using FluentAssertions;
+﻿using System.Collections.Generic;
+using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using NUnit.Framework;
-using System.Collections.Generic;
 using WhisperAPI.Controllers;
 using WhisperAPI.Models;
 using WhisperAPI.Services;
@@ -26,17 +26,20 @@ namespace WhisperAPI.Tests.Unit
             this._invalidSearchQuerryList = new List<SearchQuerry>
             {
                 null,
-                new SearchQuerry { Guid = null, Querry = null },
-                new SearchQuerry { Guid = "guid", Querry = null },
-                new SearchQuerry { Guid = null, Querry = "test" }
+                new SearchQuerry { ChatKey = null, Querry = null },
+                new SearchQuerry { ChatKey = "chatKey", Querry = null },
+                new SearchQuerry { ChatKey = null, Querry = "test" }
             };
 
             this._validSearchQuerryList = new List<SearchQuerry>
             {
-                 new SearchQuerry { Guid = "guid", Querry = "test" }
+                 new SearchQuerry { ChatKey = "chatKey", Querry = "test" }
             };
+        }
 
-            this._expectedResult = new List<SuggestedDocument>
+        public List<SuggestedDocument> GetListOfDocuments()
+        {
+            return new List<SuggestedDocument>
                 {
                     new SuggestedDocument
                     {
@@ -67,13 +70,6 @@ namespace WhisperAPI.Tests.Unit
                         Summary = null
                     }
                 };
-
-            this._suggestionServiceMock = new Mock<ISuggestionsService>();
-            this._suggestionServiceMock
-                .Setup(x => x.GetSuggestion(It.IsAny<string>()))
-                .Returns(this._expectedResult);
-
-            this._suggestionController = new SuggestionsController(this._suggestionServiceMock.Object);
         }
 
         [Test]
@@ -83,6 +79,13 @@ namespace WhisperAPI.Tests.Unit
         [TestCase(3)]
         public void Receive_invalid_or_null_searchQuerry_then_return_bad_request(int invalidQuerryIndex)
         {
+            this._suggestionServiceMock = new Mock<ISuggestionsService>();
+            this._suggestionServiceMock
+                .Setup(x => x.GetSuggestion(It.IsAny<string>()))
+                .Returns(this._expectedResult);
+
+            this._suggestionController = new SuggestionsController(this._suggestionServiceMock.Object);
+
             this._suggestionController.GetSuggestions(this._invalidSearchQuerryList[invalidQuerryIndex]).Should().BeEquivalentTo(new BadRequestResult());
         }
 
@@ -90,6 +93,13 @@ namespace WhisperAPI.Tests.Unit
         [TestCase(0)]
         public void Receive_valid_searchQuerry_then_return_Ok_request(int validQuerryIndex)
         {
+            this._suggestionServiceMock = new Mock<ISuggestionsService>();
+            this._suggestionServiceMock
+                .Setup(x => x.GetSuggestion(It.IsAny<string>()))
+                .Returns(this._expectedResult);
+
+            this._suggestionController = new SuggestionsController(this._suggestionServiceMock.Object);
+
             this._suggestionController.GetSuggestions(this._validSearchQuerryList[validQuerryIndex]).Should().BeEquivalentTo(new OkObjectResult(this._expectedResult));
         }
     }
