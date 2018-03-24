@@ -1,5 +1,4 @@
-﻿using System;
-using System.Net.Http;
+﻿using System.Net.Http;
 using System.Net.Http.Headers;
 using Newtonsoft.Json;
 using WhisperAPI.Models;
@@ -9,12 +8,12 @@ namespace WhisperAPI.Services
     public class IndexSearch : IIndexSearch
     {
         private const string URL = "https://cloudplatform.coveo.com/rest/search/v2";
-        private readonly IAPIKeyProvider _apiKeyProvider;
+        private readonly string _apiKey;
         private readonly HttpClient _httpClient;
 
-        public IndexSearch(IAPIKeyProvider apiKeyProvider, HttpClient client)
+        public IndexSearch(string apiKey, HttpClient client)
         {
-            this._apiKeyProvider = apiKeyProvider;
+            this._apiKey = apiKey;
             this._httpClient = client;
         }
 
@@ -54,7 +53,7 @@ namespace WhisperAPI.Services
             new MediaTypeWithQualityHeaderValue("application/json"));
 
             // Add an Authorization header with the ApiKey
-            this._httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {this._apiKeyProvider.GetAPIKey()}");
+            this._httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {this._apiKey}");
         }
     }
 }
