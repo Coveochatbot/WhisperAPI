@@ -1,0 +1,5 @@
+nose
+flask
+pytest
+pytest-flask
+tensorflow
