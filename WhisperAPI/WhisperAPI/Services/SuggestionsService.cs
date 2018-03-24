@@ -15,8 +15,20 @@ namespace WhisperAPI.Services
         public IEnumerable<SuggestedDocument> GetSuggestion(string querry)
         {
             ISearchResult searchResult = this._indexSearch.Search(querry);
-
             var documents = new List<SuggestedDocument>();
+
+            if (searchResult == null)
+            {
+                // error null result
+                return documents;
+            }
+
+            if (searchResult.Elements == null)
+            {
+                // error null result elements
+                return documents;
+            }
+
             foreach (var result in searchResult.Elements)
             {
                 if (!this.IsElementValid(result))

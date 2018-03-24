@@ -2,6 +2,10 @@
 {
     public class SuggestedDocument
     {
+        public SuggestedDocument()
+        {
+        }
+
         public SuggestedDocument(ISearchResultElement searchResultElement)
         {
             this.Title = searchResultElement.Title;
