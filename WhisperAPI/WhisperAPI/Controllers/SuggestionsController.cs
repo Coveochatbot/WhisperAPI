@@ -23,7 +23,7 @@ namespace WhisperAPI.Controllers
                 return this.BadRequest();
             }
 
-            return this.Ok(this._suggestionsService.GetSuggestion(searchQuerry.Querry).ToList());
+            return this.Ok(this._suggestionsService.GetSuggestions(searchQuerry.Querry).ToList());
         }
     }
 }

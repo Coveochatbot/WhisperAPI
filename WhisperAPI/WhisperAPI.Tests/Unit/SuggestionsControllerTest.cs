@@ -18,8 +18,6 @@ namespace WhisperAPI.Tests.Unit
         private Mock<ISuggestionsService> _suggestionServiceMock;
         private SuggestionsController _suggestionController;
 
-        private List<SuggestedDocument> _expectedResult;
-
         [SetUp]
         public void SetUp()
         {
@@ -77,12 +75,12 @@ namespace WhisperAPI.Tests.Unit
         [TestCase(1)]
         [TestCase(2)]
         [TestCase(3)]
-        public void Receive_invalid_or_null_searchQuerry_then_return_bad_request(int invalidQuerryIndex)
+        public void When_receive_invalid_or_null_searchQuerry_then_return_bad_request(int invalidQuerryIndex)
         {
             this._suggestionServiceMock = new Mock<ISuggestionsService>();
             this._suggestionServiceMock
-                .Setup(x => x.GetSuggestion(It.IsAny<string>()))
-                .Returns(this._expectedResult);
+                .Setup(x => x.GetSuggestions(It.IsAny<string>()))
+                .Returns(this.GetListOfDocuments());
 
             this._suggestionController = new SuggestionsController(this._suggestionServiceMock.Object);
 
@@ -91,16 +89,16 @@ namespace WhisperAPI.Tests.Unit
 
         [Test]
         [TestCase(0)]
-        public void Receive_valid_searchQuerry_then_return_Ok_request(int validQuerryIndex)
+        public void When_receive_valid_searchQuerry_then_return_Ok_request(int validQuerryIndex)
         {
             this._suggestionServiceMock = new Mock<ISuggestionsService>();
             this._suggestionServiceMock
-                .Setup(x => x.GetSuggestion(It.IsAny<string>()))
-                .Returns(this._expectedResult);
+                .Setup(x => x.GetSuggestions(It.IsAny<string>()))
+                .Returns(this.GetListOfDocuments());
 
             this._suggestionController = new SuggestionsController(this._suggestionServiceMock.Object);
 
-            this._suggestionController.GetSuggestions(this._validSearchQuerryList[validQuerryIndex]).Should().BeEquivalentTo(new OkObjectResult(this._expectedResult));
+            this._suggestionController.GetSuggestions(this._validSearchQuerryList[validQuerryIndex]).Should().BeEquivalentTo(new OkObjectResult(this.GetListOfDocuments()));
         }
     }
 }

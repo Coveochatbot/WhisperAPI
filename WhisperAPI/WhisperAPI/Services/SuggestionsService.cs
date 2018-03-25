@@ -12,7 +12,7 @@ namespace WhisperAPI.Services
             this._indexSearch = indexSearch;
         }
 
-        public IEnumerable<SuggestedDocument> GetSuggestion(string querry)
+        public IEnumerable<SuggestedDocument> GetSuggestions(string querry)
         {
             ISearchResult searchResult = this._indexSearch.Search(querry);
             var documents = new List<SuggestedDocument>();

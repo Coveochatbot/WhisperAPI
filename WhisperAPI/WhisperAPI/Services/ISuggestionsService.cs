@@ -5,6 +5,6 @@ namespace WhisperAPI.Services
 {
     public interface ISuggestionsService
     {
-        IEnumerable<SuggestedDocument> GetSuggestion(string querry);
+        IEnumerable<SuggestedDocument> GetSuggestions(string querry);
     }
 }

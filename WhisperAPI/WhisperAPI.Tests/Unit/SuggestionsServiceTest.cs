@@ -8,7 +8,7 @@ using WhisperAPI.Services;
 namespace WhisperAPI.Tests.Unit
 {
     [TestFixture]
-    public class SuggestionServiceTest
+    public class SuggestionsServiceTest
     {
         private ISuggestionsService _suggestionsServiceValid;
         private ISuggestionsService _suggestionsServiceEmpty;
@@ -117,23 +117,23 @@ namespace WhisperAPI.Tests.Unit
 
         [Test]
         [TestCase("test")]
-        public void Receive_valid_searchresult_from_search_then_return_list_of_suggestedDocuments(string suggestion)
+        public void When_receive_valid_searchresult_from_search_then_return_list_of_suggestedDocuments(string suggestion)
         {
-            this._suggestionsServiceValid.GetSuggestion(suggestion).Should().BeEquivalentTo(this._suggestedDocumentOk);
+            this._suggestionsServiceValid.GetSuggestions(suggestion).Should().BeEquivalentTo(this._suggestedDocumentOk);
         }
 
         [Test]
         [TestCase("test")]
-        public void Receive_empty_searchresult_from_search_then_return_empty_list_of_suggestedDocuments(string suggestion)
+        public void When_receive_empty_searchresult_from_search_then_return_empty_list_of_suggestedDocuments(string suggestion)
         {
-            this._suggestionsServiceEmpty.GetSuggestion(suggestion).Should().BeEquivalentTo(new List<SuggestedDocument>());
+            this._suggestionsServiceEmpty.GetSuggestions(suggestion).Should().BeEquivalentTo(new List<SuggestedDocument>());
         }
 
         [Test]
         [TestCase("test")]
-        public void Receive_null_searchresult_from_search_then_return_empty_list_of_suggestedDocuments(string suggestion)
+        public void When_receive_null_searchresult_from_search_then_return_empty_list_of_suggestedDocuments(string suggestion)
         {
-            this._suggestionsServiceNull.GetSuggestion(suggestion).Should().BeEquivalentTo(new List<SuggestedDocument>());
+            this._suggestionsServiceNull.GetSuggestions(suggestion).Should().BeEquivalentTo(new List<SuggestedDocument>());
         }
     }
 }

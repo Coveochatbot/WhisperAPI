@@ -23,7 +23,7 @@ namespace WhisperAPI.Tests.Unit
            this._httpMessageHandler = new Mock<HttpMessageHandler>();
         }
 
-        public SearchResult GetList()
+        public SearchResult GetSearchResult()
         {
             return new SearchResult
             {
@@ -73,7 +73,7 @@ namespace WhisperAPI.Tests.Unit
 
         [Test]
         [TestCase("test")]
-        public void Receive_ok_response_from_post_then_return_result(string querry)
+        public void When_receive_ok_response_from_post_then_return_result_correctly(string querry)
         {
             this._httpMessageHandler.Protected()
                 .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
@@ -86,12 +86,12 @@ namespace WhisperAPI.Tests.Unit
             this._httpClient = new HttpClient(this._httpMessageHandler.Object);
             IIndexSearch indexSearchOK = new IndexSearch(null, this._httpClient);
 
-            indexSearchOK.Search(querry).Should().BeEquivalentTo(this.GetList());
+            indexSearchOK.Search(querry).Should().BeEquivalentTo(this.GetSearchResult());
         }
 
         [Test]
         [TestCase("test")]
-        public void Receive_not_found_response_from_post_then_return_null(string querry)
+        public void When_receive_not_found_response_from_post_then_return_null(string querry)
         {
             this._httpMessageHandler.Protected()
                 .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
@@ -109,7 +109,7 @@ namespace WhisperAPI.Tests.Unit
 
         [Test]
         [TestCase("test")]
-        public void Receive_ok_response_with_empty_content_from_post_then_return_null(string querry)
+        public void When_receive_ok_response_with_empty_content_from_post_then_return_null(string querry)
         {
             this._httpMessageHandler.Protected()
                 .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())

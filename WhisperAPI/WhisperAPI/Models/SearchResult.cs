@@ -5,10 +5,12 @@ namespace WhisperAPI.Models
 {
     public class SearchResult : ISearchResult
     {
+        [JsonProperty("results")]
+        private IEnumerable<SearchResultElement> _elements;
+
         [JsonProperty("totalCount")]
         public int NbrElements { get; set; }
 
-        [JsonProperty("results")]
-        public IEnumerable<ISearchResultElement> Elements { get; set; }
+        public IEnumerable<ISearchResultElement> Elements { get => this._elements; set => this._elements = (IEnumerable<SearchResultElement>)value; }
     }
 }
