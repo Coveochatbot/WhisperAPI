@@ -20,6 +20,19 @@ namespace WhisperAPI
 
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
+            services.AddCors(options =>
+            {
+                options.AddPolicy(
+                    "AllowAll",
+                    builder =>
+                    {
+                        builder
+                            .AllowAnyOrigin()
+                            .AllowAnyMethod()
+                            .AllowAnyHeader()
+                            .AllowCredentials();
+                    });
+            });
             services.AddMvc();
 
             var applicationSettings = new ApplicationSettings();
@@ -48,7 +61,7 @@ namespace WhisperAPI
             }
 
             app.UseStaticFiles();
-
+            app.UseCors("AllowAll");
             app.UseMvc();
         }
     }
