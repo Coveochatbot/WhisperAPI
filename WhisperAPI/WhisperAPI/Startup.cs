@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using StructureMap;
 using WhisperAPI.Registries;
+using WhisperAPI.Settings;
 
 namespace WhisperAPI
 {
@@ -21,11 +22,14 @@ namespace WhisperAPI
         {
             services.AddMvc();
 
+            var applicationSettings = new ApplicationSettings();
+            this.Configuration.Bind(applicationSettings);
+
             var container = new Container();
 
             container.Configure(config =>
             {
-                config.AddRegistry(new WhisperApiRegistry());
+                config.AddRegistry(new WhisperApiRegistry(applicationSettings.ApiKey));
                 config.Populate(services);
             });
 
