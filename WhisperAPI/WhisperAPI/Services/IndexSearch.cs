@@ -1,5 +1,6 @@
 ﻿using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text;
 using Newtonsoft.Json;
 using WhisperAPI.Models;
 
@@ -43,7 +44,7 @@ namespace WhisperAPI.Services
             // sanitize
             querry.Replace("\"", string.Empty);
 
-            return new StringContent($"{{\"lq\" : \"{querry}\"}}");
+            return new StringContent($"{{\"lq\": \"{querry}\"}}", Encoding.UTF8, "application/json");
         }
 
         private void InitHttpClient()
