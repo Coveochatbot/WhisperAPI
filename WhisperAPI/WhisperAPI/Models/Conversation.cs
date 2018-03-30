@@ -5,9 +5,14 @@ namespace WhisperAPI.Models
 {
     public class Conversation
     {
-        public string ChatKey { get; set; }
+        public Conversation(string chatkey, DateTime dateTime)
+        {
+            this.ChatKey = chatkey;
+        }
 
-        public DateTime StartDate { get; set; }
+        public string ChatKey { get; }
+
+        public DateTime StartDate { get; }
 
         public IEnumerable<ConversationMessage> Messages { get; set; }
     }
