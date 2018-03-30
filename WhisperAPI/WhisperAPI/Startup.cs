@@ -1,10 +1,12 @@
 ﻿using System;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using StructureMap;
 using WhisperAPI.Registries;
+using WhisperAPI.Services;
 using WhisperAPI.Settings;
 
 namespace WhisperAPI
@@ -33,6 +35,7 @@ namespace WhisperAPI
                             .AllowCredentials();
                     });
             });
+            services.AddDbContext<ConversationContext>(options => options.UseInMemoryDatabase("conversationDB"));
             services.AddMvc();
 
             var applicationSettings = new ApplicationSettings();
