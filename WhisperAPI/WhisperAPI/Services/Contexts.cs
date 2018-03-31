@@ -21,7 +21,7 @@ namespace WhisperAPI.Services
             get
             {
                 ConversationContext conversationContext = this.ConversationContext
-                    .First(x => x.ChatKey == chatkey);
+                    .FirstOrDefault(x => x.ChatKey == chatkey);
 
                 if (conversationContext == null)
                 {

@@ -16,7 +16,7 @@ namespace WhisperAPI.Models
         }
 
         [Key]
-        public string ChatKey { get; }
+        public string ChatKey { get; set; }
 
         public DateTime StartDate { get; set; }
     }
