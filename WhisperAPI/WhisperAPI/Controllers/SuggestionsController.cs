@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using WhisperAPI.Models;
 using WhisperAPI.Services;
+using static WhisperAPI.Models.SearchQuerry;
 
 namespace WhisperAPI.Controllers
 {
@@ -18,7 +19,7 @@ namespace WhisperAPI.Controllers
         [HttpPost]
         public IActionResult GetSuggestions([FromBody] SearchQuerry searchQuerry)
         {
-            if (searchQuerry?.ChatKey == null || searchQuerry?.Querry == null)
+            if (searchQuerry?.ChatKey == null || searchQuerry?.Querry == null || searchQuerry?.Type == MessageType.Error)
             {
                 return this.BadRequest();
             }
