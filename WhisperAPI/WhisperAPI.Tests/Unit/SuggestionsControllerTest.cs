@@ -6,6 +6,7 @@ using NUnit.Framework;
 using WhisperAPI.Controllers;
 using WhisperAPI.Models;
 using WhisperAPI.Services;
+using static WhisperAPI.Models.SearchQuerry;
 
 namespace WhisperAPI.Tests.Unit
 {
@@ -24,14 +25,15 @@ namespace WhisperAPI.Tests.Unit
             this._invalidSearchQuerryList = new List<SearchQuerry>
             {
                 null,
-                new SearchQuerry { ChatKey = null, Querry = null },
-                new SearchQuerry { ChatKey = "chatKey", Querry = null },
-                new SearchQuerry { ChatKey = null, Querry = "test" }
+                new SearchQuerry { ChatKey = null, Querry = null, Type = MessageType.Error },
+                new SearchQuerry { ChatKey = "chatKey", Querry = null, Type = MessageType.Chasitor },
+                new SearchQuerry { ChatKey = null, Querry = "test",  Type = MessageType.Chasitor },
+                new SearchQuerry { ChatKey = "chatKey", Querry = "test",  Type = MessageType.Error }
             };
 
             this._validSearchQuerryList = new List<SearchQuerry>
             {
-                 new SearchQuerry { ChatKey = "chatKey", Querry = "test" }
+                 new SearchQuerry { ChatKey = "chatKey", Querry = "test", Type = MessageType.Chasitor }
             };
         }
 
@@ -75,6 +77,7 @@ namespace WhisperAPI.Tests.Unit
         [TestCase(1)]
         [TestCase(2)]
         [TestCase(3)]
+        [TestCase(4)]
         public void When_receive_invalid_or_null_searchQuerry_then_return_bad_request(int invalidQuerryIndex)
         {
             this._suggestionServiceMock = new Mock<ISuggestionsService>();
