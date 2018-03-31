@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using StructureMap;
 using WhisperAPI.Registries;
+using WhisperAPI.Settings;
 
 namespace WhisperAPI
 {
@@ -19,13 +20,29 @@ namespace WhisperAPI
 
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
+            services.AddCors(options =>
+            {
+                options.AddPolicy(
+                    "AllowAll",
+                    builder =>
+                    {
+                        builder
+                            .AllowAnyOrigin()
+                            .AllowAnyMethod()
+                            .AllowAnyHeader()
+                            .AllowCredentials();
+                    });
+            });
             services.AddMvc();
+
+            var applicationSettings = new ApplicationSettings();
+            this.Configuration.Bind(applicationSettings);
 
             var container = new Container();
 
             container.Configure(config =>
             {
-                config.AddRegistry(new WhisperApiRegistry());
+                config.AddRegistry(new WhisperApiRegistry(applicationSettings.ApiKey));
                 config.Populate(services);
             });
 
@@ -44,7 +61,7 @@ namespace WhisperAPI
             }
 
             app.UseStaticFiles();
-
+            app.UseCors("AllowAll");
             app.UseMvc();
         }
     }
