@@ -35,7 +35,7 @@ namespace WhisperAPI
                             .AllowCredentials();
                     });
             });
-            services.AddDbContext<ConversationContext>(options => options.UseInMemoryDatabase("conversationDB"));
+            services.AddDbContext<Contexts>(options => options.UseInMemoryDatabase("contextDB"));
             services.AddMvc();
 
             var applicationSettings = new ApplicationSettings();
