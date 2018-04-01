@@ -3,27 +3,117 @@ using FluentAssertions;
 using Moq;
 using NUnit.Framework;
 using WhisperAPI.Models;
+using WhisperAPI.Models.NLPAPI;
 using WhisperAPI.Services;
+using WhisperAPI.Tests.Data.Builders;
 
 namespace WhisperAPI.Tests.Unit
 {
     [TestFixture]
     public class SuggestionsServiceTest
     {
-        private ISuggestionsService _suggestionsServiceValid;
-        private ISuggestionsService _suggestionsServiceEmpty;
-        private ISuggestionsService _suggestionsServiceNull;
+        private ISuggestionsService _suggestionsService;
 
-        private Mock<IIndexSearch> _indexSearchValid;
-        private Mock<IIndexSearch> _indexSearchEmpty;
-        private Mock<IIndexSearch> _indexSearchNull;
-
-        private List<SuggestedDocument> _suggestedDocumentOk;
+        private Mock<IIndexSearch> _indexSearchMock;
+        private Mock<INlpCall> _nlpCallMock;
 
         [SetUp]
         public void SetUp()
         {
-            var searchResult = new SearchResult
+            this._indexSearchMock = new Mock<IIndexSearch>();
+            this._nlpCallMock = new Mock<INlpCall>();
+
+            this._suggestionsService = new SuggestionsService(this._indexSearchMock.Object, this._nlpCallMock.Object, this.GetIntentsNotRelevents());
+        }
+
+        [Test]
+        [TestCase("test")]
+        public void When_receive_valid_searchresult_from_search_then_return_list_of_suggestedDocuments(string querry)
+        {
+            var intents = new List<Intent>
+            {
+                new IntentBuilder().WithName("Need Help").Build()
+            };
+
+            var nlpAnalysis = new NlpAnalysisBuilder().WithIntents(intents).Build();
+
+            this._indexSearchMock
+                .Setup(x => x.Search(It.IsAny<string>()))
+                .Returns(this.GetSearchResult());
+
+            this._nlpCallMock
+                .Setup(x => x.GetNlpAnalyses(It.IsAny<string>()))
+                .Returns(nlpAnalysis);
+
+            this._suggestionsService.GetSuggestions(querry).Should().BeEquivalentTo(this.GetSuggestedDocuments());
+        }
+
+        [Test]
+        [TestCase("test")]
+        public void When_receive_empty_searchresult_from_search_then_return_empty_list_of_suggestedDocuments(string querry)
+        {
+            var intents = new List<Intent>
+            {
+                new IntentBuilder().WithName("Need Help").Build()
+            };
+
+            var nlpAnalysis = new NlpAnalysisBuilder().WithIntents(intents).Build();
+
+            this._indexSearchMock
+                .Setup(x => x.Search(It.IsAny<string>()))
+                .Returns(new SearchResult());
+
+            this._nlpCallMock
+                .Setup(x => x.GetNlpAnalyses(It.IsAny<string>()))
+                .Returns(nlpAnalysis);
+
+            this._suggestionsService.GetSuggestions(querry).Should().BeEquivalentTo(new List<SuggestedDocument>());
+        }
+
+        [Test]
+        [TestCase("test")]
+        public void When_receive_null_searchresult_from_search_then_return_empty_list_of_suggestedDocuments(string querry)
+        {
+            var intents = new List<Intent>
+            {
+                new IntentBuilder().WithName("Need Help").Build()
+            };
+
+            var nlpAnalysis = new NlpAnalysisBuilder().WithIntents(intents).Build();
+
+            this._indexSearchMock
+                .Setup(x => x.Search(It.IsAny<string>()))
+                .Returns((ISearchResult)null);
+
+            this._nlpCallMock
+                .Setup(x => x.GetNlpAnalyses(It.IsAny<string>()))
+                .Returns(nlpAnalysis);
+
+            this._suggestionsService.GetSuggestions(querry).Should().BeEquivalentTo(new List<SuggestedDocument>());
+        }
+
+        [Test]
+        [TestCase("test")]
+        public void When_receive_intent_irrelevant_then_returns_empty_list_of_suggestedDocuments(string querry)
+        {
+            var intents = new List<Intent>
+            {
+                new IntentBuilder().WithName("Need help").Build(),
+                new IntentBuilder().WithName("Greetings").Build()
+            };
+
+            var nlpAnalysis = new NlpAnalysisBuilder().WithIntents(intents).Build();
+
+            this._nlpCallMock
+                .Setup(x => x.GetNlpAnalyses(It.IsAny<string>()))
+                .Returns(nlpAnalysis);
+
+            this._suggestionsService.GetSuggestions(querry).Should().BeEquivalentTo(new List<SuggestedDocument>());
+        }
+
+        public SearchResult GetSearchResult()
+        {
+            return new SearchResult
             {
                 NbrElements = 4,
                 Elements = new List<SearchResultElement>
@@ -62,8 +152,11 @@ namespace WhisperAPI.Tests.Unit
                     }
                 }
             };
+        }
 
-            this._suggestedDocumentOk = new List<SuggestedDocument>
+        public List<SuggestedDocument> GetSuggestedDocuments()
+        {
+            return new List<SuggestedDocument>
             {
                 new SuggestedDocument
                 {
@@ -94,46 +187,14 @@ namespace WhisperAPI.Tests.Unit
                     Summary = null
                 }
             };
-
-            this._indexSearchValid = new Mock<IIndexSearch>();
-            this._indexSearchValid
-                .Setup(x => x.Search(It.IsAny<string>()))
-                .Returns(searchResult);
-
-            this._indexSearchEmpty = new Mock<IIndexSearch>();
-            this._indexSearchEmpty
-                .Setup(x => x.Search(It.IsAny<string>()))
-                .Returns((ISearchResult)null);
-
-            this._indexSearchNull = new Mock<IIndexSearch>();
-            this._indexSearchNull
-                .Setup(x => x.Search(It.IsAny<string>()))
-                .Returns((ISearchResult)null);
-
-            this._suggestionsServiceValid = new SuggestionsService(this._indexSearchValid.Object);
-            this._suggestionsServiceEmpty = new SuggestionsService(this._indexSearchEmpty.Object);
-            this._suggestionsServiceNull = new SuggestionsService(this._indexSearchNull.Object);
         }
 
-        [Test]
-        [TestCase("test")]
-        public void When_receive_valid_searchresult_from_search_then_return_list_of_suggestedDocuments(string suggestion)
+        public List<string> GetIntentsNotRelevents()
         {
-            this._suggestionsServiceValid.GetSuggestions(suggestion).Should().BeEquivalentTo(this._suggestedDocumentOk);
-        }
-
-        [Test]
-        [TestCase("test")]
-        public void When_receive_empty_searchresult_from_search_then_return_empty_list_of_suggestedDocuments(string suggestion)
-        {
-            this._suggestionsServiceEmpty.GetSuggestions(suggestion).Should().BeEquivalentTo(new List<SuggestedDocument>());
-        }
-
-        [Test]
-        [TestCase("test")]
-        public void When_receive_null_searchresult_from_search_then_return_empty_list_of_suggestedDocuments(string suggestion)
-        {
-            this._suggestionsServiceNull.GetSuggestions(suggestion).Should().BeEquivalentTo(new List<SuggestedDocument>());
+            return new List<string>
+            {
+                "Greetings"
+            };
         }
     }
 }

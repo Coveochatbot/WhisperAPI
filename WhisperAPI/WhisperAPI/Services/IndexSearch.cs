@@ -27,23 +27,13 @@ namespace WhisperAPI.Services
         {
             this.InitHttpClient();
             HttpResponseMessage response = this._httpClient.PostAsync(url, content).Result;
+            response.EnsureSuccessStatusCode();
 
-            if (response.IsSuccessStatusCode)
-            {
-                return response.Content.ReadAsStringAsync().Result;
-            }
-            else
-            {
-                // throw error
-                return string.Empty;
-            }
+            return response.Content.ReadAsStringAsync().Result;
         }
 
         private StringContent CreateStringContent(string querry)
         {
-            // sanitize
-            querry.Replace("\"", string.Empty);
-
             return new StringContent($"{{\"lq\": \"{querry}\"}}", Encoding.UTF8, "application/json");
         }
 
