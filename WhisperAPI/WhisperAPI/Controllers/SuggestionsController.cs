@@ -6,11 +6,12 @@ using WhisperAPI.Services;
 namespace WhisperAPI.Controllers
 {
     [Route("/Whisper/[Controller]")]
-    public class SuggestionsController : Controller
+    public class SuggestionsController : ContextController
     {
         private readonly ISuggestionsService _suggestionsService;
 
-        public SuggestionsController(ISuggestionsService suggestionsService)
+        public SuggestionsController(ISuggestionsService suggestionsService, Contexts contexts)
+            : base(contexts)
         {
             this._suggestionsService = suggestionsService;
         }
