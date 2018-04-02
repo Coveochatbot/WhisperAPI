@@ -37,7 +37,7 @@ namespace WhisperAPI.Services
 
         public IEnumerable<ConversationContext> RemoveContextOlderThan(TimeSpan timeSpan)
         {
-            IEnumerable<ConversationContext> removedContexts = this.ConversationContext.Where(x => (x.StartDate - DateTime.Now) > timeSpan);
+            IEnumerable<ConversationContext> removedContexts = this.ConversationContext.Where(x => ((DateTime.Now - x.StartDate) > timeSpan)).ToList();
 
             foreach (var context in removedContexts)
             {
