@@ -19,7 +19,7 @@ namespace WhisperAPI.Tests.Unit
 
         public DateTime GetDate()
         {
-            return new DateTime(2000, 01, 01, 0, 0, 0);
+            return new DateTime(2000, 10, 03, 1, 3, 59);
         }
 
         [SetUp]

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using WhisperAPI.Models;
@@ -32,6 +33,20 @@ namespace WhisperAPI.Services
 
                 return conversationContext;
             }
+        }
+
+        public IEnumerable<ConversationContext> RemoveContextOlderThan(TimeSpan timeSpan)
+        {
+            IEnumerable<ConversationContext> removedContexts = this.ConversationContext.Where(x => (x.StartDate - DateTime.Now) > timeSpan);
+
+            foreach (var context in removedContexts)
+            {
+                this.ConversationContext.Remove(context);
+            }
+
+            this.SaveChangesAsync();
+
+            return removedContexts;
         }
     }
 }
