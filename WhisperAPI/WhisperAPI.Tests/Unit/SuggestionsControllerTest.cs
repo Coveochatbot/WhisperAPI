@@ -82,7 +82,7 @@ namespace WhisperAPI.Tests.Unit
                 .Setup(x => x.GetSuggestions(It.IsAny<string>()))
                 .Returns(this.GetListOfDocuments());
 
-            this._suggestionController = new SuggestionsController(this._suggestionServiceMock.Object);
+            this._suggestionController = new SuggestionsController(this._suggestionServiceMock.Object, null);
 
             this._suggestionController.GetSuggestions(this._invalidSearchQuerryList[invalidQuerryIndex]).Should().BeEquivalentTo(new BadRequestResult());
         }
@@ -96,7 +96,7 @@ namespace WhisperAPI.Tests.Unit
                 .Setup(x => x.GetSuggestions(It.IsAny<string>()))
                 .Returns(this.GetListOfDocuments());
 
-            this._suggestionController = new SuggestionsController(this._suggestionServiceMock.Object);
+            this._suggestionController = new SuggestionsController(this._suggestionServiceMock.Object, null);
 
             this._suggestionController.GetSuggestions(this._validSearchQuerryList[validQuerryIndex]).Should().BeEquivalentTo(new OkObjectResult(this.GetListOfDocuments()));
         }
