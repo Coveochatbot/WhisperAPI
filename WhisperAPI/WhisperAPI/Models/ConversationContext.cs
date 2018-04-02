@@ -10,9 +10,10 @@ namespace WhisperAPI.Models
         {
         }
 
-        public ConversationContext(string chatkey)
+        public ConversationContext(string chatkey, DateTime datetime)
         {
             this.ChatKey = chatkey;
+            this.StartDate = datetime;
         }
 
         [Key]

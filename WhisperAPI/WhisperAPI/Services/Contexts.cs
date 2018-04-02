@@ -25,7 +25,7 @@ namespace WhisperAPI.Services
 
                 if (conversationContext == null)
                 {
-                    conversationContext = new ConversationContext(chatkey);
+                    conversationContext = new ConversationContext(chatkey, DateTime.Now);
                     this.Add(conversationContext);
                     this.SaveChangesAsync();
                 }
