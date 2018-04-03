@@ -8,7 +8,7 @@ namespace WhisperAPI.Models
         public enum MessageType
         {
             Error = 0,
-            Chasitor = 1,
+            Visitor = 1,
             Agent = 2
         }
 

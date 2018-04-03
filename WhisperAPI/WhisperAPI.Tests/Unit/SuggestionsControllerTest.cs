@@ -26,14 +26,14 @@ namespace WhisperAPI.Tests.Unit
             {
                 null,
                 new SearchQuerry { ChatKey = null, Querry = null, Type = MessageType.Error },
-                new SearchQuerry { ChatKey = "chatKey", Querry = null, Type = MessageType.Chasitor },
-                new SearchQuerry { ChatKey = null, Querry = "test",  Type = MessageType.Chasitor },
+                new SearchQuerry { ChatKey = "chatKey", Querry = null, Type = MessageType.Visitor },
+                new SearchQuerry { ChatKey = null, Querry = "test",  Type = MessageType.Visitor },
                 new SearchQuerry { ChatKey = "chatKey", Querry = "test",  Type = MessageType.Error }
             };
 
             this._validSearchQuerryList = new List<SearchQuerry>
             {
-                 new SearchQuerry { ChatKey = "chatKey", Querry = "test", Type = MessageType.Chasitor }
+                 new SearchQuerry { ChatKey = "chatKey", Querry = "test", Type = MessageType.Visitor }
             };
         }
 
