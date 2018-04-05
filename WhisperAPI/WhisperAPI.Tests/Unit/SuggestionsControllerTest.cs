@@ -25,15 +25,15 @@ namespace WhisperAPI.Tests.Unit
             this._invalidSearchQuerryList = new List<SearchQuerry>
             {
                 null,
-                new SearchQuerry { ChatKey = null, Querry = null, Type = MessageType.Error },
-                new SearchQuerry { ChatKey = "chatKey", Querry = null, Type = MessageType.Visitor },
-                new SearchQuerry { ChatKey = null, Querry = "test",  Type = MessageType.Visitor },
-                new SearchQuerry { ChatKey = "chatKey", Querry = "test",  Type = MessageType.Error }
+                new SearchQuerry { ChatKey = null, Querry = null, Type = MessageType.Customer },
+                new SearchQuerry { ChatKey = "chatKey", Querry = null, Type = MessageType.Agent },
+                new SearchQuerry { ChatKey = null, Querry = "test",  Type = MessageType.Customer },
             };
 
             this._validSearchQuerryList = new List<SearchQuerry>
             {
-                 new SearchQuerry { ChatKey = "chatKey", Querry = "test", Type = MessageType.Visitor }
+                 new SearchQuerry { ChatKey = "chatKey", Querry = "test", Type = MessageType.Customer },
+                 new SearchQuerry { ChatKey = "chatKey", Querry = "test", Type = MessageType.Agent }
             };
         }
 
@@ -77,7 +77,6 @@ namespace WhisperAPI.Tests.Unit
         [TestCase(1)]
         [TestCase(2)]
         [TestCase(3)]
-        [TestCase(4)]
         public void When_receive_invalid_or_null_searchQuerry_then_return_bad_request(int invalidQuerryIndex)
         {
             this._suggestionServiceMock = new Mock<ISuggestionsService>();
@@ -92,6 +91,7 @@ namespace WhisperAPI.Tests.Unit
 
         [Test]
         [TestCase(0)]
+        [TestCase(1)]
         public void When_receive_valid_searchQuerry_then_return_Ok_request(int validQuerryIndex)
         {
             this._suggestionServiceMock = new Mock<ISuggestionsService>();

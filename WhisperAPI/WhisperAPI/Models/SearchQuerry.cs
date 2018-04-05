@@ -7,9 +7,8 @@ namespace WhisperAPI.Models
     {
         public enum MessageType
         {
-            Error = 0,
-            Visitor = 1,
-            Agent = 2
+            Customer = 0,
+            Agent = 1
         }
 
         [JsonProperty("chatkey")]
