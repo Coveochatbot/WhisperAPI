@@ -17,7 +17,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Data\Builders\" />
     <Folder Include="Integration\" />
     <AdditionalFiles Include="../stylecop.json" />
   </ItemGroup>

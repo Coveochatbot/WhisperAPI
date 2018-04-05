@@ -91,7 +91,7 @@ namespace WhisperAPI.Tests.Unit
 
         [Test]
         [TestCase("test")]
-        public void When_receive_not_found_response_from_post_then_return_null(string querry)
+        public void When_receive_not_found_response_from_post_then_throws_exception(string querry)
         {
             this._httpMessageHandler.Protected()
                 .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
@@ -104,7 +104,7 @@ namespace WhisperAPI.Tests.Unit
             this._httpClient = new HttpClient(this._httpMessageHandler.Object);
             IIndexSearch indexSearchNotFound = new IndexSearch(null, this._httpClient);
 
-            indexSearchNotFound.Search(querry).Should().BeEquivalentTo((SearchResult)null);
+            Assert.Throws<HttpRequestException>(() => indexSearchNotFound.Search(querry));
         }
 
         [Test]
