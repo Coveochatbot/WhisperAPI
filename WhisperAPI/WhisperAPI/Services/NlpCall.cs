@@ -17,11 +17,11 @@ namespace WhisperAPI.Services
         {
             this._httpClient = httpClient;
             this._baseAdress = baseAdress;
+            this.InitHttpClient();
         }
 
         public NlpAnalysis GetNlpAnalysis(string sentence)
         {
-            this.InitHttpClient();
             var response = this._httpClient.PostAsync("NLP/Analyse", CreateStringContent(sentence)).Result;
             response.EnsureSuccessStatusCode();
 
