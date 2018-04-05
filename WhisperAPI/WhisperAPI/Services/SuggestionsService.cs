@@ -21,7 +21,7 @@ namespace WhisperAPI.Services
 
         public IEnumerable<SuggestedDocument> GetSuggestions(string querry)
         {
-            var nlpAnalysis = this._nlpCall.GetNlpAnalyses(querry);
+            var nlpAnalysis = this._nlpCall.GetNlpAnalysis(querry);
 
             // TODO: filter out the querry from lq when the intents matches the ones in the settings and when persistance will be done
             if (this.IsIntentRelevant(nlpAnalysis))

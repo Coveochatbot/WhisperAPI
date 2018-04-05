@@ -12,12 +12,9 @@ namespace WhisperAPI.Tests.Data.Builders
             return this;
         }
 
-        public Entity Build()
+        public Entity Build() => new Entity
         {
-            return new Entity
-            {
-                Name = this._name
-            };
-        }
+            Name = this._name
+        };
     }
 }

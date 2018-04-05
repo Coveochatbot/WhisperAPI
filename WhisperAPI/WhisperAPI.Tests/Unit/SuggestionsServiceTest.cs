@@ -23,7 +23,7 @@ namespace WhisperAPI.Tests.Unit
             this._indexSearchMock = new Mock<IIndexSearch>();
             this._nlpCallMock = new Mock<INlpCall>();
 
-            this._suggestionsService = new SuggestionsService(this._indexSearchMock.Object, this._nlpCallMock.Object, this.GetIntentsNotRelevents());
+            this._suggestionsService = new SuggestionsService(this._indexSearchMock.Object, this._nlpCallMock.Object, this.GetIrrelevantsIntents());
         }
 
         [Test]
@@ -42,7 +42,7 @@ namespace WhisperAPI.Tests.Unit
                 .Returns(this.GetSearchResult());
 
             this._nlpCallMock
-                .Setup(x => x.GetNlpAnalyses(It.IsAny<string>()))
+                .Setup(x => x.GetNlpAnalysis(It.IsAny<string>()))
                 .Returns(nlpAnalysis);
 
             this._suggestionsService.GetSuggestions(querry).Should().BeEquivalentTo(this.GetSuggestedDocuments());
@@ -64,7 +64,7 @@ namespace WhisperAPI.Tests.Unit
                 .Returns(new SearchResult());
 
             this._nlpCallMock
-                .Setup(x => x.GetNlpAnalyses(It.IsAny<string>()))
+                .Setup(x => x.GetNlpAnalysis(It.IsAny<string>()))
                 .Returns(nlpAnalysis);
 
             this._suggestionsService.GetSuggestions(querry).Should().BeEquivalentTo(new List<SuggestedDocument>());
@@ -86,7 +86,7 @@ namespace WhisperAPI.Tests.Unit
                 .Returns((ISearchResult)null);
 
             this._nlpCallMock
-                .Setup(x => x.GetNlpAnalyses(It.IsAny<string>()))
+                .Setup(x => x.GetNlpAnalysis(It.IsAny<string>()))
                 .Returns(nlpAnalysis);
 
             this._suggestionsService.GetSuggestions(querry).Should().BeEquivalentTo(new List<SuggestedDocument>());
@@ -94,18 +94,17 @@ namespace WhisperAPI.Tests.Unit
 
         [Test]
         [TestCase("test")]
-        public void When_receive_intent_irrelevant_then_returns_empty_list_of_suggestedDocuments(string querry)
+        public void When_receive_irrelevant_intent_then_returns_empty_list_of_suggestedDocuments(string querry)
         {
             var intents = new List<Intent>
             {
-                new IntentBuilder().WithName("Need help").Build(),
                 new IntentBuilder().WithName("Greetings").Build()
             };
 
             var nlpAnalysis = new NlpAnalysisBuilder().WithIntents(intents).Build();
 
             this._nlpCallMock
-                .Setup(x => x.GetNlpAnalyses(It.IsAny<string>()))
+                .Setup(x => x.GetNlpAnalysis(It.IsAny<string>()))
                 .Returns(nlpAnalysis);
 
             this._suggestionsService.GetSuggestions(querry).Should().BeEquivalentTo(new List<SuggestedDocument>());
@@ -189,7 +188,7 @@ namespace WhisperAPI.Tests.Unit
             };
         }
 
-        public List<string> GetIntentsNotRelevents()
+        public List<string> GetIrrelevantsIntents()
         {
             return new List<string>
             {

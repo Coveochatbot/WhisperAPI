@@ -8,6 +8,6 @@ namespace WhisperAPI.Settings
 
         public string NlpApiBaseAddress { get; set; }
 
-        public List<string> Intents { get; set; }
+        public List<string> IrrelevantsIntents { get; set; }
     }
 }

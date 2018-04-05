@@ -4,6 +4,6 @@ namespace WhisperAPI.Services
 {
     public interface INlpCall
     {
-        NlpAnalysis GetNlpAnalyses(string sentence);
+        NlpAnalysis GetNlpAnalysis(string sentence);
     }
 }

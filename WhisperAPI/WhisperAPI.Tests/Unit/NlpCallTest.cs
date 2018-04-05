@@ -50,7 +50,7 @@ namespace WhisperAPI.Tests.Unit
                     Content = new StringContent(JsonConvert.SerializeObject(nlpAnalysis))
                 }));
 
-            var result = this._nlpCall.GetNlpAnalyses(sentence);
+            var result = this._nlpCall.GetNlpAnalysis(sentence);
 
             result.Intents.Should().BeEquivalentTo(nlpAnalysis.Intents);
             result.Entities.Should().BeEquivalentTo(nlpAnalysis.Entities);
@@ -73,7 +73,7 @@ namespace WhisperAPI.Tests.Unit
                     Content = new StringContent(string.Empty)
                 }));
 
-            Assert.Throws<HttpRequestException>(() => this._nlpCall.GetNlpAnalyses(sentence));
+            Assert.Throws<HttpRequestException>(() => this._nlpCall.GetNlpAnalysis(sentence));
         }
 
         [Test]
@@ -93,7 +93,7 @@ namespace WhisperAPI.Tests.Unit
                     Content = new StringContent(string.Empty)
                 }));
 
-            Assert.Throws<HttpRequestException>(() => this._nlpCall.GetNlpAnalyses(sentence));
+            Assert.Throws<HttpRequestException>(() => this._nlpCall.GetNlpAnalysis(sentence));
         }
 
         [Test]
@@ -113,7 +113,7 @@ namespace WhisperAPI.Tests.Unit
                     Content = new StringContent(JsonConvert.SerializeObject(string.Empty))
                 }));
 
-            var result = this._nlpCall.GetNlpAnalyses(sentence);
+            var result = this._nlpCall.GetNlpAnalysis(sentence);
             result.Should().BeEquivalentTo((NlpAnalysis)null);
         }
     }

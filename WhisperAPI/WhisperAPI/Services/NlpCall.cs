@@ -19,12 +19,9 @@ namespace WhisperAPI.Services
             this._baseAdress = baseAdress;
         }
 
-        public NlpAnalysis GetNlpAnalyses(string sentence)
+        public NlpAnalysis GetNlpAnalysis(string sentence)
         {
-            this._httpClient.BaseAddress = new Uri(this._baseAdress);
-            this._httpClient.DefaultRequestHeaders.Accept.Clear();
-            this._httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
+            this.InitHttpClient();
             var response = this._httpClient.PostAsync("NLP/Analyse", CreateStringContent(sentence)).Result;
             response.EnsureSuccessStatusCode();
 
@@ -34,6 +31,13 @@ namespace WhisperAPI.Services
         private static StringContent CreateStringContent(string sentence)
         {
             return new StringContent($"{{\"sentence\": \"{sentence}\"}}", Encoding.UTF8, "application/json");
+        }
+
+        private void InitHttpClient()
+        {
+            this._httpClient.BaseAddress = new Uri(this._baseAdress);
+            this._httpClient.DefaultRequestHeaders.Accept.Clear();
+            this._httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
     }
 }
