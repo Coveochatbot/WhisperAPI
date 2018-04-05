@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using WhisperAPI.Models;
 using WhisperAPI.Models.NLPAPI;
 
@@ -10,20 +11,20 @@ namespace WhisperAPI.Services
 
         private readonly INlpCall _nlpCall;
 
-        private readonly List<string> _intents;
+        private readonly List<string> _irrelevantsIntents;
 
-        public SuggestionsService(IIndexSearch indexSearch, INlpCall nlpCall, List<string> intents)
+        public SuggestionsService(IIndexSearch indexSearch, INlpCall nlpCall, List<string> irrelevantsIntents)
         {
             this._indexSearch = indexSearch;
             this._nlpCall = nlpCall;
-            this._intents = intents;
+            this._irrelevantsIntents = irrelevantsIntents;
         }
 
         public IEnumerable<SuggestedDocument> GetSuggestions(string querry)
         {
             var nlpAnalysis = this._nlpCall.GetNlpAnalysis(querry);
 
-            // TODO: filter out the querry from lq when the intents matches the ones in the settings and when persistance will be done
+            // TODO: filter out the querry from lq when the irrelevantsIntents matches the ones in the settings and when persistance will be done
             if (this.IsIntentRelevant(nlpAnalysis))
             {
                 return this.SearchCoveoIndex(querry);
@@ -62,18 +63,9 @@ namespace WhisperAPI.Services
 
         private bool IsIntentRelevant(NlpAnalysis nlpAnalysis)
         {
-            foreach (var intent in nlpAnalysis.Intents)
-            {
-                foreach (var intentToFilter in this._intents)
-                {
-                    if (intentToFilter == intent.Name)
-                    {
-                        return false;
-                    }
-                }
-            }
+            var mostConfidentIntent = nlpAnalysis.Intents.OrderByDescending(x => x.Confidence).First();
 
-            return true;
+            return !this._irrelevantsIntents.Contains(mostConfidentIntent.Name);
         }
 
         private bool IsElementValid(ISearchResultElement result)

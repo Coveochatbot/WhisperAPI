@@ -42,7 +42,7 @@ namespace WhisperAPI
 
             container.Configure(config =>
             {
-                config.AddRegistry(new WhisperApiRegistry(applicationSettings.ApiKey, applicationSettings.Intents, applicationSettings.NlpApiBaseAddress));
+                config.AddRegistry(new WhisperApiRegistry(applicationSettings.ApiKey, applicationSettings.IrrelevantsIntents, applicationSettings.NlpApiBaseAddress));
                 config.Populate(services);
             });
 
