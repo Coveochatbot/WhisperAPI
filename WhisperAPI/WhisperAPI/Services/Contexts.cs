@@ -42,9 +42,10 @@ namespace WhisperAPI.Services
 
         public List<ConversationContext> RemoveOldContext()
         {
-            List<ConversationContext> removedContexts = this.ConversationContexts.Where(x => ((DateTime.Now - x.StartDate) > this.ContextLifeSpan)).ToList();
             lock (this._removeOldLock)
             {
+                List<ConversationContext> removedContexts = this.ConversationContexts.Where(x => ((DateTime.Now - x.StartDate) > this.ContextLifeSpan)).ToList();
+
                 foreach (var context in removedContexts)
                 {
                     this.ConversationContexts.Remove(context);
