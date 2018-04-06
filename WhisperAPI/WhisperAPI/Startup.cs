@@ -1,10 +1,12 @@
 ﻿using System;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using StructureMap;
 using WhisperAPI.Registries;
+using WhisperAPI.Services;
 using WhisperAPI.Settings;
 
 namespace WhisperAPI
@@ -33,6 +35,7 @@ namespace WhisperAPI
                             .AllowCredentials();
                     });
             });
+            services.AddDbContext<Contexts>(options => options.UseInMemoryDatabase("contextDB"));
             services.AddMvc();
 
             var applicationSettings = new ApplicationSettings();
@@ -42,7 +45,7 @@ namespace WhisperAPI
 
             container.Configure(config =>
             {
-                config.AddRegistry(new WhisperApiRegistry(applicationSettings.ApiKey, applicationSettings.IrrelevantsIntents, applicationSettings.NlpApiBaseAddress));
+                config.AddRegistry(new WhisperApiRegistry(applicationSettings.ApiKey, applicationSettings.IrrelevantsIntents, applicationSettings.NlpApiBaseAddress, applicationSettings.ContextLifeSpan));
                 config.Populate(services);
             });
 
