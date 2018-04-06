@@ -12,6 +12,10 @@ namespace WhisperAPI.Models
             this.StartDate = datetime;
         }
 
+        private ConversationContext()
+        {
+        }
+
         [Key]
         public Guid ChatKey { get; set; }
 
