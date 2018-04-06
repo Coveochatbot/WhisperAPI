@@ -20,7 +20,7 @@ namespace WhisperAPI.Controllers
         [HttpPost]
         public IActionResult GetSuggestions([FromBody] SearchQuerry searchQuerry)
         {
-            if (searchQuerry?.ChatKey == null || searchQuerry?.Querry == null)
+            if (!this.ModelState.IsValid || searchQuerry?.Querry == null)
             {
                 return this.BadRequest();
             }

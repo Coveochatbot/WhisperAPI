@@ -8,7 +8,7 @@ namespace WhisperAPI.Services
 {
     public class Contexts : DbContext
     {
-        private bool _removeOldLock = false;
+        private object _removeOldLock = new object();
 
         public Contexts(DbContextOptions<Contexts> options, TimeSpan contextLifeSpan)
             : base(options)
@@ -43,23 +43,17 @@ namespace WhisperAPI.Services
         public List<ConversationContext> RemoveOldContext()
         {
             List<ConversationContext> removedContexts = this.ConversationContexts.Where(x => ((DateTime.Now - x.StartDate) > this.ContextLifeSpan)).ToList();
-            if (this._removeOldLock)
+            lock (this._removeOldLock)
             {
-                // if lock is locked, still return the list of contexts that will be removed by the other thread
+                foreach (var context in removedContexts)
+                {
+                    this.ConversationContexts.Remove(context);
+                }
+
+                this.SaveChangesAsync();
+
                 return removedContexts;
             }
-
-            this._removeOldLock = true;
-
-            foreach (var context in removedContexts)
-            {
-                this.ConversationContexts.Remove(context);
-            }
-
-            this.SaveChangesAsync();
-            this._removeOldLock = false;
-
-            return removedContexts;
         }
     }
 }

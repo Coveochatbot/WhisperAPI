@@ -19,14 +19,13 @@ namespace WhisperAPI.Controllers
 
         public override void OnActionExecuting(ActionExecutingContext actionExecutingContext)
         {
-            var searchQuerry = (SearchQuerry)actionExecutingContext.ActionArguments["searchQuerry"];
-
-            if (searchQuerry?.ChatKey == null || searchQuerry?.Querry == null)
+            if (!this.ModelState.IsValid)
             {
-                actionExecutingContext.Result = this.BadRequest();
+                actionExecutingContext.Result = this.BadRequest(this.ModelState);
                 return;
             }
 
+            var searchQuerry = (SearchQuerry)actionExecutingContext.ActionArguments["searchQuerry"];
             Guid chatKey = searchQuerry.ChatKey;
             this.ConversationContext = this._contexts[chatKey];
 
