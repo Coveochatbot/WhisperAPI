@@ -6,18 +6,14 @@ namespace WhisperAPI.Models
 {
     public class ConversationContext
     {
-        public ConversationContext()
-        {
-        }
-
-        public ConversationContext(string chatkey, DateTime datetime)
+        public ConversationContext(Guid chatkey, DateTime datetime)
         {
             this.ChatKey = chatkey;
             this.StartDate = datetime;
         }
 
         [Key]
-        public string ChatKey { get; set; }
+        public Guid ChatKey { get; set; }
 
         public DateTime StartDate { get; set; }
     }

@@ -9,42 +9,39 @@ namespace WhisperAPI.Controllers
     public class ContextController : Controller
     {
         private Contexts _contexts;
-        private TimeSpan _contextLifeSpan;
-        private ConversationContext _conversationContext;
 
         public ContextController(Contexts contexts)
         {
             this._contexts = contexts;
-            this._contextLifeSpan = new TimeSpan(1, 0, 0, 0);
         }
 
-        public ContextController(Contexts contexts, TimeSpan contextLifeSpan)
+        protected ConversationContext ConversationContext { get; set; }
+
+        public override void OnActionExecuting(ActionExecutingContext actionExecutingContext)
         {
-            this._contexts = contexts;
-            this._contextLifeSpan = contextLifeSpan;
+            var searchQuerry = (SearchQuerry)actionExecutingContext.ActionArguments["searchQuerry"];
+
+            if (searchQuerry?.ChatKey == null || searchQuerry?.Querry == null)
+            {
+                actionExecutingContext.Result = this.BadRequest();
+                return;
+            }
+
+            Guid chatKey = searchQuerry.ChatKey;
+            this.ConversationContext = this._contexts[chatKey];
+
+            base.OnActionExecuting(actionExecutingContext);
         }
 
-        public TimeSpan ContextLifeSpan { get => this._contextLifeSpan; set => this._contextLifeSpan = value; }
-
-        protected ConversationContext ConversationContext { get => this._conversationContext; set => this._conversationContext = value; }
-
-        public override void OnActionExecuting(ActionExecutingContext context)
-        {
-            string chatKey = ((SearchQuerry)context.ActionArguments["searchQuerry"]).ChatKey;
-            this._conversationContext = this._contexts[chatKey];
-
-            base.OnActionExecuting(context);
-        }
-
-        public override void OnActionExecuted(ActionExecutedContext context)
+        public override void OnActionExecuted(ActionExecutedContext actionExecutedContext)
         {
             // Save changes that could have been made in controllers
             this._contexts.SaveChangesAsync();
 
             // Remove context older than the default timespan
-            this._contexts.RemoveContextOlderThan(this._contextLifeSpan);
+            this._contexts.RemoveOldContext();
 
-            base.OnActionExecuted(context);
+            base.OnActionExecuted(actionExecutedContext);
         }
     }
 }

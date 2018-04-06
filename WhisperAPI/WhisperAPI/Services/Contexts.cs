@@ -8,26 +8,31 @@ namespace WhisperAPI.Services
 {
     public class Contexts : DbContext
     {
-        public Contexts(DbContextOptions<Contexts> options)
+        private bool _removeOldLock = false;
+
+        public Contexts(DbContextOptions<Contexts> options, TimeSpan contextLifeSpan)
             : base(options)
         {
+            this.ContextLifeSpan = contextLifeSpan;
         }
 
-        private DbSet<ConversationContext> ConversationContext { get; set; }
+        public TimeSpan ContextLifeSpan { get; set; }
+
+        private DbSet<ConversationContext> ConversationContexts { get; set; }
 
         // Get the Conversation associated to the chatkey,
         // create a new one if doesn't already exist
-        public ConversationContext this[string chatkey]
+        public ConversationContext this[Guid chatkey]
         {
             get
             {
-                ConversationContext conversationContext = this.ConversationContext
+                ConversationContext conversationContext = this.ConversationContexts
                     .FirstOrDefault(x => x.ChatKey == chatkey);
 
                 if (conversationContext == null)
                 {
                     conversationContext = new ConversationContext(chatkey, DateTime.Now);
-                    this.Add(conversationContext);
+                    this.ConversationContexts.Add(conversationContext);
                     this.SaveChangesAsync();
                 }
 
@@ -35,16 +40,24 @@ namespace WhisperAPI.Services
             }
         }
 
-        public IEnumerable<ConversationContext> RemoveContextOlderThan(TimeSpan timeSpan)
+        public List<ConversationContext> RemoveOldContext()
         {
-            IEnumerable<ConversationContext> removedContexts = this.ConversationContext.Where(x => ((DateTime.Now - x.StartDate) > timeSpan)).ToList();
+            List<ConversationContext> removedContexts = this.ConversationContexts.Where(x => ((DateTime.Now - x.StartDate) > this.ContextLifeSpan)).ToList();
+            if (this._removeOldLock)
+            {
+                // if lock is locked, still return the list of contexts that will be removed by the other thread
+                return removedContexts;
+            }
+
+            this._removeOldLock = true;
 
             foreach (var context in removedContexts)
             {
-                this.ConversationContext.Remove(context);
+                this.ConversationContexts.Remove(context);
             }
 
             this.SaveChangesAsync();
+            this._removeOldLock = false;
 
             return removedContexts;
         }

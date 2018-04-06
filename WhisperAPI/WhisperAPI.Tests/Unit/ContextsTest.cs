@@ -12,71 +12,55 @@ namespace WhisperAPI.Tests.Unit
     public class ContextsTest
     {
         private Contexts _contexts;
-        private DateTime _startTime;
 
         public ContextsTest()
         {
-            this._contexts = new Contexts(new DbContextOptionsBuilder<Contexts>().UseInMemoryDatabase("contextDB").Options);
-            this._startTime = DateTime.Now;
-        }
-
-        [SetUp]
-        public void SetUp()
-        {
+            this._contexts = new Contexts(new DbContextOptionsBuilder<Contexts>().UseInMemoryDatabase("contextDB").Options, new TimeSpan(1, 0, 0, 0));
         }
 
         [Test]
         [Order(0)]
-        [TestCase("1")]
-        [TestCase("2")]
-        [TestCase("3")]
-        [TestCase("4")]
-        public void When_retrieving_non_existing_conversation_context_then_return_new_one_with_starttime_set_to_now(string chatkey)
+        [TestCase("0f8fad5b-d9cb-469f-a165-708677289501")]
+        [TestCase("0f8fad5b-d9cb-469f-a165-708677289502")]
+        public void When_retrieving_non_existing_conversation_context_then_return_new_one(string chatkey)
         {
-            ConversationContext conversationcontext = this._contexts[chatkey];
-            this._startTime = DateTime.Now;
+            ConversationContext conversationcontext = this._contexts[new Guid(chatkey)];
             this._contexts.SaveChangesAsync();
 
-            conversationcontext.ChatKey.Should().BeEquivalentTo(chatkey);
-            conversationcontext.StartDate.Should().BeCloseTo(this._startTime, 1000);
+            conversationcontext.ChatKey.Should().Be(chatkey);
         }
 
         [Test]
         [Order(1)]
-        [TestCase("1")]
-        [TestCase("2")]
-        [TestCase("3")]
-        [TestCase("4")]
+        [TestCase("0f8fad5b-d9cb-469f-a165-708677289501")]
+        [TestCase("0f8fad5b-d9cb-469f-a165-708677289502")]
         public void When_retrieving_existing_conversation_context_then_return_the_context(string chatkey)
         {
-            ConversationContext conversationcontext = this._contexts[chatkey];
-            conversationcontext.ChatKey.Should().BeEquivalentTo(chatkey);
-            conversationcontext.StartDate.Should().BeCloseTo(this._startTime, 1000);
+            ConversationContext conversationcontext = this._contexts[new Guid(chatkey)];
+            conversationcontext.ChatKey.Should().Be(chatkey);
         }
 
         [Test]
         [Order(2)]
-        [TestCase("1")]
-        [TestCase("2")]
-        [TestCase("3")]
-        [TestCase("4")]
+        [TestCase("0f8fad5b-d9cb-469f-a165-708677289501")]
+        [TestCase("0f8fad5b-d9cb-469f-a165-708677289502")]
         public void When_life_span_is_not_expired_then_context_is_not_deleted(string chatkey)
         {
-            IEnumerable<ConversationContext> removedContext = this._contexts.RemoveContextOlderThan(new TimeSpan(1, 0, 0, 0));
+            IEnumerable<ConversationContext> removedContext = this._contexts.RemoveOldContext();
 
             removedContext.Should().BeEmpty();
         }
 
         [Test]
         [Order(3)]
-        [TestCase("1")]
+        [TestCase("0f8fad5b-d9cb-469f-a165-708677289501")]
         public void When_life_span_expired_then_context_is_deleted(string chatkey)
         {
-            ConversationContext conversationcontext = this._contexts[chatkey];
+            ConversationContext conversationcontext = this._contexts[new Guid(chatkey)];
             conversationcontext.StartDate = conversationcontext.StartDate.Subtract(new TimeSpan(2, 0, 0, 0));
 
             this._contexts.SaveChangesAsync();
-            IEnumerable<ConversationContext> removedContext = this._contexts.RemoveContextOlderThan(new TimeSpan(1, 0, 0, 0));
+            IEnumerable<ConversationContext> removedContext = this._contexts.RemoveOldContext();
 
             removedContext.Should().OnlyContain(x => x.Equals(conversationcontext));
         }
