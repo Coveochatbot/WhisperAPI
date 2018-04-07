@@ -25,7 +25,12 @@ namespace WhisperAPI.Controllers
                 return this.BadRequest();
             }
 
-            return this.Ok(this._suggestionsService.GetSuggestions(searchQuerry.Querry).ToList());
+            var conversationContext = this._contexts[searchQuerry.ChatKey];
+            conversationContext.MessagesSuggestions.Add(new MessageSuggestion(searchQuerry.Querry));
+
+            var allConversation = string.Join(" ", conversationContext.MessagesSuggestions.Select(m => m.Message));
+
+            return this.Ok(this._suggestionsService.GetSuggestions(allConversation).ToList());
         }
     }
 }

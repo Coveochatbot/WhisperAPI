@@ -27,6 +27,7 @@ namespace WhisperAPI.Services
             get
             {
                 ConversationContext conversationContext = this.ConversationContexts
+                    .Include(x => x.MessagesSuggestions)
                     .FirstOrDefault(x => x.ChatKey == chatkey);
 
                 if (conversationContext == null)
