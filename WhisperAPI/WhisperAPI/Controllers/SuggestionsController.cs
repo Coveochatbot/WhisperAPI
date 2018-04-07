@@ -3,6 +3,7 @@ using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using WhisperAPI.Models;
 using WhisperAPI.Services;
+using static WhisperAPI.Models.SearchQuerry;
 
 namespace WhisperAPI.Controllers
 {
