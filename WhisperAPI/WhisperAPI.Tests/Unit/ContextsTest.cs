@@ -64,5 +64,24 @@ namespace WhisperAPI.Tests.Unit
 
             removedContext.Should().OnlyContain(x => x.Equals(conversationcontext));
         }
+
+        [Test]
+        [Order(4)]
+        [TestCase("0f8fad5b-d9cb-469f-a165-708677289501")]
+        public void When_adding_received_message_to_context_messages_concats_and_persists(string chatkey)
+        {
+            ConversationContext conversationcontext = this._contexts[new Guid(chatkey)];
+            conversationcontext.MessagesSuggestions.Add(new MessageSuggestion("rest api"));
+            this._contexts.SaveChanges();
+
+            conversationcontext = this._contexts[new Guid(chatkey)];
+            conversationcontext.GetAllMessages().Should().Be("rest api");
+
+            conversationcontext.MessagesSuggestions.Add(new MessageSuggestion("framework"));
+            this._contexts.SaveChanges();
+
+            conversationcontext = this._contexts[new Guid(chatkey)];
+            conversationcontext.GetAllMessages().Should().Be("rest api framework");
+        }
     }
 }

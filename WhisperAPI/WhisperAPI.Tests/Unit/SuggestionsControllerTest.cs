@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Reflection.Metadata.Ecma335;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
@@ -19,6 +20,7 @@ namespace WhisperAPI.Tests.Unit
         private List<SearchQuerry> _validSearchQuerryList;
 
         private Mock<ISuggestionsService> _suggestionServiceMock;
+        private Mock<Contexts> _contextsMock;
         private SuggestionsController _suggestionController;
 
         [SetUp]
@@ -94,10 +96,17 @@ namespace WhisperAPI.Tests.Unit
         [TestCase(1)]
         public void When_receive_valid_searchQuerry_then_return_Ok_request(int validQuerryIndex)
         {
+            Mock<ConversationContext> conversationContextMock = new Mock<ConversationContext>();
             this._suggestionServiceMock = new Mock<ISuggestionsService>();
             this._suggestionServiceMock
                 .Setup(x => x.GetSuggestions(It.IsAny<string>()))
                 .Returns(this.GetListOfDocuments());
+
+            this._contextsMock = new Mock<Contexts>();
+            this._contextsMock
+                .Setup(x => x[It.IsAny<Guid>()])
+                .Returns(conversationContextMock.Object);
+
 
             this._suggestionController = new SuggestionsController(this._suggestionServiceMock.Object, null);
 
