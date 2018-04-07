@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using WhisperAPI.Models;
 using WhisperAPI.Services;
@@ -7,11 +8,12 @@ using static WhisperAPI.Models.SearchQuerry;
 namespace WhisperAPI.Controllers
 {
     [Route("/Whisper/[Controller]")]
-    public class SuggestionsController : Controller
+    public class SuggestionsController : ContextController
     {
         private readonly ISuggestionsService _suggestionsService;
 
-        public SuggestionsController(ISuggestionsService suggestionsService)
+        public SuggestionsController(ISuggestionsService suggestionsService, Contexts contexts)
+            : base(contexts)
         {
             this._suggestionsService = suggestionsService;
         }
@@ -19,7 +21,7 @@ namespace WhisperAPI.Controllers
         [HttpPost]
         public IActionResult GetSuggestions([FromBody] SearchQuerry searchQuerry)
         {
-            if (searchQuerry?.ChatKey == null || searchQuerry?.Querry == null)
+            if (!this.ModelState.IsValid || searchQuerry?.Querry == null)
             {
                 return this.BadRequest();
             }
