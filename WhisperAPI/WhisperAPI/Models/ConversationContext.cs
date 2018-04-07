@@ -11,12 +11,14 @@ namespace WhisperAPI.Models
         {
             this.ChatKey = chatkey;
             this.StartDate = datetime;
-            this.MessagesSuggestions = new List<MessageSuggestion>();
+            this.SearchQuerries = new List<SearchQuerry>();
+            this.SuggestedDocuments = new List<SuggestedDocument>();
         }
 
         private ConversationContext()
         {
-            this.MessagesSuggestions = new List<MessageSuggestion>();
+            this.SearchQuerries = new List<SearchQuerry>();
+            this.SuggestedDocuments = new List<SuggestedDocument>();
         }
 
         [Key]
@@ -24,14 +26,16 @@ namespace WhisperAPI.Models
 
         public DateTime StartDate { get; set; }
 
-        public ICollection<MessageSuggestion> MessagesSuggestions { get; set; }
+        public List<SearchQuerry> SearchQuerries { get; set; }
+
+        public List<SuggestedDocument> SuggestedDocuments { get; set; }
 
         public string GetAllMessages()
         {
             var allMessages = string.Empty;
-            if (this.MessagesSuggestions != null)
+            if (this.SearchQuerries != null)
             {
-                allMessages = string.Join(" ", this.MessagesSuggestions.Select(m => m.Message));
+                allMessages = string.Join(" ", this.SearchQuerries.Select(m => m.Querry));
             }
 
             return allMessages;

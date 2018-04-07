@@ -71,13 +71,13 @@ namespace WhisperAPI.Tests.Unit
         public void When_adding_received_message_to_context_messages_concats_and_persists(string chatkey)
         {
             ConversationContext conversationcontext = this._contexts[new Guid(chatkey)];
-            conversationcontext.MessagesSuggestions.Add(new MessageSuggestion("rest api"));
+            conversationcontext.QuerrySuggestions.Add(new MessageSuggestion("rest api"));
             this._contexts.SaveChanges();
 
             conversationcontext = this._contexts[new Guid(chatkey)];
             conversationcontext.GetAllMessages().Should().Be("rest api");
 
-            conversationcontext.MessagesSuggestions.Add(new MessageSuggestion("framework"));
+            conversationcontext.QuerrySuggestions.Add(new MessageSuggestion("framework"));
             this._contexts.SaveChanges();
 
             conversationcontext = this._contexts[new Guid(chatkey)];

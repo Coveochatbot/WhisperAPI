@@ -13,6 +13,9 @@ namespace WhisperAPI.Models
             Agent = 1
         }
 
+        [Key]
+        public int Id { get; set; }
+
         [Required(AllowEmptyStrings = false, ErrorMessage = "ChatKey is required")]
         [JsonProperty("chatkey")]
         public Guid ChatKey { get; set; }
