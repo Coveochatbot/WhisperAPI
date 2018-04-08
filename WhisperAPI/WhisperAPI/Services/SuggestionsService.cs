@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using WhisperAPI.Models;
 using WhisperAPI.Models.NLPAPI;
@@ -44,7 +45,7 @@ namespace WhisperAPI.Services
                 .Where(x => x.Type == SearchQuerry.MessageType.Agent)
                 .Select(x => x.Querry)
                 .ToList();
-            return coveoIndexDocuments.Where(x => agentQuerries.Contains(x.Title));
+            return coveoIndexDocuments.Where(x => !agentQuerries.Contains(x.Title));
         }
 
         private IEnumerable<SuggestedDocument> SearchCoveoIndex(string querry)

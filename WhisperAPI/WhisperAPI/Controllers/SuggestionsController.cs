@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 using WhisperAPI.Models;
 using WhisperAPI.Services;
 using static WhisperAPI.Models.SearchQuerry;
@@ -26,13 +27,11 @@ namespace WhisperAPI.Controllers
                 return this.BadRequest();
             }
 
-            var conversationContext = this._contexts[searchQuerry.ChatKey];
+            this.ConversationContext.SearchQuerries.Add(searchQuerry);
 
-            conversationContext.SearchQuerries.Add(searchQuerry);
+            var suggestions = this._suggestionsService.GetSuggestions(this.ConversationContext.SearchQuerries).ToList();
 
-            var suggestions = this._suggestionsService.GetSuggestions(conversationContext.SearchQuerries).ToList();
-
-            conversationContext.SuggestedDocuments.AddRange(suggestions);
+            this.ConversationContext.SuggestedDocuments.AddRange(suggestions);
 
             return this.Ok(suggestions);
         }

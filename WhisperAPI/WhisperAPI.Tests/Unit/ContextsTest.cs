@@ -70,18 +70,30 @@ namespace WhisperAPI.Tests.Unit
         [TestCase("0f8fad5b-d9cb-469f-a165-708677289501")]
         public void When_adding_received_message_to_context_messages_concats_and_persists(string chatkey)
         {
+
             ConversationContext conversationcontext = this._contexts[new Guid(chatkey)];
-            conversationcontext.QuerrySuggestions.Add(new MessageSuggestion("rest api"));
+            conversationcontext.SearchQuerries.Add(this.GetSearchQuerry("rest api", chatkey));
             this._contexts.SaveChanges();
 
             conversationcontext = this._contexts[new Guid(chatkey)];
-            conversationcontext.GetAllMessages().Should().Be("rest api");
+            conversationcontext.SearchQuerries[0].Querry.Should().Be("rest api");
 
-            conversationcontext.QuerrySuggestions.Add(new MessageSuggestion("framework"));
+            conversationcontext.SearchQuerries.Add(this.GetSearchQuerry("framework", chatkey));
             this._contexts.SaveChanges();
 
             conversationcontext = this._contexts[new Guid(chatkey)];
-            conversationcontext.GetAllMessages().Should().Be("rest api framework");
+            conversationcontext.SearchQuerries[0].Querry.Should().Be("rest api");
+            conversationcontext.SearchQuerries[1].Querry.Should().Be("framework");
+        }
+
+        private SearchQuerry GetSearchQuerry(string querry, string chatkey)
+        {
+            return new SearchQuerry
+            {
+                ChatKey = new Guid(chatkey),
+                Querry = querry,
+                Type = SearchQuerry.MessageType.Customer
+            };
         }
     }
 }

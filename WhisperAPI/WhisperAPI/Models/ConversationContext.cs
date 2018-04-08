@@ -15,7 +15,7 @@ namespace WhisperAPI.Models
             this.SuggestedDocuments = new List<SuggestedDocument>();
         }
 
-        private ConversationContext()
+        public ConversationContext()
         {
             this.SearchQuerries = new List<SearchQuerry>();
             this.SuggestedDocuments = new List<SuggestedDocument>();
@@ -29,16 +29,5 @@ namespace WhisperAPI.Models
         public List<SearchQuerry> SearchQuerries { get; set; }
 
         public List<SuggestedDocument> SuggestedDocuments { get; set; }
-
-        public string GetAllMessages()
-        {
-            var allMessages = string.Empty;
-            if (this.SearchQuerries != null)
-            {
-                allMessages = string.Join(" ", this.SearchQuerries.Select(m => m.Querry));
-            }
-
-            return allMessages;
-        }
     }
 }
