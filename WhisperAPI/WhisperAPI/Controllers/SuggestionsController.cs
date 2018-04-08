@@ -1,10 +1,7 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Filters;
 using WhisperAPI.Models;
 using WhisperAPI.Services;
-using static WhisperAPI.Models.SearchQuerry;
 
 namespace WhisperAPI.Controllers
 {
