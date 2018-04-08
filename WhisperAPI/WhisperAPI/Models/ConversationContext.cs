@@ -1,22 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
 
 namespace WhisperAPI.Models
 {
     public class ConversationContext
     {
-        public ConversationContext(Guid chatkey, DateTime datetime)
+        public ConversationContext(Guid chatkey, DateTime datetime) 
+            : this()
         {
             this.ChatKey = chatkey;
             this.StartDate = datetime;
-            this.MessagesSuggestions = new List<MessageSuggestion>();
         }
 
-        private ConversationContext()
+        public ConversationContext()
         {
-            this.MessagesSuggestions = new List<MessageSuggestion>();
+            this.SearchQuerries = new List<SearchQuerry>();
+            this.SuggestedDocuments = new List<SuggestedDocument>();
         }
 
         [Key]
@@ -24,17 +24,8 @@ namespace WhisperAPI.Models
 
         public DateTime StartDate { get; set; }
 
-        public ICollection<MessageSuggestion> MessagesSuggestions { get; set; }
+        public List<SearchQuerry> SearchQuerries { get; set; }
 
-        public string GetAllMessages()
-        {
-            var allMessages = string.Empty;
-            if (this.MessagesSuggestions != null)
-            {
-                allMessages = string.Join(" ", this.MessagesSuggestions.Select(m => m.Message));
-            }
-
-            return allMessages;
-        }
+        public List<SuggestedDocument> SuggestedDocuments { get; set; }
     }
 }

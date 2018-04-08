@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq.Expressions;
-using System.Reflection.Metadata.Ecma335;
 using FluentAssertions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Abstractions;
+using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.EntityFrameworkCore;
 using Moq;
 using NUnit.Framework;
 using WhisperAPI.Controllers;
@@ -20,12 +23,13 @@ namespace WhisperAPI.Tests.Unit
         private List<SearchQuerry> _validSearchQuerryList;
 
         private Mock<ISuggestionsService> _suggestionServiceMock;
-        private Mock<Contexts> _contextsMock;
         private SuggestionsController _suggestionController;
+        private Contexts _contexts;
 
         [SetUp]
         public void SetUp()
         {
+            this._contexts = new Contexts(new DbContextOptionsBuilder<Contexts>().UseInMemoryDatabase("contextDB").Options, new TimeSpan(1, 0, 0, 0));
             this._invalidSearchQuerryList = new List<SearchQuerry>
             {
                 null,
@@ -83,7 +87,7 @@ namespace WhisperAPI.Tests.Unit
         {
             this._suggestionServiceMock = new Mock<ISuggestionsService>();
             this._suggestionServiceMock
-                .Setup(x => x.GetSuggestions(It.IsAny<string>()))
+                .Setup(x => x.GetSuggestions(It.IsAny<List<SearchQuerry>>()))
                 .Returns(this.GetListOfDocuments());
 
             this._suggestionController = new SuggestionsController(this._suggestionServiceMock.Object, null);
@@ -96,21 +100,37 @@ namespace WhisperAPI.Tests.Unit
         [TestCase(1)]
         public void When_receive_valid_searchQuerry_then_return_Ok_request(int validQuerryIndex)
         {
-            Mock<ConversationContext> conversationContextMock = new Mock<ConversationContext>();
             this._suggestionServiceMock = new Mock<ISuggestionsService>();
             this._suggestionServiceMock
-                .Setup(x => x.GetSuggestions(It.IsAny<string>()))
+                .Setup(x => x.GetSuggestions(It.IsAny<List<SearchQuerry>>()))
                 .Returns(this.GetListOfDocuments());
 
-            this._contextsMock = new Mock<Contexts>();
-            this._contextsMock
-                .Setup(x => x[It.IsAny<Guid>()])
-                .Returns(conversationContextMock.Object);
+            this._suggestionController = new SuggestionsController(this._suggestionServiceMock.Object, this._contexts);
 
-
-            this._suggestionController = new SuggestionsController(this._suggestionServiceMock.Object, null);
-
+            this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(validQuerryIndex));
             this._suggestionController.GetSuggestions(this._validSearchQuerryList[validQuerryIndex]).Should().BeEquivalentTo(new OkObjectResult(this.GetListOfDocuments()));
+        }
+
+        private ActionExecutingContext GetActionExecutingContext(int indexOfTest)
+        {
+            var actionContext = new ActionContext(
+                new Mock<HttpContext>().Object,
+                new Mock<RouteData>().Object,
+                new Mock<ActionDescriptor>().Object
+            );
+
+            var actionExecutingContext = new Mock<ActionExecutingContext>(
+                MockBehavior.Strict,
+                actionContext,
+                new List<IFilterMetadata>(),
+                new Dictionary<string, object>(),
+                this._suggestionController);
+
+            actionExecutingContext
+                .Setup(x => x.ActionArguments["searchQuerry"])
+                .Returns(this._validSearchQuerryList[indexOfTest]);
+
+            return actionExecutingContext.Object;
         }
     }
 }

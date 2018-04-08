@@ -34,7 +34,7 @@ namespace WhisperAPI.Services
 
         private StringContent CreateStringContent(string querry)
         {
-            return new StringContent($"{{\"lq\": \"{querry}\"}}", Encoding.UTF8, "application/json");
+            return new StringContent($"{{\"lq\": \"{querry}\",\"numberOfResults\": \"50\"}}", Encoding.UTF8, "application/json");
         }
 
         private void InitHttpClient()

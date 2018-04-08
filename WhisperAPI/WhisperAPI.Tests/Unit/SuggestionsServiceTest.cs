@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using FluentAssertions;
 using Moq;
 using NUnit.Framework;
@@ -6,6 +7,7 @@ using WhisperAPI.Models;
 using WhisperAPI.Models.NLPAPI;
 using WhisperAPI.Services;
 using WhisperAPI.Tests.Data.Builders;
+using static WhisperAPI.Models.SearchQuerry;
 
 namespace WhisperAPI.Tests.Unit
 {
@@ -27,8 +29,8 @@ namespace WhisperAPI.Tests.Unit
         }
 
         [Test]
-        [TestCase("test")]
-        public void When_receive_valid_searchresult_from_search_then_return_list_of_suggestedDocuments(string querry)
+        [TestCase]
+        public void When_receive_valid_searchresult_from_search_then_return_list_of_suggestedDocuments()
         {
             var intents = new List<Intent>
             {
@@ -45,12 +47,35 @@ namespace WhisperAPI.Tests.Unit
                 .Setup(x => x.GetNlpAnalysis(It.IsAny<string>()))
                 .Returns(nlpAnalysis);
 
-            this._suggestionsService.GetSuggestions(querry).Should().BeEquivalentTo(this.GetSuggestedDocuments());
+            this._suggestionsService.GetSuggestions(this.GetSearchQueries()).Should().BeEquivalentTo(this.GetSuggestedDocuments());
         }
 
         [Test]
-        [TestCase("test")]
-        public void When_receive_empty_searchresult_from_search_then_return_empty_list_of_suggestedDocuments(string querry)
+        [TestCase]
+        public void When_receive_valid_searchresult_from_search_then_return_list_of_suggestedDocuments_filter_sent_suggestion()
+        {
+            var intents = new List<Intent>
+            {
+                new IntentBuilder().WithName("Need Help").Build()
+            };
+
+            var nlpAnalysis = new NlpAnalysisBuilder().WithIntents(intents).Build();
+
+            this._indexSearchMock
+                .Setup(x => x.Search(It.IsAny<string>()))
+                .Returns(this.GetSearchResult());
+
+            this._nlpCallMock
+                .Setup(x => x.GetNlpAnalysis(It.IsAny<string>()))
+                .Returns(nlpAnalysis);
+
+            this._suggestionsService.GetSuggestions(this.GetSearchQueriesForFilterChoosenSuggestions()).Should()
+                .NotContain(this.GetSuggestedDocuments()[0]);
+        }
+
+        [Test]
+        [TestCase]
+        public void When_receive_empty_searchresult_from_search_then_return_empty_list_of_suggestedDocuments()
         {
             var intents = new List<Intent>
             {
@@ -67,12 +92,12 @@ namespace WhisperAPI.Tests.Unit
                 .Setup(x => x.GetNlpAnalysis(It.IsAny<string>()))
                 .Returns(nlpAnalysis);
 
-            this._suggestionsService.GetSuggestions(querry).Should().BeEquivalentTo(new List<SuggestedDocument>());
+            this._suggestionsService.GetSuggestions(this.GetSearchQueries()).Should().BeEquivalentTo(new List<SuggestedDocument>());
         }
 
         [Test]
-        [TestCase("test")]
-        public void When_receive_null_searchresult_from_search_then_return_empty_list_of_suggestedDocuments(string querry)
+        [TestCase]
+        public void When_receive_null_searchresult_from_search_then_return_empty_list_of_suggestedDocuments()
         {
             var intents = new List<Intent>
             {
@@ -89,12 +114,12 @@ namespace WhisperAPI.Tests.Unit
                 .Setup(x => x.GetNlpAnalysis(It.IsAny<string>()))
                 .Returns(nlpAnalysis);
 
-            this._suggestionsService.GetSuggestions(querry).Should().BeEquivalentTo(new List<SuggestedDocument>());
+            this._suggestionsService.GetSuggestions(this.GetSearchQueries()).Should().BeEquivalentTo(new List<SuggestedDocument>());
         }
 
         [Test]
-        [TestCase("test")]
-        public void When_receive_irrelevant_intent_then_returns_empty_list_of_suggestedDocuments(string querry)
+        [TestCase]
+        public void When_receive_irrelevant_intent_then_returns_empty_list_of_suggestedDocuments()
         {
             var intents = new List<Intent>
             {
@@ -107,7 +132,7 @@ namespace WhisperAPI.Tests.Unit
                 .Setup(x => x.GetNlpAnalysis(It.IsAny<string>()))
                 .Returns(nlpAnalysis);
 
-            this._suggestionsService.GetSuggestions(querry).Should().BeEquivalentTo(new List<SuggestedDocument>());
+            this._suggestionsService.GetSuggestions(this.GetSearchQueries()).Should().BeEquivalentTo(new List<SuggestedDocument>());
         }
 
         public SearchResult GetSearchResult()
@@ -193,6 +218,23 @@ namespace WhisperAPI.Tests.Unit
             return new List<string>
             {
                 "Greetings"
+            };
+        }
+
+        public List<SearchQuerry> GetSearchQueries()
+        {
+            return new List<SearchQuerry>
+            {
+                new SearchQuerry { ChatKey = new Guid("0f8fad5b-d9cb-469f-a165-708677289501"), Querry = "rest api", Type = MessageType.Customer }
+            };
+        }
+
+        public List<SearchQuerry> GetSearchQueriesForFilterChoosenSuggestions()
+        {
+            return new List<SearchQuerry>
+            {
+                new SearchQuerry { ChatKey = new Guid("0f8fad5b-d9cb-469f-a165-708677289501"), Querry = "rest api", Type = MessageType.Customer },
+                new SearchQuerry { ChatKey = new Guid("0f8fad5b-d9cb-469f-a165-708677289501"), Querry = "Available Coveo Cloud V2 Source Types", Type = MessageType.Agent }
             };
         }
     }

@@ -20,17 +20,33 @@ namespace WhisperAPI.Services
             this._irrelevantsIntents = irrelevantsIntents;
         }
 
-        public IEnumerable<SuggestedDocument> GetSuggestions(string querry)
+        public IEnumerable<SuggestedDocument> GetSuggestions(List<SearchQuerry> querriesList)
         {
-            var nlpAnalysis = this._nlpCall.GetNlpAnalysis(querry);
+            IEnumerable<SuggestedDocument> suggestedDocuments = new List<SuggestedDocument>();
+            var allMessages = string.Join(" ", querriesList.Select(m => m.Querry));
+            var nlpAnalysis = this._nlpCall.GetNlpAnalysis(querriesList.LastOrDefault()?.Querry);
 
             // TODO: filter out the querry from lq when the irrelevantsIntents matches the ones in the settings and when persistance will be done
             if (this.IsIntentRelevant(nlpAnalysis))
             {
-                return this.SearchCoveoIndex(querry);
+                var coveoIndexDocuments = this.SearchCoveoIndex(allMessages);
+                suggestedDocuments = this.FilterOutChoosenSuggestions(coveoIndexDocuments, querriesList);
             }
 
-            return new List<SuggestedDocument>();
+            // TODO: Send 5 most relevant results
+            return suggestedDocuments.Take(5);
+        }
+
+        private IEnumerable<SuggestedDocument> FilterOutChoosenSuggestions(
+            IEnumerable<SuggestedDocument> coveoIndexDocuments,
+            IEnumerable<SearchQuerry> querriesList)
+        {
+            var agentQuerries = querriesList
+                .Where(x => x.Type == SearchQuerry.MessageType.Agent)
+                .Select(x => x.Querry)
+                .ToList();
+
+            return coveoIndexDocuments.Where(x => !agentQuerries.Contains(x.Uri));
         }
 
         private IEnumerable<SuggestedDocument> SearchCoveoIndex(string querry)

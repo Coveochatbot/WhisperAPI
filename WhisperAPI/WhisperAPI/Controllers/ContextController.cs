@@ -8,7 +8,7 @@ namespace WhisperAPI.Controllers
 {
     public class ContextController : Controller
     {
-        protected Contexts _contexts;
+        private Contexts _contexts;
 
         public ContextController(Contexts contexts)
         {
