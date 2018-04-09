@@ -24,7 +24,7 @@ namespace WhisperAPI.Services
         {
             var allRelevantQueries = string.Join(" ", conversationContext.SearchQuerries.Where(x => x.Relevant).Select(m => m.Querry));
 
-            if (allRelevantQueries == string.Empty)
+            if (string.IsNullOrEmpty(allRelevantQueries.Trim()))
             {
                 return new List<SuggestedDocument>();
             }
