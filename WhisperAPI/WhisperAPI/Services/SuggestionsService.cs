@@ -22,7 +22,13 @@ namespace WhisperAPI.Services
 
         public IEnumerable<SuggestedDocument> GetSuggestions(ConversationContext conversationContext)
         {
+            var suggestedDocuments = new List<SuggestedDocument>();
             var allRelevantQueries = string.Join(" ", conversationContext.SearchQuerries.Where(x => x.Relevant).Select(m => m.Querry));
+
+            if (allRelevantQueries == string.Empty)
+            {
+                return new List<SuggestedDocument>();
+            }
 
             var coveoIndexDocuments = this.SearchCoveoIndex(allRelevantQueries);
 
