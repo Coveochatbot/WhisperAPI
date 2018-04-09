@@ -14,6 +14,7 @@ namespace WhisperAPI.Models
         }
 
         [Key]
+        [JsonIgnore]
         public int Id { get; set; }
 
         [Required(AllowEmptyStrings = false, ErrorMessage = "ChatKey is required")]
@@ -25,5 +26,8 @@ namespace WhisperAPI.Models
 
         [JsonProperty("type")]
         public MessageType Type { get; set; }
+
+        [JsonIgnore]
+        public bool Relevant { get; set; }
     }
 }

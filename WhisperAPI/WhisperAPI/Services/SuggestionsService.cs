@@ -20,24 +20,37 @@ namespace WhisperAPI.Services
             this._irrelevantsIntents = irrelevantsIntents;
         }
 
-        public IEnumerable<SuggestedDocument> GetSuggestions(List<SearchQuerry> querriesList)
+        public IEnumerable<SuggestedDocument> GetSuggestions(ConversationContext conversationContext)
         {
-            IEnumerable<SuggestedDocument> suggestedDocuments = new List<SuggestedDocument>();
-            var allMessages = string.Join(" ", querriesList.Select(m => m.Querry));
-            var nlpAnalysis = this._nlpCall.GetNlpAnalysis(querriesList.LastOrDefault()?.Querry);
+            var allRelevantQueries = string.Join(" ", conversationContext.SearchQuerries.Where(x => x.Relevant).Select(m => m.Querry));
 
-            // TODO: filter out the querry from lq when the irrelevantsIntents matches the ones in the settings and when persistance will be done
-            if (this.IsIntentRelevant(nlpAnalysis))
-            {
-                var coveoIndexDocuments = this.SearchCoveoIndex(allMessages);
-                suggestedDocuments = this.FilterOutChoosenSuggestions(coveoIndexDocuments, querriesList);
-            }
+            var coveoIndexDocuments = this.SearchCoveoIndex(allRelevantQueries);
 
             // TODO: Send 5 most relevant results
-            return suggestedDocuments.Take(5);
+            return this.FilterOutChosenSuggestions(coveoIndexDocuments, conversationContext.SearchQuerries).Take(5);
         }
 
-        private IEnumerable<SuggestedDocument> FilterOutChoosenSuggestions(
+        public void UpdateContextWithNewQuery(ConversationContext context, SearchQuerry searchQuerry)
+        {
+            searchQuerry.Relevant = this.IsQueryRelevant(searchQuerry);
+            context.SearchQuerries.Add(searchQuerry);
+        }
+
+        public void UpdateContextWithNewSuggestions(ConversationContext context, List<SuggestedDocument> suggestedDocuments)
+        {
+            foreach (var suggestedDocument in suggestedDocuments)
+            {
+                context.SuggestedDocuments.Add(suggestedDocument);
+            }
+        }
+
+        public bool IsQueryRelevant(SearchQuerry searchQuery)
+        {
+            var nlpAnalysis = this._nlpCall.GetNlpAnalysis(searchQuery.Querry);
+            return this.IsIntentRelevant(nlpAnalysis);
+        }
+
+        public IEnumerable<SuggestedDocument> FilterOutChosenSuggestions(
             IEnumerable<SuggestedDocument> coveoIndexDocuments,
             IEnumerable<SearchQuerry> querriesList)
         {

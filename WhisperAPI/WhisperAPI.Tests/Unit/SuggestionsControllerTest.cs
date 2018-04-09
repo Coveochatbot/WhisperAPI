@@ -87,7 +87,7 @@ namespace WhisperAPI.Tests.Unit
         {
             this._suggestionServiceMock = new Mock<ISuggestionsService>();
             this._suggestionServiceMock
-                .Setup(x => x.GetSuggestions(It.IsAny<List<SearchQuerry>>()))
+                .Setup(x => x.GetSuggestions(It.IsAny<ConversationContext>()))
                 .Returns(this.GetListOfDocuments());
 
             this._suggestionController = new SuggestionsController(this._suggestionServiceMock.Object, null);
@@ -102,7 +102,7 @@ namespace WhisperAPI.Tests.Unit
         {
             this._suggestionServiceMock = new Mock<ISuggestionsService>();
             this._suggestionServiceMock
-                .Setup(x => x.GetSuggestions(It.IsAny<List<SearchQuerry>>()))
+                .Setup(x => x.GetSuggestions(It.IsAny<ConversationContext>()))
                 .Returns(this.GetListOfDocuments());
 
             this._suggestionController = new SuggestionsController(this._suggestionServiceMock.Object, this._contexts);

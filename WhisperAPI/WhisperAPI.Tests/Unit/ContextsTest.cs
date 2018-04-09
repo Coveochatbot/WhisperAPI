@@ -1,8 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using NUnit.Framework;
+using System;
+using System.Collections.Generic;
 using WhisperAPI.Models;
 using WhisperAPI.Services;
 
@@ -16,6 +16,18 @@ namespace WhisperAPI.Tests.Unit
         public ContextsTest()
         {
             this._contexts = new Contexts(new DbContextOptionsBuilder<Contexts>().UseInMemoryDatabase("contextDB").Options, new TimeSpan(1, 0, 0, 0));
+        }
+
+        [Test]
+        [TestCase("0f8fad5b-d9cb-469f-a165-708677289501")]
+        public void When_adding_duplicate_suggestion_only_one_is_added(string chatkey)
+        {
+            ConversationContext conversationcontext = this._contexts[new Guid(chatkey)];
+            SuggestedDocument query1 = this.GetSuggestedDocument();
+            SuggestedDocument query2 = this.GetSuggestedDocument();
+            conversationcontext.SuggestedDocuments.Add(query1);
+            conversationcontext.SuggestedDocuments.Add(query2);
+            conversationcontext.SuggestedDocuments.Should().HaveCount(1);
         }
 
         [Test]
@@ -93,6 +105,17 @@ namespace WhisperAPI.Tests.Unit
                 ChatKey = new Guid(chatkey),
                 Querry = querry,
                 Type = SearchQuerry.MessageType.Customer
+            };
+        }
+
+        private SuggestedDocument GetSuggestedDocument()
+        {
+            return new SuggestedDocument()
+            {
+                Title = "title",
+                PrintableUri = "www.test.com",
+                Uri = "www.test.com",
+                Summary = "this is a summary"
             };
         }
     }

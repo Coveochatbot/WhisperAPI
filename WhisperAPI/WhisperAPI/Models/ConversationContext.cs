@@ -6,7 +6,7 @@ namespace WhisperAPI.Models
 {
     public class ConversationContext
     {
-        public ConversationContext(Guid chatkey, DateTime datetime) 
+        public ConversationContext(Guid chatkey, DateTime datetime)
             : this()
         {
             this.ChatKey = chatkey;
@@ -16,7 +16,7 @@ namespace WhisperAPI.Models
         public ConversationContext()
         {
             this.SearchQuerries = new List<SearchQuerry>();
-            this.SuggestedDocuments = new List<SuggestedDocument>();
+            this.SuggestedDocuments = new HashSet<SuggestedDocument>();
         }
 
         [Key]
@@ -26,6 +26,6 @@ namespace WhisperAPI.Models
 
         public List<SearchQuerry> SearchQuerries { get; set; }
 
-        public List<SuggestedDocument> SuggestedDocuments { get; set; }
+        public HashSet<SuggestedDocument> SuggestedDocuments { get; set; }
     }
 }

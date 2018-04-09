@@ -24,11 +24,9 @@ namespace WhisperAPI.Controllers
                 return this.BadRequest();
             }
 
-            this.ConversationContext.SearchQuerries.Add(searchQuerry);
-
-            var suggestions = this._suggestionsService.GetSuggestions(this.ConversationContext.SearchQuerries).ToList();
-
-            this.ConversationContext.SuggestedDocuments.AddRange(suggestions);
+            this._suggestionsService.UpdateContextWithNewQuery(this.ConversationContext, searchQuerry);
+            var suggestions = this._suggestionsService.GetSuggestions(this.ConversationContext).ToList();
+            this._suggestionsService.UpdateContextWithNewSuggestions(this.ConversationContext, suggestions);
 
             return this.Ok(suggestions);
         }
