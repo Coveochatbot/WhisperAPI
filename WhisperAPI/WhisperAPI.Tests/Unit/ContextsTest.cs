@@ -1,8 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using NUnit.Framework;
+using System;
+using System.Collections.Generic;
 using WhisperAPI.Models;
 using WhisperAPI.Services;
 
@@ -16,6 +16,18 @@ namespace WhisperAPI.Tests.Unit
         public ContextsTest()
         {
             this._contexts = new Contexts(new DbContextOptionsBuilder<Contexts>().UseInMemoryDatabase("contextDB").Options, new TimeSpan(1, 0, 0, 0));
+        }
+
+        [Test]
+        [TestCase("0f8fad5b-d9cb-469f-a165-708677289501")]
+        public void When_adding_duplicate_suggestion_only_one_is_added(string chatkey)
+        {
+            ConversationContext conversationcontext = this._contexts[new Guid(chatkey)];
+            SuggestedDocument query1 = this.GetSuggestedDocument();
+            SuggestedDocument query2 = this.GetSuggestedDocument();
+            conversationcontext.SuggestedDocuments.Add(query1);
+            conversationcontext.SuggestedDocuments.Add(query2);
+            conversationcontext.SuggestedDocuments.Should().HaveCount(1);
         }
 
         [Test]
@@ -63,6 +75,48 @@ namespace WhisperAPI.Tests.Unit
             IEnumerable<ConversationContext> removedContext = this._contexts.RemoveOldContext();
 
             removedContext.Should().OnlyContain(x => x.Equals(conversationcontext));
+        }
+
+        [Test]
+        [Order(4)]
+        [TestCase("0f8fad5b-d9cb-469f-a165-708677289501")]
+        public void When_adding_received_message_to_context_messages_concats_and_persists(string chatkey)
+        {
+
+            ConversationContext conversationcontext = this._contexts[new Guid(chatkey)];
+            conversationcontext.SearchQuerries.Add(this.GetSearchQuerry("rest api", chatkey));
+            this._contexts.SaveChanges();
+
+            conversationcontext = this._contexts[new Guid(chatkey)];
+            conversationcontext.SearchQuerries[0].Querry.Should().Be("rest api");
+
+            conversationcontext.SearchQuerries.Add(this.GetSearchQuerry("framework", chatkey));
+            this._contexts.SaveChanges();
+
+            conversationcontext = this._contexts[new Guid(chatkey)];
+            conversationcontext.SearchQuerries[0].Querry.Should().Be("rest api");
+            conversationcontext.SearchQuerries[1].Querry.Should().Be("framework");
+        }
+
+        private SearchQuerry GetSearchQuerry(string querry, string chatkey)
+        {
+            return new SearchQuerry
+            {
+                ChatKey = new Guid(chatkey),
+                Querry = querry,
+                Type = SearchQuerry.MessageType.Customer
+            };
+        }
+
+        private SuggestedDocument GetSuggestedDocument()
+        {
+            return new SuggestedDocument()
+            {
+                Title = "title",
+                PrintableUri = "www.test.com",
+                Uri = "www.test.com",
+                Summary = "this is a summary"
+            };
         }
     }
 }

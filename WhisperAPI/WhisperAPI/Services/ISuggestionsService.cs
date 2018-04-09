@@ -5,6 +5,10 @@ namespace WhisperAPI.Services
 {
     public interface ISuggestionsService
     {
-        IEnumerable<SuggestedDocument> GetSuggestions(string querry);
+        IEnumerable<SuggestedDocument> GetSuggestions(ConversationContext conversationContext);
+
+        void UpdateContextWithNewQuery(ConversationContext conversationContext, SearchQuerry searchQuerry);
+
+        void UpdateContextWithNewSuggestions(ConversationContext conversationContext, List<SuggestedDocument> suggestedDocuments);
     }
 }

@@ -20,17 +20,46 @@ namespace WhisperAPI.Services
             this._irrelevantsIntents = irrelevantsIntents;
         }
 
-        public IEnumerable<SuggestedDocument> GetSuggestions(string querry)
+        public IEnumerable<SuggestedDocument> GetSuggestions(ConversationContext conversationContext)
         {
-            var nlpAnalysis = this._nlpCall.GetNlpAnalysis(querry);
+            var allRelevantQueries = string.Join(" ", conversationContext.SearchQuerries.Where(x => x.Relevant).Select(m => m.Querry));
 
-            // TODO: filter out the querry from lq when the irrelevantsIntents matches the ones in the settings and when persistance will be done
-            if (this.IsIntentRelevant(nlpAnalysis))
+            var coveoIndexDocuments = this.SearchCoveoIndex(allRelevantQueries);
+
+            // TODO: Send 5 most relevant results
+            return this.FilterOutChosenSuggestions(coveoIndexDocuments, conversationContext.SearchQuerries).Take(5);
+        }
+
+        public void UpdateContextWithNewQuery(ConversationContext context, SearchQuerry searchQuerry)
+        {
+            searchQuerry.Relevant = this.IsQueryRelevant(searchQuerry);
+            context.SearchQuerries.Add(searchQuerry);
+        }
+
+        public void UpdateContextWithNewSuggestions(ConversationContext context, List<SuggestedDocument> suggestedDocuments)
+        {
+            foreach (var suggestedDocument in suggestedDocuments)
             {
-                return this.SearchCoveoIndex(querry);
+                context.SuggestedDocuments.Add(suggestedDocument);
             }
+        }
 
-            return new List<SuggestedDocument>();
+        public bool IsQueryRelevant(SearchQuerry searchQuery)
+        {
+            var nlpAnalysis = this._nlpCall.GetNlpAnalysis(searchQuery.Querry);
+            return this.IsIntentRelevant(nlpAnalysis);
+        }
+
+        public IEnumerable<SuggestedDocument> FilterOutChosenSuggestions(
+            IEnumerable<SuggestedDocument> coveoIndexDocuments,
+            IEnumerable<SearchQuerry> querriesList)
+        {
+            var agentQuerries = querriesList
+                .Where(x => x.Type == SearchQuerry.MessageType.Agent)
+                .Select(x => x.Querry)
+                .ToList();
+
+            return coveoIndexDocuments.Where(x => !agentQuerries.Contains(x.Uri));
         }
 
         private IEnumerable<SuggestedDocument> SearchCoveoIndex(string querry)
