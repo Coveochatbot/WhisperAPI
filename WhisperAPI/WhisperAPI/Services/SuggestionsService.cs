@@ -24,6 +24,11 @@ namespace WhisperAPI.Services
         {
             var allRelevantQueries = string.Join(" ", conversationContext.SearchQuerries.Where(x => x.Relevant).Select(m => m.Querry));
 
+            if (allRelevantQueries == string.Empty)
+            {
+                return new List<SuggestedDocument>();
+            }
+
             var coveoIndexDocuments = this.SearchCoveoIndex(allRelevantQueries);
 
             // TODO: Send 5 most relevant results
