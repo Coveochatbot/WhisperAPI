@@ -84,27 +84,27 @@ namespace WhisperAPI.Tests.Unit
         {
 
             ConversationContext conversationcontext = this._contexts[new Guid(chatkey)];
-            conversationcontext.SearchQuerries.Add(this.GetSearchQuerry("rest api", chatkey));
+            conversationcontext.SearchQueries.Add(this.GetSearchQuery("rest api", chatkey));
             this._contexts.SaveChanges();
 
             conversationcontext = this._contexts[new Guid(chatkey)];
-            conversationcontext.SearchQuerries[0].Querry.Should().Be("rest api");
+            conversationcontext.SearchQueries[0].Query.Should().Be("rest api");
 
-            conversationcontext.SearchQuerries.Add(this.GetSearchQuerry("framework", chatkey));
+            conversationcontext.SearchQueries.Add(this.GetSearchQuery("framework", chatkey));
             this._contexts.SaveChanges();
 
             conversationcontext = this._contexts[new Guid(chatkey)];
-            conversationcontext.SearchQuerries[0].Querry.Should().Be("rest api");
-            conversationcontext.SearchQuerries[1].Querry.Should().Be("framework");
+            conversationcontext.SearchQueries[0].Query.Should().Be("rest api");
+            conversationcontext.SearchQueries[1].Query.Should().Be("framework");
         }
 
-        private SearchQuerry GetSearchQuerry(string querry, string chatkey)
+        private SearchQuery GetSearchQuery(string query, string chatkey)
         {
-            return new SearchQuerry
+            return new SearchQuery
             {
                 ChatKey = new Guid(chatkey),
-                Querry = querry,
-                Type = SearchQuerry.MessageType.Customer
+                Query = query,
+                Type = SearchQuery.MessageType.Customer
             };
         }
 

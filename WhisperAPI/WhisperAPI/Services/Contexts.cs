@@ -8,7 +8,7 @@ namespace WhisperAPI.Services
 {
     public class Contexts : DbContext
     {
-        private object _removeOldLock = new object();
+        private readonly object _removeOldLock = new object();
 
         public Contexts(DbContextOptions<Contexts> options, TimeSpan contextLifeSpan)
             : base(options)
@@ -27,7 +27,7 @@ namespace WhisperAPI.Services
             get
             {
                 ConversationContext conversationContext = this.ConversationContexts
-                    .Include(x => x.SearchQuerries)
+                    .Include(x => x.SearchQueries)
                     .Include(x => x.SuggestedDocuments)
                     .FirstOrDefault(x => x.ChatKey == chatkey);
 

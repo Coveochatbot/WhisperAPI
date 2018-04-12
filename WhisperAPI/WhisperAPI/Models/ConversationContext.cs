@@ -15,7 +15,7 @@ namespace WhisperAPI.Models
 
         public ConversationContext()
         {
-            this.SearchQuerries = new List<SearchQuerry>();
+            this.SearchQueries = new List<SearchQuery>();
             this.SuggestedDocuments = new HashSet<SuggestedDocument>();
         }
 
@@ -24,7 +24,7 @@ namespace WhisperAPI.Models
 
         public DateTime StartDate { get; set; }
 
-        public List<SearchQuerry> SearchQuerries { get; set; }
+        public List<SearchQuery> SearchQueries { get; set; }
 
         public HashSet<SuggestedDocument> SuggestedDocuments { get; set; }
     }

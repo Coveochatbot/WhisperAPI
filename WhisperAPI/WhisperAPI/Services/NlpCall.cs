@@ -22,7 +22,7 @@ namespace WhisperAPI.Services
 
         public NlpAnalysis GetNlpAnalysis(string sentence)
         {
-            var response = this._httpClient.PostAsync("NLP/Analyse", CreateStringContent(sentence)).Result;
+            var response = this._httpClient.PostAsync("NLP/Analyze", CreateStringContent(sentence)).Result;
             response.EnsureSuccessStatusCode();
 
             return JsonConvert.DeserializeObject<NlpAnalysis>(response.Content.ReadAsStringAsync().Result);

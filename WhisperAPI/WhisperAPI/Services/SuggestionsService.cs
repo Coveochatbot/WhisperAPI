@@ -22,7 +22,7 @@ namespace WhisperAPI.Services
 
         public IEnumerable<SuggestedDocument> GetSuggestions(ConversationContext conversationContext)
         {
-            var allRelevantQueries = string.Join(" ", conversationContext.SearchQuerries.Where(x => x.Relevant).Select(m => m.Querry));
+            var allRelevantQueries = string.Join(" ", conversationContext.SearchQueries.Where(x => x.Relevant).Select(m => m.Query));
 
             if (string.IsNullOrEmpty(allRelevantQueries.Trim()))
             {
@@ -32,13 +32,13 @@ namespace WhisperAPI.Services
             var coveoIndexDocuments = this.SearchCoveoIndex(allRelevantQueries);
 
             // TODO: Send 5 most relevant results
-            return this.FilterOutChosenSuggestions(coveoIndexDocuments, conversationContext.SearchQuerries).Take(5);
+            return this.FilterOutChosenSuggestions(coveoIndexDocuments, conversationContext.SearchQueries).Take(5);
         }
 
-        public void UpdateContextWithNewQuery(ConversationContext context, SearchQuerry searchQuerry)
+        public void UpdateContextWithNewQuery(ConversationContext context, SearchQuery searchQuery)
         {
-            searchQuerry.Relevant = this.IsQueryRelevant(searchQuerry);
-            context.SearchQuerries.Add(searchQuerry);
+            searchQuery.Relevant = this.IsQueryRelevant(searchQuery);
+            context.SearchQueries.Add(searchQuery);
         }
 
         public void UpdateContextWithNewSuggestions(ConversationContext context, List<SuggestedDocument> suggestedDocuments)
@@ -49,27 +49,27 @@ namespace WhisperAPI.Services
             }
         }
 
-        public bool IsQueryRelevant(SearchQuerry searchQuery)
+        public bool IsQueryRelevant(SearchQuery searchQuery)
         {
-            var nlpAnalysis = this._nlpCall.GetNlpAnalysis(searchQuery.Querry);
+            var nlpAnalysis = this._nlpCall.GetNlpAnalysis(searchQuery.Query);
             return this.IsIntentRelevant(nlpAnalysis);
         }
 
         public IEnumerable<SuggestedDocument> FilterOutChosenSuggestions(
             IEnumerable<SuggestedDocument> coveoIndexDocuments,
-            IEnumerable<SearchQuerry> querriesList)
+            IEnumerable<SearchQuery> queriesList)
         {
-            var agentQuerries = querriesList
-                .Where(x => x.Type == SearchQuerry.MessageType.Agent)
-                .Select(x => x.Querry)
+            var agentQueries = queriesList
+                .Where(x => x.Type == SearchQuery.MessageType.Agent)
+                .Select(x => x.Query)
                 .ToList();
 
-            return coveoIndexDocuments.Where(x => !agentQuerries.Contains(x.Uri));
+            return coveoIndexDocuments.Where(x => !agentQueries.Contains(x.Uri));
         }
 
-        private IEnumerable<SuggestedDocument> SearchCoveoIndex(string querry)
+        private IEnumerable<SuggestedDocument> SearchCoveoIndex(string query)
         {
-            ISearchResult searchResult = this._indexSearch.Search(querry);
+            ISearchResult searchResult = this._indexSearch.Search(query);
             var documents = new List<SuggestedDocument>();
 
             if (searchResult == null)

@@ -209,7 +209,7 @@ namespace WhisperAPI.Tests.Integration
             // Agent says: Maybe this could help: https://onlinehelp.coveo.com/en/cloud/Available_Coveo_Cloud_V2_Source_Types.htm
             searchQuery = new SearchQueryBuilder()
                 .WithQuery("Maybe this can help: https://onlinehelp.coveo.com/en/cloud/Available_Coveo_Cloud_V2_Source_Types.htm")
-                .WithMessageType(SearchQuerry.MessageType.Agent)
+                .WithMessageType(SearchQuery.MessageType.Agent)
                 .WithChatKey(searchQuery.ChatKey)
                 .Build();
 
@@ -291,7 +291,7 @@ namespace WhisperAPI.Tests.Integration
         [Test]
         public void When_getting_suggestions_with_more_attribute_then_required_then_returns_correctly()
         {
-            var jsonSearchQuery = "{\"chatkey\": \"aecaa8db-abc8-4ac9-aa8d-87987da2dbb0\",\"Querry\": \"Need help with CoveoSearch API\",\"Type\": 1,\"command\": \"sudo ls\"}";
+            var jsonSearchQuery = "{\"chatkey\": \"aecaa8db-abc8-4ac9-aa8d-87987da2dbb0\",\"Query\": \"Need help with CoveoSearch API\",\"Type\": 1,\"command\": \"sudo ls\"}";
 
             this._nlpCallHttpMessageHandleMock.Protected()
                 .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
@@ -309,13 +309,13 @@ namespace WhisperAPI.Tests.Integration
                     Content = this.GetSearchResultStringContent()
                 }));
 
-            this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(JsonConvert.DeserializeObject<SearchQuerry>(jsonSearchQuery)));
-            var result = this._suggestionController.GetSuggestions(JsonConvert.DeserializeObject<SearchQuerry>(jsonSearchQuery));
+            this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(JsonConvert.DeserializeObject<SearchQuery>(jsonSearchQuery)));
+            var result = this._suggestionController.GetSuggestions(JsonConvert.DeserializeObject<SearchQuery>(jsonSearchQuery));
 
             result.Should().BeEquivalentTo(new OkObjectResult(this.GetSuggestedDocuments()));
         }
 
-        public ActionExecutingContext GetActionExecutingContext(SearchQuerry searchQuerry)
+        public ActionExecutingContext GetActionExecutingContext(SearchQuery searchQuery)
         {
             var actionContext = new ActionContext(
                 new Mock<HttpContext>().Object,
@@ -331,8 +331,8 @@ namespace WhisperAPI.Tests.Integration
                 this._suggestionController);
 
             actionExecutingContext
-                .Setup(x => x.ActionArguments["searchQuerry"])
-                .Returns(searchQuerry);
+                .Setup(x => x.ActionArguments["searchQuery"])
+                .Returns(searchQuery);
 
             return actionExecutingContext.Object;
         }
