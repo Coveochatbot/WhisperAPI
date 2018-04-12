@@ -26,7 +26,7 @@ namespace WhisperAPI.Controllers
             }
 
             var searchQuerry = (SearchQuerry)actionExecutingContext.ActionArguments["searchQuerry"];
-            Guid chatKey = searchQuerry.ChatKey;
+            Guid? chatKey = searchQuerry.ChatKey;
             this.ConversationContext = this._contexts[chatKey];
 
             base.OnActionExecuting(actionExecutingContext);

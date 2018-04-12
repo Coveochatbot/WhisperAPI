@@ -19,13 +19,14 @@ namespace WhisperAPI.Models
 
         [Required(AllowEmptyStrings = false, ErrorMessage = "ChatKey is required")]
         [JsonProperty("chatkey")]
-        public Guid ChatKey { get; set; }
+        public Guid? ChatKey { get; set; }
 
         [JsonProperty("querry")]
         public string Querry { get; set; }
 
+        [Required(ErrorMessage = "Type is required")]
         [JsonProperty("type")]
-        public MessageType Type { get; set; }
+        public MessageType? Type { get; set; }
 
         [JsonIgnore]
         public bool Relevant { get; set; }
