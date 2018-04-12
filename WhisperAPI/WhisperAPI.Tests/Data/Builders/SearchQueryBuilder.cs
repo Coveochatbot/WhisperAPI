@@ -5,13 +5,13 @@ namespace WhisperAPI.Tests.Data.Builders
 {
     public class SearchQueryBuilder
     {
-        private Guid _chatKey = Guid.NewGuid();
+        private Guid? _chatKey = Guid.NewGuid();
 
         private string _query = "Test";
 
         private SearchQuerry.MessageType _type = 0;
 
-        public SearchQueryBuilder WithChatKey(Guid chatKey)
+        public SearchQueryBuilder WithChatKey(Guid? chatKey)
         {
             this._chatKey = chatKey;
             return this;
