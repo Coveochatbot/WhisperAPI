@@ -1,8 +1,8 @@
-﻿using FluentAssertions;
+﻿using System;
+using System.Collections.Generic;
+using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using NUnit.Framework;
-using System;
-using System.Collections.Generic;
 using WhisperAPI.Models;
 using WhisperAPI.Services;
 
@@ -11,7 +11,7 @@ namespace WhisperAPI.Tests.Unit
     [TestFixture]
     public class ContextsTest
     {
-        private Contexts _contexts;
+        private readonly Contexts _contexts;
 
         public ContextsTest()
         {

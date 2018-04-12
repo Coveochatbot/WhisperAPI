@@ -44,41 +44,6 @@ namespace WhisperAPI.Tests.Unit
             };
         }
 
-        public List<SuggestedDocument> GetListOfDocuments()
-        {
-            return new List<SuggestedDocument>
-                {
-                    new SuggestedDocument
-                    {
-                        Title = "Available Coveo Cloud V2 Source Types",
-                        Uri = "https://onlinehelp.coveo.com/en/cloud/Available_Coveo_Cloud_V2_Source_Types.htm",
-                        PrintableUri = "https://onlinehelp.coveo.com/en/cloud/Available_Coveo_Cloud_V2_Source_Types.htm",
-                        Summary = null
-                    },
-                    new SuggestedDocument
-                    {
-                        Title = "Coveo Cloud Query Syntax Reference",
-                        Uri = "https://onlinehelp.coveo.com/en/cloud/Coveo_Cloud_Query_Syntax_Reference.htm",
-                        PrintableUri = "https://onlinehelp.coveo.com/en/cloud/Coveo_Cloud_Query_Syntax_Reference.htm",
-                        Summary = null
-                    },
-                    new SuggestedDocument
-                    {
-                        Title = "Events",
-                        Uri = "https://developers.coveo.com/display/JsSearchV1/Page/27230520/27230472/27230573",
-                        PrintableUri = "https://developers.coveo.com/display/JsSearchV1/Page/27230520/27230472/27230573",
-                        Summary = null
-                    },
-                    new SuggestedDocument
-                    {
-                        Title = "Coveo Facet Component (CoveoFacet)",
-                        Uri = "https://coveo.github.io/search-ui/components/facet.html",
-                        PrintableUri = "https://coveo.github.io/search-ui/components/facet.html",
-                        Summary = null
-                    }
-                };
-        }
-
         [Test]
         [TestCase(0)]
         [TestCase(1)]
@@ -111,7 +76,7 @@ namespace WhisperAPI.Tests.Unit
             this._suggestionController.GetSuggestions(this._validSearchQuerryList[validQuerryIndex]).Should().BeEquivalentTo(new OkObjectResult(this.GetListOfDocuments()));
         }
 
-        private ActionExecutingContext GetActionExecutingContext(int indexOfTest)
+        public ActionExecutingContext GetActionExecutingContext(int indexOfTest)
         {
             var actionContext = new ActionContext(
                 new Mock<HttpContext>().Object,
@@ -131,6 +96,41 @@ namespace WhisperAPI.Tests.Unit
                 .Returns(this._validSearchQuerryList[indexOfTest]);
 
             return actionExecutingContext.Object;
+        }
+
+        public List<SuggestedDocument> GetListOfDocuments()
+        {
+            return new List<SuggestedDocument>
+            {
+                new SuggestedDocument
+                {
+                    Title = "Available Coveo Cloud V2 Source Types",
+                    Uri = "https://onlinehelp.coveo.com/en/cloud/Available_Coveo_Cloud_V2_Source_Types.htm",
+                    PrintableUri = "https://onlinehelp.coveo.com/en/cloud/Available_Coveo_Cloud_V2_Source_Types.htm",
+                    Summary = null
+                },
+                new SuggestedDocument
+                {
+                    Title = "Coveo Cloud Query Syntax Reference",
+                    Uri = "https://onlinehelp.coveo.com/en/cloud/Coveo_Cloud_Query_Syntax_Reference.htm",
+                    PrintableUri = "https://onlinehelp.coveo.com/en/cloud/Coveo_Cloud_Query_Syntax_Reference.htm",
+                    Summary = null
+                },
+                new SuggestedDocument
+                {
+                    Title = "Events",
+                    Uri = "https://developers.coveo.com/display/JsSearchV1/Page/27230520/27230472/27230573",
+                    PrintableUri = "https://developers.coveo.com/display/JsSearchV1/Page/27230520/27230472/27230573",
+                    Summary = null
+                },
+                new SuggestedDocument
+                {
+                    Title = "Coveo Facet Component (CoveoFacet)",
+                    Uri = "https://coveo.github.io/search-ui/components/facet.html",
+                    PrintableUri = "https://coveo.github.io/search-ui/components/facet.html",
+                    Summary = null
+                }
+            };
         }
     }
 }

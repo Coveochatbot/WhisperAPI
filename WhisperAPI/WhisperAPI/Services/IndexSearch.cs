@@ -16,6 +16,7 @@ namespace WhisperAPI.Services
         {
             this._apiKey = apiKey;
             this._httpClient = client;
+            this.InitHttpClient();
         }
 
         public ISearchResult Search(string querry)
@@ -25,7 +26,6 @@ namespace WhisperAPI.Services
 
         private string GetStringFromPost(string url, StringContent content)
         {
-            this.InitHttpClient();
             HttpResponseMessage response = this._httpClient.PostAsync(url, content).Result;
             response.EnsureSuccessStatusCode();
 
