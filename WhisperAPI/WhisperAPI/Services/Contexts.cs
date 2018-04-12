@@ -22,7 +22,7 @@ namespace WhisperAPI.Services
 
         // Get the Conversation associated to the chatkey,
         // create a new one if doesn't already exist
-        public ConversationContext this[Guid? chatkey]
+        public ConversationContext this[Guid chatkey]
         {
             get
             {
