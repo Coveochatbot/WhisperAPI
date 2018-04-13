@@ -24,12 +24,12 @@ namespace WhisperAPI.Tests.Unit
 
         private Mock<ISuggestionsService> _suggestionServiceMock;
         private SuggestionsController _suggestionController;
-        private Contexts _contexts;
+        private InMemoryContexts _contexts;
 
         [SetUp]
         public void SetUp()
         {
-            this._contexts = new Contexts(new DbContextOptionsBuilder<Contexts>().UseInMemoryDatabase("contextDB").Options, new TimeSpan(1, 0, 0, 0));
+            this._contexts = new InMemoryContexts(new TimeSpan(1, 0, 0, 0));
             this._invalidSearchQuerryList = new List<SearchQuerry>
             {
                 null,

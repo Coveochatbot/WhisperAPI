@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace WhisperAPI.Models
+﻿namespace WhisperAPI.Models
 {
     public class SuggestedDocument
     {
@@ -18,7 +16,6 @@ namespace WhisperAPI.Models
 
         public string Title { get; set; }
 
-        [Key]
         public string Uri { get; set; }
 
         public string PrintableUri { get; set; }

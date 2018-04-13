@@ -12,11 +12,12 @@ namespace WhisperAPI.Services
         public InMemoryContexts(TimeSpan contextLifeSpan)
         {
             this.ContextLifeSpan = contextLifeSpan;
+            this.ConversationContexts = new Dictionary<Guid, ConversationContext>();
         }
 
-        public TimeSpan ContextLifeSpan { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public TimeSpan ContextLifeSpan { get; set; }
 
-        private Dictionary<Guid, ConversationContext> ConversationContexts { get; set; }
+        private Dictionary<Guid, ConversationContext> ConversationContexts { get; }
 
         public ConversationContext this[Guid chatkey]
         {
@@ -50,6 +51,5 @@ namespace WhisperAPI.Services
                 return removedContexts;
             }
         }
-
     }
 }
