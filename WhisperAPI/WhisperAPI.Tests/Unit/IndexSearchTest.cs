@@ -25,7 +25,7 @@ namespace WhisperAPI.Tests.Unit
 
         [Test]
         [TestCase("test")]
-        public void When_receive_ok_response_from_post_then_return_result_correctly(string querry)
+        public void When_receive_ok_response_from_post_then_return_result_correctly(string query)
         {
             this._httpMessageHandler.Protected()
                 .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
@@ -38,12 +38,12 @@ namespace WhisperAPI.Tests.Unit
             this._httpClient = new HttpClient(this._httpMessageHandler.Object);
             IIndexSearch indexSearchOK = new IndexSearch(null, this._httpClient);
 
-            indexSearchOK.Search(querry).Should().BeEquivalentTo(this.GetSearchResult());
+            indexSearchOK.Search(query).Should().BeEquivalentTo(this.GetSearchResult());
         }
 
         [Test]
         [TestCase("test")]
-        public void When_receive_not_found_response_from_post_then_throws_exception(string querry)
+        public void When_receive_not_found_response_from_post_then_throws_exception(string query)
         {
             this._httpMessageHandler.Protected()
                 .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
@@ -56,12 +56,12 @@ namespace WhisperAPI.Tests.Unit
             this._httpClient = new HttpClient(this._httpMessageHandler.Object);
             IIndexSearch indexSearchNotFound = new IndexSearch(null, this._httpClient);
 
-            Assert.Throws<HttpRequestException>(() => indexSearchNotFound.Search(querry));
+            Assert.Throws<HttpRequestException>(() => indexSearchNotFound.Search(query));
         }
 
         [Test]
         [TestCase("test")]
-        public void When_receive_ok_response_with_empty_content_from_post_then_return_null(string querry)
+        public void When_receive_ok_response_with_empty_content_from_post_then_return_null(string query)
         {
             this._httpMessageHandler.Protected()
                 .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
@@ -74,7 +74,7 @@ namespace WhisperAPI.Tests.Unit
             this._httpClient = new HttpClient(this._httpMessageHandler.Object);
             IIndexSearch indexSearchOKNoContent = new IndexSearch(null, this._httpClient);
 
-            indexSearchOKNoContent.Search(querry).Should().BeEquivalentTo((SearchResult)null);
+            indexSearchOKNoContent.Search(query).Should().BeEquivalentTo((SearchResult)null);
         }
 
         public SearchResult GetSearchResult()

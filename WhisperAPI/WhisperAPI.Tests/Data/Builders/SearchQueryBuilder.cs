@@ -9,7 +9,7 @@ namespace WhisperAPI.Tests.Data.Builders
 
         private string _query = "Test";
 
-        private SearchQuerry.MessageType _type = 0;
+        private SearchQuery.MessageType _type = 0;
 
         public SearchQueryBuilder WithChatKey(Guid? chatKey)
         {
@@ -23,16 +23,16 @@ namespace WhisperAPI.Tests.Data.Builders
             return this;
         }
 
-        public SearchQueryBuilder WithMessageType(SearchQuerry.MessageType type)
+        public SearchQueryBuilder WithMessageType(SearchQuery.MessageType type)
         {
             this._type = type;
             return this;
         }
 
-        public SearchQuerry Build() => new SearchQuerry
+        public SearchQuery Build() => new SearchQuery
         {
             ChatKey = this._chatKey,
-            Querry = this._query,
+            Query = this._query,
             Type = this._type
         };
     }

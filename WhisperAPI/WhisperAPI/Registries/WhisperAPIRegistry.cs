@@ -8,9 +8,9 @@ namespace WhisperAPI.Registries
 {
     public class WhisperApiRegistry : StructureMap.Registry
     {
-        public WhisperApiRegistry(string apiKey, List<string> irrelevantsIntents, string nlpApiBaseAdress, string contextLifeSpan)
+        public WhisperApiRegistry(string apiKey, List<string> irrelevantIntents, string nlpApiBaseAdress, string contextLifeSpan)
         {
-            this.For<ISuggestionsService>().Use<SuggestionsService>().Ctor<List<string>>("irrelevantsIntents").Is(irrelevantsIntents);
+            this.For<ISuggestionsService>().Use<SuggestionsService>().Ctor<List<string>>("irrelevantIntents").Is(irrelevantIntents);
             this.For<INlpCall>().Use<NlpCall>().Ctor<string>("baseAdress").Is(nlpApiBaseAdress);
             this.For<IIndexSearch>().Use<IndexSearch>().Ctor<string>("apiKey").Is(apiKey);
             this.For<HttpClient>().Use<HttpClient>();

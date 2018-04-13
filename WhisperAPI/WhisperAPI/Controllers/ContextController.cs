@@ -8,7 +8,7 @@ namespace WhisperAPI.Controllers
 {
     public class ContextController : Controller
     {
-        private Contexts _contexts;
+        private readonly Contexts _contexts;
 
         public ContextController(Contexts contexts)
         {
@@ -25,8 +25,8 @@ namespace WhisperAPI.Controllers
                 return;
             }
 
-            var searchQuerry = (SearchQuerry)actionExecutingContext.ActionArguments["searchQuerry"];
-            Guid chatKey = searchQuerry.ChatKey.Value;
+            var searchQuery = (SearchQuery)actionExecutingContext.ActionArguments["searchQuery"];
+            Guid chatKey = searchQuery.ChatKey.Value;
             this.ConversationContext = this._contexts[chatKey];
 
             base.OnActionExecuting(actionExecutingContext);

@@ -7,7 +7,7 @@ using WhisperAPI.Models;
 using WhisperAPI.Models.NLPAPI;
 using WhisperAPI.Services;
 using WhisperAPI.Tests.Data.Builders;
-using static WhisperAPI.Models.SearchQuerry;
+using static WhisperAPI.Models.SearchQuery;
 
 namespace WhisperAPI.Tests.Unit
 {
@@ -25,7 +25,7 @@ namespace WhisperAPI.Tests.Unit
             this._indexSearchMock = new Mock<IIndexSearch>();
             this._nlpCallMock = new Mock<INlpCall>();
 
-            this._suggestionsService = new SuggestionsService(this._indexSearchMock.Object, this._nlpCallMock.Object, this.GetIrrelevantsIntents());
+            this._suggestionsService = new SuggestionsService(this._indexSearchMock.Object, this._nlpCallMock.Object, this.GetIrrelevantIntents());
         }
 
         [Test]
@@ -104,19 +104,19 @@ namespace WhisperAPI.Tests.Unit
                 x.Uri == "https://onlinehelp.coveo.com/en/cloud/Coveo_Cloud_Query_Syntax_Reference.htm"));
         }
 
-        public List<SearchQuerry> GetQueriesSentByByAgent()
+        public List<SearchQuery> GetQueriesSentByByAgent()
         {
-            return new List<SearchQuerry>
+            return new List<SearchQuery>
             {
-               new SearchQuerry {
+               new SearchQuery {
                    ChatKey = new Guid("0f8fad5b-d9cb-469f-a165-708677289501"),
-                   Querry = "https://onlinehelp.coveo.com/en/cloud/Available_Coveo_Cloud_V2_Source_Types.htm",
+                   Query = "https://onlinehelp.coveo.com/en/cloud/Available_Coveo_Cloud_V2_Source_Types.htm",
                    Type = MessageType.Agent,
                    Relevant = true
                },
-               new SearchQuerry {
+               new SearchQuery {
                    ChatKey = new Guid("0f8fad5b-d9cb-469f-a165-708677289501"),
-                   Querry = "https://onlinehelp.coveo.com/en/cloud/Coveo_Cloud_Query_Syntax_Reference.htm",
+                   Query = "https://onlinehelp.coveo.com/en/cloud/Coveo_Cloud_Query_Syntax_Reference.htm",
                    Type = MessageType.Agent,
                    Relevant = true
                }
@@ -201,7 +201,7 @@ namespace WhisperAPI.Tests.Unit
             };
         }
 
-        public List<string> GetIrrelevantsIntents()
+        public List<string> GetIrrelevantIntents()
         {
             return new List<string>
             {
@@ -213,9 +213,9 @@ namespace WhisperAPI.Tests.Unit
         {
             ConversationContext context = new ConversationContext(new Guid("0f8fad5b-d9cb-469f-a165-708677289501"), DateTime.Now)
             {
-                SearchQuerries = new List<SearchQuerry>
+                SearchQueries = new List<SearchQuery>
                 {
-                    new SearchQuerry { ChatKey = new Guid("0f8fad5b-d9cb-469f-a165-708677289501"), Querry = "rest api", Type = MessageType.Customer, Relevant = true }
+                    new SearchQuery { ChatKey = new Guid("0f8fad5b-d9cb-469f-a165-708677289501"), Query = "rest api", Type = MessageType.Customer, Relevant = true }
                 }
             };
             return context;
@@ -225,10 +225,10 @@ namespace WhisperAPI.Tests.Unit
         {
             ConversationContext context = new ConversationContext(new Guid("0f8fad5b-d9cb-469f-a165-708677289501"), DateTime.Now)
             {
-                SearchQuerries = new List<SearchQuerry>
+                SearchQueries = new List<SearchQuery>
                 {
-                    new SearchQuerry { ChatKey = new Guid("0f8fad5b-d9cb-469f-a165-708677289501"), Querry = "rest api", Type = MessageType.Customer, Relevant = true },
-                    new SearchQuerry { ChatKey = new Guid("0f8fad5b-d9cb-469f-a165-708677289501"), Querry = "Available Coveo Cloud V2 Source Types", Type = MessageType.Agent, Relevant = true }
+                    new SearchQuery { ChatKey = new Guid("0f8fad5b-d9cb-469f-a165-708677289501"), Query = "rest api", Type = MessageType.Customer, Relevant = true },
+                    new SearchQuery { ChatKey = new Guid("0f8fad5b-d9cb-469f-a165-708677289501"), Query = "Available Coveo Cloud V2 Source Types", Type = MessageType.Agent, Relevant = true }
                 }
             };
             return context;
