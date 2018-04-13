@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using WhisperAPI.Models;
@@ -7,17 +8,15 @@ namespace WhisperAPI.Services
 {
     public class InMemoryContexts : IContexts
     {
-        private object _removeOldLock = new object();
-
         public InMemoryContexts(TimeSpan contextLifeSpan)
         {
             this.ContextLifeSpan = contextLifeSpan;
-            this.ConversationContexts = new Dictionary<Guid, ConversationContext>();
+            this.ConversationContexts = new ConcurrentDictionary<Guid, ConversationContext>();
         }
 
         public TimeSpan ContextLifeSpan { get; set; }
 
-        private Dictionary<Guid, ConversationContext> ConversationContexts { get; }
+        private ConcurrentDictionary<Guid, ConversationContext> ConversationContexts { get; }
 
         public ConversationContext this[Guid chatkey]
         {
@@ -28,7 +27,7 @@ namespace WhisperAPI.Services
                     this.RemoveOldContext();
 
                     conversationContext = new ConversationContext(chatkey, DateTime.Now);
-                    this.ConversationContexts.Add(chatkey, conversationContext);
+                    this.ConversationContexts.TryAdd(chatkey, conversationContext);
                 }
 
                 return conversationContext;
@@ -37,19 +36,16 @@ namespace WhisperAPI.Services
 
         public List<ConversationContext> RemoveOldContext()
         {
-            lock (this._removeOldLock)
+            List<ConversationContext> removedContexts = this.ConversationContexts
+                .Where(x => ((DateTime.Now - x.Value.StartDate) > this.ContextLifeSpan))
+                .Select(x => x.Value).ToList();
+
+            foreach (var context in removedContexts)
             {
-                List<ConversationContext> removedContexts = this.ConversationContexts
-                    .Where(x => ((DateTime.Now - x.Value.StartDate) > this.ContextLifeSpan))
-                    .Select(x => x.Value).ToList();
-
-                foreach (var context in removedContexts)
-                {
-                    this.ConversationContexts.Remove(context.ChatKey);
-                }
-
-                return removedContexts;
+                this.ConversationContexts.TryRemove(context.ChatKey, out ConversationContext value);
             }
+
+            return removedContexts;
         }
     }
 }

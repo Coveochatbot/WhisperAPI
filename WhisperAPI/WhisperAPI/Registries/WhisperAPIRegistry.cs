@@ -14,7 +14,7 @@ namespace WhisperAPI.Registries
             this.For<INlpCall>().Use<NlpCall>().Ctor<string>("baseAdress").Is(nlpApiBaseAdress);
             this.For<IIndexSearch>().Use<IndexSearch>().Ctor<string>("apiKey").Is(apiKey);
             this.For<HttpClient>().Use<HttpClient>();
-            this.For<InMemoryContexts>().Use<InMemoryContexts>()
+            this.For<IContexts>().Use<InMemoryContexts>()
                 .Ctor<TimeSpan>("contextLifeSpan").Is(TimeSpan.Parse(contextLifeSpan));
         }
     }
