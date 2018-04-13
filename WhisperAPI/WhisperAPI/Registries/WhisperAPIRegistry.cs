@@ -17,6 +17,8 @@ namespace WhisperAPI.Registries
             this.For<Contexts>().Use<Contexts>()
                 .Ctor<DbContextOptions<Contexts>>("options").Is(new DbContextOptionsBuilder<Contexts>().UseInMemoryDatabase("contextDB").Options)
                 .Ctor<TimeSpan>("contextLifeSpan").Is(TimeSpan.Parse(contextLifeSpan));
+            this.For<InMemoryContexts>().Use<InMemoryContexts>()
+                .Ctor<TimeSpan>("contextLifeSpan").Is(TimeSpan.Parse(contextLifeSpan));
         }
     }
 }

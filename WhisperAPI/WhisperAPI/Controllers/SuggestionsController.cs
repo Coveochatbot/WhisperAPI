@@ -10,7 +10,7 @@ namespace WhisperAPI.Controllers
     {
         private readonly ISuggestionsService _suggestionsService;
 
-        public SuggestionsController(ISuggestionsService suggestionsService, Contexts contexts)
+        public SuggestionsController(ISuggestionsService suggestionsService, IContexts contexts)
             : base(contexts)
         {
             this._suggestionsService = suggestionsService;

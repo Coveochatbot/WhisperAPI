@@ -6,7 +6,7 @@ using WhisperAPI.Models;
 
 namespace WhisperAPI.Services
 {
-    public class Contexts : DbContext
+    public class Contexts : DbContext, IContexts
     {
         private object _removeOldLock = new object();
 

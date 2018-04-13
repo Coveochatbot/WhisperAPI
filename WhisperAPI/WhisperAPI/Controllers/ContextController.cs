@@ -8,9 +8,9 @@ namespace WhisperAPI.Controllers
 {
     public class ContextController : Controller
     {
-        private Contexts _contexts;
+        private IContexts _contexts;
 
-        public ContextController(Contexts contexts)
+        public ContextController(IContexts contexts)
         {
             this._contexts = contexts;
         }
@@ -30,17 +30,6 @@ namespace WhisperAPI.Controllers
             this.ConversationContext = this._contexts[chatKey];
 
             base.OnActionExecuting(actionExecutingContext);
-        }
-
-        public override void OnActionExecuted(ActionExecutedContext actionExecutedContext)
-        {
-            // Save changes that could have been made in controllers
-            this._contexts.SaveChangesAsync();
-
-            // Remove context older than the default timespan
-            this._contexts.RemoveOldContext();
-
-            base.OnActionExecuted(actionExecutedContext);
         }
     }
 }
