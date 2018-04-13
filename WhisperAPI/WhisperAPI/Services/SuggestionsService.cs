@@ -7,6 +7,8 @@ namespace WhisperAPI.Services
 {
     public class SuggestionsService : ISuggestionsService
     {
+        private static readonly log4net.ILog Log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private readonly IIndexSearch _indexSearch;
 
         private readonly INlpCall _nlpCall;
@@ -52,6 +54,10 @@ namespace WhisperAPI.Services
         public bool IsQueryRelevant(SearchQuerry searchQuery)
         {
             var nlpAnalysis = this._nlpCall.GetNlpAnalysis(searchQuery.Querry);
+
+            nlpAnalysis.Intents.ForEach(x => Log.Debug($"Intent - Name: {x.Name}, Confidence: {x.Confidence}"));
+            nlpAnalysis.Entities.ForEach(x => Log.Debug($"Entity - Name: {x.Name}"));
+
             return this.IsIntentRelevant(nlpAnalysis);
         }
 

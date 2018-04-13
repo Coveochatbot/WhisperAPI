@@ -8,6 +8,8 @@ namespace WhisperAPI.Services
 {
     public class Contexts : DbContext
     {
+        private static readonly log4net.ILog Log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private object _removeOldLock = new object();
 
         public Contexts(DbContextOptions<Contexts> options, TimeSpan contextLifeSpan)

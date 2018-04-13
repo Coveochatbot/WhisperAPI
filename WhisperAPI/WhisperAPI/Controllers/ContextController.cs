@@ -8,6 +8,8 @@ namespace WhisperAPI.Controllers
 {
     public class ContextController : Controller
     {
+        private static readonly log4net.ILog Log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private Contexts _contexts;
 
         public ContextController(Contexts contexts)
@@ -19,13 +21,18 @@ namespace WhisperAPI.Controllers
 
         public override void OnActionExecuting(ActionExecutingContext actionExecutingContext)
         {
+            var searchQuerry = (SearchQuerry)actionExecutingContext.ActionArguments["searchQuerry"];
+
+            log4net.ThreadContext.Properties["requestId"] = Guid.NewGuid();
             if (!this.ModelState.IsValid)
             {
                 actionExecutingContext.Result = this.BadRequest(this.ModelState);
+                Log.Error($"ChatKey: {searchQuerry.ChatKey}, Query: {searchQuerry.Querry}, Type: {searchQuerry.Type}");
                 return;
             }
 
-            var searchQuerry = (SearchQuerry)actionExecutingContext.ActionArguments["searchQuerry"];
+            Log.Debug($"ChatKey: {searchQuerry.ChatKey}, Query: {searchQuerry.Querry}, Type: {searchQuerry.Type}");
+
             Guid chatKey = searchQuerry.ChatKey.Value;
             this.ConversationContext = this._contexts[chatKey];
 
