@@ -44,7 +44,7 @@ namespace WhisperAPI.Tests.Integration
             var indexSearch = new IndexSearch(null, indexSearchHttpClient);
             var nlpCall = new NlpCall(nlpCallHttpClient, "https://localhost:5000");
 
-            var suggestionsService = new SuggestionsService(indexSearch, nlpCall, this.GetIrrelevantsIntents());
+            var suggestionsService = new SuggestionsService(indexSearch, nlpCall, this.GetIrrelevantIntents());
 
             var contexts = new Contexts(new DbContextOptionsBuilder<Contexts>().UseInMemoryDatabase("contextDB").Options, new TimeSpan(1, 0, 0, 0));
             this._suggestionController = new SuggestionsController(suggestionsService, contexts);
@@ -399,7 +399,7 @@ namespace WhisperAPI.Tests.Integration
             return new StringContent("{\"totalCount\": 4,\"results\": [{\"title\": \"Available Coveo Cloud V2 Source Types\",\"uri\": \"https://onlinehelp.coveo.com/en/cloud/Available_Coveo_Cloud_V2_Source_Types.htm\",\"printableUri\": \"https://onlinehelp.coveo.com/en/cloud/Available_Coveo_Cloud_V2_Source_Types.htm\",\"score\": 4280       },{\"title\": \"Coveo Cloud Query Syntax Reference\",\"uri\": \"https://onlinehelp.coveo.com/en/cloud/Coveo_Cloud_Query_Syntax_Reference.htm\",\"printableUri\": \"https://onlinehelp.coveo.com/en/cloud/Coveo_Cloud_Query_Syntax_Reference.htm\",\"score\": 3900},{\"title\": \"Events\",\"uri\": \"https://developers.coveo.com/display/JsSearchV1/Page/27230520/27230472/27230573\",\"printableUri\": \"https://developers.coveo.com/display/JsSearchV1/Page/27230520/27230472/27230573\",\"score\": 2947},{\"title\": \"Coveo Facet Component (CoveoFacet)\",\"uri\": \"https://coveo.github.io/search-ui/components/facet.html\",\"printableUri\": \"https://coveo.github.io/search-ui/components/facet.html\",\"score\": 2932}]}");
         }
 
-        public List<string> GetIrrelevantsIntents()
+        public List<string> GetIrrelevantIntents()
         {
             return new List<string>
             {

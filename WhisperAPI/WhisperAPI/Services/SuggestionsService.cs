@@ -11,13 +11,13 @@ namespace WhisperAPI.Services
 
         private readonly INlpCall _nlpCall;
 
-        private readonly List<string> _irrelevantsIntents;
+        private readonly List<string> _irrelevantIntents;
 
-        public SuggestionsService(IIndexSearch indexSearch, INlpCall nlpCall, List<string> irrelevantsIntents)
+        public SuggestionsService(IIndexSearch indexSearch, INlpCall nlpCall, List<string> irrelevantIntents)
         {
             this._indexSearch = indexSearch;
             this._nlpCall = nlpCall;
-            this._irrelevantsIntents = irrelevantsIntents;
+            this._irrelevantIntents = irrelevantIntents;
         }
 
         public IEnumerable<SuggestedDocument> GetSuggestions(ConversationContext conversationContext)
@@ -99,7 +99,7 @@ namespace WhisperAPI.Services
         {
             var mostConfidentIntent = nlpAnalysis.Intents.OrderByDescending(x => x.Confidence).First();
 
-            return !this._irrelevantsIntents.Contains(mostConfidentIntent.Name);
+            return !this._irrelevantIntents.Contains(mostConfidentIntent.Name);
         }
 
         private bool IsElementValid(ISearchResultElement result)

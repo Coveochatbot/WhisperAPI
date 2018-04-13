@@ -25,7 +25,7 @@ namespace WhisperAPI.Tests.Unit
             this._indexSearchMock = new Mock<IIndexSearch>();
             this._nlpCallMock = new Mock<INlpCall>();
 
-            this._suggestionsService = new SuggestionsService(this._indexSearchMock.Object, this._nlpCallMock.Object, this.GetIrrelevantsIntents());
+            this._suggestionsService = new SuggestionsService(this._indexSearchMock.Object, this._nlpCallMock.Object, this.GetIrrelevantIntents());
         }
 
         [Test]
@@ -201,7 +201,7 @@ namespace WhisperAPI.Tests.Unit
             };
         }
 
-        public List<string> GetIrrelevantsIntents()
+        public List<string> GetIrrelevantIntents()
         {
             return new List<string>
             {
