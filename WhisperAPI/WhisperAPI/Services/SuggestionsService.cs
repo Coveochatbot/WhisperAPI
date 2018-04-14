@@ -104,7 +104,7 @@ namespace WhisperAPI.Services
         private bool IsIntentRelevant(NlpAnalysis nlpAnalysis)
         {
             var mostConfidentIntent = nlpAnalysis.Intents.OrderByDescending(x => x.Confidence).First();
-            return !this._irrelevantsIntents.Any(x => Regex.IsMatch(mostConfidentIntent.Name, this.WildCardToRegularExpression(x)));
+            return !this._irrelevantIntents.Any(x => Regex.IsMatch(mostConfidentIntent.Name, this.WildCardToRegularExpression(x)));
         }
 
         private bool IsElementValid(ISearchResultElement result)
