@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 
 namespace WhisperAPI.Models
 {
@@ -19,7 +18,6 @@ namespace WhisperAPI.Models
             this.SuggestedDocuments = new HashSet<SuggestedDocument>();
         }
 
-        [Key]
         public Guid ChatKey { get; set; }
 
         public DateTime StartDate { get; set; }

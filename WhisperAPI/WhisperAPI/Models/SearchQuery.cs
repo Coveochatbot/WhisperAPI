@@ -13,7 +13,6 @@ namespace WhisperAPI.Models
             Agent = 1
         }
 
-        [Key]
         [JsonIgnore]
         public int Id { get; set; }
 

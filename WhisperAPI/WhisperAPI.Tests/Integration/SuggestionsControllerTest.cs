@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
 using Moq;
 using Moq.Protected;
 using Newtonsoft.Json;
@@ -46,7 +45,7 @@ namespace WhisperAPI.Tests.Integration
 
             var suggestionsService = new SuggestionsService(indexSearch, nlpCall, this.GetIrrelevantIntents());
 
-            var contexts = new Contexts(new DbContextOptionsBuilder<Contexts>().UseInMemoryDatabase("contextDB").Options, new TimeSpan(1, 0, 0, 0));
+            var contexts = new InMemoryContexts(new TimeSpan(1, 0, 0, 0));
             this._suggestionController = new SuggestionsController(suggestionsService, contexts);
         }
 
