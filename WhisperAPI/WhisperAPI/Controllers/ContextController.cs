@@ -1,6 +1,7 @@
 ﻿using System;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Newtonsoft.Json;
 using WhisperAPI.Models;
 using WhisperAPI.Services;
 
@@ -26,11 +27,11 @@ namespace WhisperAPI.Controllers
             if (!this.ModelState.IsValid)
             {
                 actionExecutingContext.Result = this.BadRequest(this.ModelState);
-                Log.Error($"ChatKey: {searchQuery.ChatKey}, Query: {searchQuery.Query}, Type: {searchQuery.Type}");
+                Log.Error($"Search query:\r\n{JsonConvert.SerializeObject(searchQuery, Formatting.Indented)}");
                 return;
             }
 
-            Log.Debug($"ChatKey: {searchQuery.ChatKey}, Query: {searchQuery.Query}, Type: {searchQuery.Type}");
+            Log.Error($"Search query:\r\n {JsonConvert.SerializeObject(searchQuery, Formatting.Indented)}");
             Guid chatKey = searchQuery.ChatKey.Value;
             this.ConversationContext = this._contexts[chatKey];
 
