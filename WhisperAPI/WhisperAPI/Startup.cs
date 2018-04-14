@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using StructureMap;
 using WhisperAPI.Registries;
 using WhisperAPI.Services;
@@ -51,7 +52,7 @@ namespace WhisperAPI
             return container.GetInstance<IServiceProvider>();
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
             if (env.IsDevelopment())
             {
@@ -61,6 +62,8 @@ namespace WhisperAPI
             {
                 app.UseExceptionHandler("/Home/Error");
             }
+
+            loggerFactory.AddLog4Net();
 
             app.UseStaticFiles();
             app.UseCors("AllowAll");

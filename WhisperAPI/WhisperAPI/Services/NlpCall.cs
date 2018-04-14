@@ -9,6 +9,8 @@ namespace WhisperAPI.Services
 {
     public class NlpCall : INlpCall
     {
+        private static readonly log4net.ILog Log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private readonly string _baseAdress;
 
         private readonly HttpClient _httpClient;
