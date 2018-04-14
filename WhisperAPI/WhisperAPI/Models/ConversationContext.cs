@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 
 namespace WhisperAPI.Models
 {
@@ -15,16 +14,15 @@ namespace WhisperAPI.Models
 
         public ConversationContext()
         {
-            this.SearchQuerries = new List<SearchQuerry>();
+            this.SearchQueries = new List<SearchQuery>();
             this.SuggestedDocuments = new HashSet<SuggestedDocument>();
         }
 
-        [Key]
         public Guid ChatKey { get; set; }
 
         public DateTime StartDate { get; set; }
 
-        public List<SearchQuerry> SearchQuerries { get; set; }
+        public List<SearchQuery> SearchQueries { get; set; }
 
         public HashSet<SuggestedDocument> SuggestedDocuments { get; set; }
     }

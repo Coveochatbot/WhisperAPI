@@ -11,11 +11,11 @@ namespace WhisperAPI.Tests.Unit
     [TestFixture]
     public class ContextsTest
     {
-        private readonly Contexts _contexts;
+        private readonly InMemoryContexts _contexts;
 
         public ContextsTest()
         {
-            this._contexts = new Contexts(new DbContextOptionsBuilder<Contexts>().UseInMemoryDatabase("contextDB").Options, new TimeSpan(1, 0, 0, 0));
+            this._contexts = new InMemoryContexts(new TimeSpan(1, 0, 0, 0));
         }
 
         [Test]
@@ -37,8 +37,9 @@ namespace WhisperAPI.Tests.Unit
         public void When_retrieving_non_existing_conversation_context_then_return_new_one(string chatkey)
         {
             ConversationContext conversationcontext = this._contexts[new Guid(chatkey)];
-            this._contexts.SaveChangesAsync();
+            conversationcontext.SuggestedDocuments.Add(this.GetSuggestedDocument());
 
+            conversationcontext.Should().NotBeNull();
             conversationcontext.ChatKey.Should().Be(chatkey);
         }
 
@@ -49,6 +50,9 @@ namespace WhisperAPI.Tests.Unit
         public void When_retrieving_existing_conversation_context_then_return_the_context(string chatkey)
         {
             ConversationContext conversationcontext = this._contexts[new Guid(chatkey)];
+
+            conversationcontext.SuggestedDocuments.Count.Should().Be(1);
+            conversationcontext.SuggestedDocuments.Should().Contain(this.GetSuggestedDocument());
             conversationcontext.ChatKey.Should().Be(chatkey);
         }
 
@@ -71,7 +75,6 @@ namespace WhisperAPI.Tests.Unit
             ConversationContext conversationcontext = this._contexts[new Guid(chatkey)];
             conversationcontext.StartDate = conversationcontext.StartDate.Subtract(new TimeSpan(2, 0, 0, 0));
 
-            this._contexts.SaveChangesAsync();
             IEnumerable<ConversationContext> removedContext = this._contexts.RemoveOldContext();
 
             removedContext.Should().OnlyContain(x => x.Equals(conversationcontext));
@@ -84,27 +87,25 @@ namespace WhisperAPI.Tests.Unit
         {
 
             ConversationContext conversationcontext = this._contexts[new Guid(chatkey)];
-            conversationcontext.SearchQuerries.Add(this.GetSearchQuerry("rest api", chatkey));
-            this._contexts.SaveChanges();
+            conversationcontext.SearchQueries.Add(this.GetSearchQuery("rest api", chatkey));
 
             conversationcontext = this._contexts[new Guid(chatkey)];
-            conversationcontext.SearchQuerries[0].Querry.Should().Be("rest api");
+            conversationcontext.SearchQueries[0].Query.Should().Be("rest api");
 
-            conversationcontext.SearchQuerries.Add(this.GetSearchQuerry("framework", chatkey));
-            this._contexts.SaveChanges();
+            conversationcontext.SearchQueries.Add(this.GetSearchQuery("framework", chatkey));
 
             conversationcontext = this._contexts[new Guid(chatkey)];
-            conversationcontext.SearchQuerries[0].Querry.Should().Be("rest api");
-            conversationcontext.SearchQuerries[1].Querry.Should().Be("framework");
+            conversationcontext.SearchQueries[0].Query.Should().Be("rest api");
+            conversationcontext.SearchQueries[1].Query.Should().Be("framework");
         }
 
-        private SearchQuerry GetSearchQuerry(string querry, string chatkey)
+        private SearchQuery GetSearchQuery(string query, string chatkey)
         {
-            return new SearchQuerry
+            return new SearchQuery
             {
                 ChatKey = new Guid(chatkey),
-                Querry = querry,
-                Type = SearchQuerry.MessageType.Customer
+                Query = query,
+                Type = SearchQuery.MessageType.Customer
             };
         }
 

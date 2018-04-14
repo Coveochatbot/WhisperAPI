@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
 using Moq;
 using Moq.Protected;
 using Newtonsoft.Json;
@@ -44,9 +43,9 @@ namespace WhisperAPI.Tests.Integration
             var indexSearch = new IndexSearch(null, indexSearchHttpClient);
             var nlpCall = new NlpCall(nlpCallHttpClient, "https://localhost:5000");
 
-            var suggestionsService = new SuggestionsService(indexSearch, nlpCall, this.GetIrrelevantsIntents());
+            var suggestionsService = new SuggestionsService(indexSearch, nlpCall, this.GetIrrelevantIntents());
 
-            var contexts = new Contexts(new DbContextOptionsBuilder<Contexts>().UseInMemoryDatabase("contextDB").Options, new TimeSpan(1, 0, 0, 0));
+            var contexts = new InMemoryContexts(new TimeSpan(1, 0, 0, 0));
             this._suggestionController = new SuggestionsController(suggestionsService, contexts);
         }
 
@@ -209,7 +208,7 @@ namespace WhisperAPI.Tests.Integration
             // Agent says: Maybe this could help: https://onlinehelp.coveo.com/en/cloud/Available_Coveo_Cloud_V2_Source_Types.htm
             searchQuery = new SearchQueryBuilder()
                 .WithQuery("Maybe this can help: https://onlinehelp.coveo.com/en/cloud/Available_Coveo_Cloud_V2_Source_Types.htm")
-                .WithMessageType(SearchQuerry.MessageType.Agent)
+                .WithMessageType(SearchQuery.MessageType.Agent)
                 .WithChatKey(searchQuery.ChatKey)
                 .Build();
 
@@ -291,7 +290,7 @@ namespace WhisperAPI.Tests.Integration
         [Test]
         public void When_getting_suggestions_with_more_attribute_then_required_then_returns_correctly()
         {
-            var jsonSearchQuery = "{\"chatkey\": \"aecaa8db-abc8-4ac9-aa8d-87987da2dbb0\",\"Querry\": \"Need help with CoveoSearch API\",\"Type\": 1,\"command\": \"sudo ls\"}";
+            var jsonSearchQuery = "{\"chatkey\": \"aecaa8db-abc8-4ac9-aa8d-87987da2dbb0\",\"Query\": \"Need help with CoveoSearch API\",\"Type\": 1,\"command\": \"sudo ls\"}";
 
             this._nlpCallHttpMessageHandleMock.Protected()
                 .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
@@ -309,13 +308,13 @@ namespace WhisperAPI.Tests.Integration
                     Content = this.GetSearchResultStringContent()
                 }));
 
-            this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(JsonConvert.DeserializeObject<SearchQuerry>(jsonSearchQuery)));
-            var result = this._suggestionController.GetSuggestions(JsonConvert.DeserializeObject<SearchQuerry>(jsonSearchQuery));
+            this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(JsonConvert.DeserializeObject<SearchQuery>(jsonSearchQuery)));
+            var result = this._suggestionController.GetSuggestions(JsonConvert.DeserializeObject<SearchQuery>(jsonSearchQuery));
 
             result.Should().BeEquivalentTo(new OkObjectResult(this.GetSuggestedDocuments()));
         }
 
-        public ActionExecutingContext GetActionExecutingContext(SearchQuerry searchQuerry)
+        public ActionExecutingContext GetActionExecutingContext(SearchQuery searchQuery)
         {
             var actionContext = new ActionContext(
                 new Mock<HttpContext>().Object,
@@ -331,8 +330,8 @@ namespace WhisperAPI.Tests.Integration
                 this._suggestionController);
 
             actionExecutingContext
-                .Setup(x => x.ActionArguments["searchQuerry"])
-                .Returns(searchQuerry);
+                .Setup(x => x.ActionArguments["searchQuery"])
+                .Returns(searchQuery);
 
             return actionExecutingContext.Object;
         }
@@ -399,7 +398,7 @@ namespace WhisperAPI.Tests.Integration
             return new StringContent("{\"totalCount\": 4,\"results\": [{\"title\": \"Available Coveo Cloud V2 Source Types\",\"uri\": \"https://onlinehelp.coveo.com/en/cloud/Available_Coveo_Cloud_V2_Source_Types.htm\",\"printableUri\": \"https://onlinehelp.coveo.com/en/cloud/Available_Coveo_Cloud_V2_Source_Types.htm\",\"score\": 4280       },{\"title\": \"Coveo Cloud Query Syntax Reference\",\"uri\": \"https://onlinehelp.coveo.com/en/cloud/Coveo_Cloud_Query_Syntax_Reference.htm\",\"printableUri\": \"https://onlinehelp.coveo.com/en/cloud/Coveo_Cloud_Query_Syntax_Reference.htm\",\"score\": 3900},{\"title\": \"Events\",\"uri\": \"https://developers.coveo.com/display/JsSearchV1/Page/27230520/27230472/27230573\",\"printableUri\": \"https://developers.coveo.com/display/JsSearchV1/Page/27230520/27230472/27230573\",\"score\": 2947},{\"title\": \"Coveo Facet Component (CoveoFacet)\",\"uri\": \"https://coveo.github.io/search-ui/components/facet.html\",\"printableUri\": \"https://coveo.github.io/search-ui/components/facet.html\",\"score\": 2932}]}");
         }
 
-        public List<string> GetIrrelevantsIntents()
+        public List<string> GetIrrelevantIntents()
         {
             return new List<string>
             {

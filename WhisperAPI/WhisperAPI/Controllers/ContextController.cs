@@ -9,45 +9,32 @@ namespace WhisperAPI.Controllers
     public class ContextController : Controller
     {
         private static readonly log4net.ILog Log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private readonly IContexts _contexts;
 
-        private Contexts _contexts;
-
-        public ContextController(Contexts contexts)
+        public ContextController(IContexts contexts)
         {
             this._contexts = contexts;
         }
 
-        protected ConversationContext ConversationContext { get; set; }
+        protected ConversationContext ConversationContext { get; private set; }
 
         public override void OnActionExecuting(ActionExecutingContext actionExecutingContext)
         {
-            var searchQuerry = (SearchQuerry)actionExecutingContext.ActionArguments["searchQuerry"];
+            var searchQuery = (SearchQuery)actionExecutingContext.ActionArguments["searchQuery"];
 
             log4net.ThreadContext.Properties["requestId"] = Guid.NewGuid();
             if (!this.ModelState.IsValid)
             {
                 actionExecutingContext.Result = this.BadRequest(this.ModelState);
-                Log.Error($"ChatKey: {searchQuerry.ChatKey}, Query: {searchQuerry.Querry}, Type: {searchQuerry.Type}");
+                Log.Error($"ChatKey: {searchQuery.ChatKey}, Query: {searchQuery.Query}, Type: {searchQuery.Type}");
                 return;
             }
 
-            Log.Debug($"ChatKey: {searchQuerry.ChatKey}, Query: {searchQuerry.Querry}, Type: {searchQuerry.Type}");
-
-            Guid chatKey = searchQuerry.ChatKey.Value;
+            Log.Debug($"ChatKey: {searchQuery.ChatKey}, Query: {searchQuery.Query}, Type: {searchQuery.Type}");
+            Guid chatKey = searchQuery.ChatKey.Value;
             this.ConversationContext = this._contexts[chatKey];
 
             base.OnActionExecuting(actionExecutingContext);
-        }
-
-        public override void OnActionExecuted(ActionExecutedContext actionExecutedContext)
-        {
-            // Save changes that could have been made in controllers
-            this._contexts.SaveChangesAsync();
-
-            // Remove context older than the default timespan
-            this._contexts.RemoveOldContext();
-
-            base.OnActionExecuted(actionExecutedContext);
         }
     }
 }

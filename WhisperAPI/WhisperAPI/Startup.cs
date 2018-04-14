@@ -36,7 +36,6 @@ namespace WhisperAPI
                             .AllowCredentials();
                     });
             });
-            services.AddDbContext<Contexts>(options => options.UseInMemoryDatabase("contextDB"));
             services.AddMvc();
 
             var applicationSettings = new ApplicationSettings();
@@ -46,7 +45,7 @@ namespace WhisperAPI
 
             container.Configure(config =>
             {
-                config.AddRegistry(new WhisperApiRegistry(applicationSettings.ApiKey, applicationSettings.IrrelevantsIntents, applicationSettings.NlpApiBaseAddress, applicationSettings.ContextLifeSpan));
+                config.AddRegistry(new WhisperApiRegistry(applicationSettings.ApiKey, applicationSettings.IrrelevantIntents, applicationSettings.NlpApiBaseAddress, applicationSettings.ContextLifeSpan));
                 config.Populate(services);
             });
 

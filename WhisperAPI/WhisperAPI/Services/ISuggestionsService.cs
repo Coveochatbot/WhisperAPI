@@ -7,7 +7,7 @@ namespace WhisperAPI.Services
     {
         IEnumerable<SuggestedDocument> GetSuggestions(ConversationContext conversationContext);
 
-        void UpdateContextWithNewQuery(ConversationContext conversationContext, SearchQuerry searchQuerry);
+        void UpdateContextWithNewQuery(ConversationContext conversationContext, SearchQuery searchQuery);
 
         void UpdateContextWithNewSuggestions(ConversationContext conversationContext, List<SuggestedDocument> suggestedDocuments);
     }

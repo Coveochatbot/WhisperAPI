@@ -13,18 +13,18 @@ namespace WhisperAPI.Services
 
         private readonly INlpCall _nlpCall;
 
-        private readonly List<string> _irrelevantsIntents;
+        private readonly List<string> _irrelevantIntents;
 
-        public SuggestionsService(IIndexSearch indexSearch, INlpCall nlpCall, List<string> irrelevantsIntents)
+        public SuggestionsService(IIndexSearch indexSearch, INlpCall nlpCall, List<string> irrelevantIntents)
         {
             this._indexSearch = indexSearch;
             this._nlpCall = nlpCall;
-            this._irrelevantsIntents = irrelevantsIntents;
+            this._irrelevantIntents = irrelevantIntents;
         }
 
         public IEnumerable<SuggestedDocument> GetSuggestions(ConversationContext conversationContext)
         {
-            var allRelevantQueries = string.Join(" ", conversationContext.SearchQuerries.Where(x => x.Relevant).Select(m => m.Querry));
+            var allRelevantQueries = string.Join(" ", conversationContext.SearchQueries.Where(x => x.Relevant).Select(m => m.Query));
 
             if (string.IsNullOrEmpty(allRelevantQueries.Trim()))
             {
@@ -34,13 +34,13 @@ namespace WhisperAPI.Services
             var coveoIndexDocuments = this.SearchCoveoIndex(allRelevantQueries);
 
             // TODO: Send 5 most relevant results
-            return this.FilterOutChosenSuggestions(coveoIndexDocuments, conversationContext.SearchQuerries).Take(5);
+            return this.FilterOutChosenSuggestions(coveoIndexDocuments, conversationContext.SearchQueries).Take(5);
         }
 
-        public void UpdateContextWithNewQuery(ConversationContext context, SearchQuerry searchQuerry)
+        public void UpdateContextWithNewQuery(ConversationContext context, SearchQuery searchQuery)
         {
-            searchQuerry.Relevant = this.IsQueryRelevant(searchQuerry);
-            context.SearchQuerries.Add(searchQuerry);
+            searchQuery.Relevant = this.IsQueryRelevant(searchQuery);
+            context.SearchQueries.Add(searchQuery);
         }
 
         public void UpdateContextWithNewSuggestions(ConversationContext context, List<SuggestedDocument> suggestedDocuments)
@@ -51,31 +51,30 @@ namespace WhisperAPI.Services
             }
         }
 
-        public bool IsQueryRelevant(SearchQuerry searchQuery)
+        public bool IsQueryRelevant(SearchQuery searchQuery)
         {
-            var nlpAnalysis = this._nlpCall.GetNlpAnalysis(searchQuery.Querry);
+            var nlpAnalysis = this._nlpCall.GetNlpAnalysis(searchQuery.Query);
 
             nlpAnalysis.Intents.ForEach(x => Log.Debug($"Intent - Name: {x.Name}, Confidence: {x.Confidence}"));
             nlpAnalysis.Entities.ForEach(x => Log.Debug($"Entity - Name: {x.Name}"));
-
             return this.IsIntentRelevant(nlpAnalysis);
         }
 
         public IEnumerable<SuggestedDocument> FilterOutChosenSuggestions(
             IEnumerable<SuggestedDocument> coveoIndexDocuments,
-            IEnumerable<SearchQuerry> querriesList)
+            IEnumerable<SearchQuery> queriesList)
         {
-            var agentQuerries = querriesList
-                .Where(x => x.Type == SearchQuerry.MessageType.Agent)
-                .Select(x => x.Querry)
+            var agentQueries = queriesList
+                .Where(x => x.Type == SearchQuery.MessageType.Agent)
+                .Select(x => x.Query)
                 .ToList();
 
-            return coveoIndexDocuments.Where(x => !agentQuerries.Contains(x.Uri));
+            return coveoIndexDocuments.Where(x => !agentQueries.Contains(x.Uri));
         }
 
-        private IEnumerable<SuggestedDocument> SearchCoveoIndex(string querry)
+        private IEnumerable<SuggestedDocument> SearchCoveoIndex(string query)
         {
-            ISearchResult searchResult = this._indexSearch.Search(querry);
+            ISearchResult searchResult = this._indexSearch.Search(query);
             var documents = new List<SuggestedDocument>();
 
             if (searchResult == null)
@@ -105,7 +104,7 @@ namespace WhisperAPI.Services
         {
             var mostConfidentIntent = nlpAnalysis.Intents.OrderByDescending(x => x.Confidence).First();
 
-            return !this._irrelevantsIntents.Contains(mostConfidentIntent.Name);
+            return !this._irrelevantIntents.Contains(mostConfidentIntent.Name);
         }
 
         private bool IsElementValid(ISearchResultElement result)

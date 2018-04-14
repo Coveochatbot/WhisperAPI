@@ -21,9 +21,9 @@ namespace WhisperAPI.Services
             this.InitHttpClient();
         }
 
-        public ISearchResult Search(string querry)
+        public ISearchResult Search(string query)
         {
-            return JsonConvert.DeserializeObject<SearchResult>(this.GetStringFromPost(URL, this.CreateStringContent(querry)));
+            return JsonConvert.DeserializeObject<SearchResult>(this.GetStringFromPost(URL, this.CreateStringContent(query)));
         }
 
         private string GetStringFromPost(string url, StringContent content)
@@ -34,9 +34,9 @@ namespace WhisperAPI.Services
             return response.Content.ReadAsStringAsync().Result;
         }
 
-        private StringContent CreateStringContent(string querry)
+        private StringContent CreateStringContent(string query)
         {
-            return new StringContent($"{{\"lq\": \"{querry}\",\"numberOfResults\": \"50\"}}", Encoding.UTF8, "application/json");
+            return new StringContent($"{{\"lq\": \"{query}\",\"numberOfResults\": \"50\"}}", Encoding.UTF8, "application/json");
         }
 
         private void InitHttpClient()

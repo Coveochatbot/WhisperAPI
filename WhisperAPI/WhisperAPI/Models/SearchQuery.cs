@@ -5,7 +5,7 @@ using Newtonsoft.Json;
 namespace WhisperAPI.Models
 {
 
-    public class SearchQuerry
+    public class SearchQuery
     {
         public enum MessageType
         {
@@ -13,7 +13,6 @@ namespace WhisperAPI.Models
             Agent = 1
         }
 
-        [Key]
         [JsonIgnore]
         public int Id { get; set; }
 
@@ -21,8 +20,8 @@ namespace WhisperAPI.Models
         [JsonProperty("chatkey")]
         public Guid? ChatKey { get; set; }
 
-        [JsonProperty("querry")]
-        public string Querry { get; set; }
+        [JsonProperty("query")]
+        public string Query { get; set; }
 
         [Required(ErrorMessage = "Type is required")]
         [JsonProperty("type")]
