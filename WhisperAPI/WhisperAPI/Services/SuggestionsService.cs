@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using WhisperAPI.Models;
 using WhisperAPI.Models.NLPAPI;
 
@@ -103,8 +104,7 @@ namespace WhisperAPI.Services
         private bool IsIntentRelevant(NlpAnalysis nlpAnalysis)
         {
             var mostConfidentIntent = nlpAnalysis.Intents.OrderByDescending(x => x.Confidence).First();
-
-            return !this._irrelevantIntents.Contains(mostConfidentIntent.Name);
+            return !this._irrelevantsIntents.Any(x => Regex.IsMatch(mostConfidentIntent.Name, this.WildCardToRegularExpression(x)));
         }
 
         private bool IsElementValid(ISearchResultElement result)
@@ -116,6 +116,11 @@ namespace WhisperAPI.Services
             }
 
             return true;
+        }
+
+        private string WildCardToRegularExpression(string value)
+        {
+            return "^" + Regex.Escape(value).Replace("\\?", ".").Replace("\\*", ".*") + "$";
         }
     }
 }
