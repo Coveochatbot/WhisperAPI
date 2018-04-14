@@ -6,21 +6,20 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
 using Moq;
 using NUnit.Framework;
 using WhisperAPI.Controllers;
 using WhisperAPI.Models;
 using WhisperAPI.Services;
-using static WhisperAPI.Models.SearchQuerry;
+using static WhisperAPI.Models.SearchQuery;
 
 namespace WhisperAPI.Tests.Unit
 {
     [TestFixture]
     public class SuggestionsControllerTest
     {
-        private List<SearchQuerry> _invalidSearchQuerryList;
-        private List<SearchQuerry> _validSearchQuerryList;
+        private List<SearchQuery> _invalidSearchQueryList;
+        private List<SearchQuery> _validSearchQueryList;
 
         private Mock<ISuggestionsService> _suggestionServiceMock;
         private SuggestionsController _suggestionController;
@@ -30,17 +29,17 @@ namespace WhisperAPI.Tests.Unit
         public void SetUp()
         {
             this._contexts = new InMemoryContexts(new TimeSpan(1, 0, 0, 0));
-            this._invalidSearchQuerryList = new List<SearchQuerry>
+            this._invalidSearchQueryList = new List<SearchQuery>
             {
                 null,
-                new SearchQuerry { ChatKey = new Guid("0f8fad5b-d9cb-469f-a165-708677289501"), Querry = null, Type = MessageType.Customer },
-                new SearchQuerry { ChatKey = new Guid("0f8fad5b-d9cb-469f-a165-708677289501"), Querry = null, Type = MessageType.Agent }
+                new SearchQuery { ChatKey = new Guid("0f8fad5b-d9cb-469f-a165-708677289501"), Query = null, Type = MessageType.Customer },
+                new SearchQuery { ChatKey = new Guid("0f8fad5b-d9cb-469f-a165-708677289501"), Query = null, Type = MessageType.Agent }
             };
 
-            this._validSearchQuerryList = new List<SearchQuerry>
+            this._validSearchQueryList = new List<SearchQuery>
             {
-                 new SearchQuerry { ChatKey = new Guid("0f8fad5b-d9cb-469f-a165-708677289501"), Querry = "test", Type = MessageType.Customer },
-                 new SearchQuerry { ChatKey = new Guid("0f8fad5b-d9cb-469f-a165-708677289501"), Querry = "test", Type = MessageType.Agent }
+                 new SearchQuery { ChatKey = new Guid("0f8fad5b-d9cb-469f-a165-708677289501"), Query = "test", Type = MessageType.Customer },
+                 new SearchQuery { ChatKey = new Guid("0f8fad5b-d9cb-469f-a165-708677289501"), Query = "test", Type = MessageType.Agent }
             };
         }
 
@@ -48,7 +47,7 @@ namespace WhisperAPI.Tests.Unit
         [TestCase(0)]
         [TestCase(1)]
         [TestCase(2)]
-        public void When_receive_invalid_or_null_searchQuerry_then_return_bad_request(int invalidQuerryIndex)
+        public void When_receive_invalid_or_null_searchQuery_then_return_bad_request(int invalidQueryIndex)
         {
             this._suggestionServiceMock = new Mock<ISuggestionsService>();
             this._suggestionServiceMock
@@ -57,13 +56,13 @@ namespace WhisperAPI.Tests.Unit
 
             this._suggestionController = new SuggestionsController(this._suggestionServiceMock.Object, null);
 
-            this._suggestionController.GetSuggestions(this._invalidSearchQuerryList[invalidQuerryIndex]).Should().BeEquivalentTo(new BadRequestResult());
+            this._suggestionController.GetSuggestions(this._invalidSearchQueryList[invalidQueryIndex]).Should().BeEquivalentTo(new BadRequestResult());
         }
 
         [Test]
         [TestCase(0)]
         [TestCase(1)]
-        public void When_receive_valid_searchQuerry_then_return_Ok_request(int validQuerryIndex)
+        public void When_receive_valid_searchQuery_then_return_Ok_request(int validQueryIndex)
         {
             this._suggestionServiceMock = new Mock<ISuggestionsService>();
             this._suggestionServiceMock
@@ -72,8 +71,8 @@ namespace WhisperAPI.Tests.Unit
 
             this._suggestionController = new SuggestionsController(this._suggestionServiceMock.Object, this._contexts);
 
-            this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(validQuerryIndex));
-            this._suggestionController.GetSuggestions(this._validSearchQuerryList[validQuerryIndex]).Should().BeEquivalentTo(new OkObjectResult(this.GetListOfDocuments()));
+            this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(validQueryIndex));
+            this._suggestionController.GetSuggestions(this._validSearchQueryList[validQueryIndex]).Should().BeEquivalentTo(new OkObjectResult(this.GetListOfDocuments()));
         }
 
         public ActionExecutingContext GetActionExecutingContext(int indexOfTest)
@@ -92,8 +91,8 @@ namespace WhisperAPI.Tests.Unit
                 this._suggestionController);
 
             actionExecutingContext
-                .Setup(x => x.ActionArguments["searchQuerry"])
-                .Returns(this._validSearchQuerryList[indexOfTest]);
+                .Setup(x => x.ActionArguments["searchQuery"])
+                .Returns(this._validSearchQueryList[indexOfTest]);
 
             return actionExecutingContext.Object;
         }
