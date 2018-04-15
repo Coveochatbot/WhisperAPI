@@ -31,7 +31,7 @@ namespace WhisperAPI.Controllers
                 return;
             }
 
-            Log.Error($"Search query:\r\n {JsonConvert.SerializeObject(searchQuery, Formatting.Indented)}");
+            Log.Debug($"Search query:\r\n {JsonConvert.SerializeObject(searchQuery, Formatting.Indented)}");
             Guid chatKey = searchQuery.ChatKey.Value;
             this.ConversationContext = this._contexts[chatKey];
 
