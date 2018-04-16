@@ -123,7 +123,7 @@ namespace WhisperAPI.Tests.Unit
                 new IntentBuilder().WithName("I like C#").Build()
             };
 
-            this._suggestionsService = this._suggestionsService = new SuggestionsService(this._indexSearchMock.Object, this._nlpCallMock.Object, intentsFromApi);
+            this._suggestionsService = new SuggestionsService(this._indexSearchMock.Object, this._nlpCallMock.Object, intentsFromApi);
 
             var nlpAnalysis = new NlpAnalysisBuilder().WithIntents(intentsFromNLP).Build();
             this._nlpCallMock
@@ -131,6 +131,29 @@ namespace WhisperAPI.Tests.Unit
                 .Returns(nlpAnalysis);
 
             ((SuggestionsService) this._suggestionsService).IsQueryRelevant(query.Build()).Should().BeFalse();
+        }
+
+        [Test]
+        [TestCase("smalltalk.*")]
+        public void When_Intent_is_relevant(string wildcardString)
+        {
+            var query = new SearchQueryBuilder().WithQuery("I like C#");
+            var intentsFromApi = new List<string>
+            {
+                wildcardString
+            };
+
+            var intentsFromNLP = new List<Intent>
+            {
+                new IntentBuilder().WithName("I like C#").Build()
+            };
+
+            var nlpAnalysis = new NlpAnalysisBuilder().WithIntents(intentsFromNLP).Build();
+            this._nlpCallMock
+                .Setup(x => x.GetNlpAnalysis(It.IsAny<string>()))
+                .Returns(nlpAnalysis);
+
+            ((SuggestionsService)this._suggestionsService).IsQueryRelevant(query.Build()).Should().BeTrue();
         }
 
 
