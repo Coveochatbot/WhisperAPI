@@ -120,7 +120,7 @@ namespace WhisperAPI.Services
 
         private string WildCardToRegularExpression(string value)
         {
-            return "^" + Regex.Escape(value).Replace("\\?", ".").Replace("\\*", ".*") + "$";
+            return "^" + Regex.Escape(value).Replace("\\*", ".*") + "$";
         }
     }
 }

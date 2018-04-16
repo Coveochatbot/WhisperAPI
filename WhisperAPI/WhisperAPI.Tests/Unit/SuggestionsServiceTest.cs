@@ -104,6 +104,37 @@ namespace WhisperAPI.Tests.Unit
                 x.Uri == "https://onlinehelp.coveo.com/en/cloud/Coveo_Cloud_Query_Syntax_Reference.htm"));
         }
 
+        [Test]
+        [TestCase("*#")]
+        [TestCase("I*")]
+        [TestCase("*like*")]
+        [TestCase("I*i*C*")]
+        [TestCase("I like C#")]
+        public void When_Intent_With_and_without_Wildcard__is_irrelevant(string wildcardString)
+        {
+            var query = new SearchQueryBuilder().WithQuery("I like C#");
+            var intentsFromApi = new List<string>
+            {
+                wildcardString
+            };
+
+            var intentsFromNLP = new List<Intent>
+            {
+                new IntentBuilder().WithName("I like C#").Build()
+            };
+
+            this._suggestionsService = this._suggestionsService = new SuggestionsService(this._indexSearchMock.Object, this._nlpCallMock.Object, intentsFromApi);
+
+            var nlpAnalysis = new NlpAnalysisBuilder().WithIntents(intentsFromNLP).Build();
+            this._nlpCallMock
+                .Setup(x => x.GetNlpAnalysis(It.IsAny<string>()))
+                .Returns(nlpAnalysis);
+
+            ((SuggestionsService) this._suggestionsService).IsQueryRelevant(query.Build()).Should().BeFalse();
+        }
+
+
+
         public List<SearchQuery> GetQueriesSentByByAgent()
         {
             return new List<SearchQuery>
