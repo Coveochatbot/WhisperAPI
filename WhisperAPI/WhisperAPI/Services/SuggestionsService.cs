@@ -64,12 +64,24 @@ namespace WhisperAPI.Services
             IEnumerable<SuggestedDocument> coveoIndexDocuments,
             IEnumerable<SearchQuery> queriesList)
         {
-            var agentQueries = queriesList
-                .Where(x => x.Type == SearchQuery.MessageType.Agent)
+            IList<SuggestedDocument> filteredOutChosenSuggestions = new List<SuggestedDocument>();
+            var queries = queriesList
                 .Select(x => x.Query)
                 .ToList();
 
-            return coveoIndexDocuments.Where(x => !agentQueries.Contains(x.Uri));
+            foreach (var coveoIndexDocument in coveoIndexDocuments)
+            {
+                foreach (var query in queries)
+                {
+                    if (query.Contains(coveoIndexDocument.Uri))
+                    {
+                        filteredOutChosenSuggestions.Add(coveoIndexDocument);
+                        break;
+                    }
+                }
+            }
+
+            return coveoIndexDocuments.Where(x => !filteredOutChosenSuggestions.Contains(x));
         }
 
         private IEnumerable<SuggestedDocument> SearchCoveoIndex(string query)
