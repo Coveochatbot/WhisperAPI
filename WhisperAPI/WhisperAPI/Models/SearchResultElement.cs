@@ -7,7 +7,7 @@ namespace WhisperAPI.Models
         [JsonProperty("title")]
         public string Title { get; set; }
 
-        [JsonProperty("uri")]
+        [JsonProperty("clickUri")]
         public string Uri { get; set; }
 
         [JsonProperty("printableUri")]
