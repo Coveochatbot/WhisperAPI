@@ -64,7 +64,6 @@ namespace WhisperAPI.Services
             IEnumerable<SuggestedDocument> coveoIndexDocuments,
             IEnumerable<SearchQuery> queriesList)
         {
-            IList<SuggestedDocument> filteredOutChosenSuggestions = new List<SuggestedDocument>();
             var queries = queriesList
                 .Select(x => x.Query)
                 .ToList();
