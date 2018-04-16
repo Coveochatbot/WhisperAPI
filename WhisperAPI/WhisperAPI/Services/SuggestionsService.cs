@@ -69,19 +69,7 @@ namespace WhisperAPI.Services
                 .Select(x => x.Query)
                 .ToList();
 
-            foreach (var coveoIndexDocument in coveoIndexDocuments)
-            {
-                foreach (var query in queries)
-                {
-                    if (query.Contains(coveoIndexDocument.Uri))
-                    {
-                        filteredOutChosenSuggestions.Add(coveoIndexDocument);
-                        break;
-                    }
-                }
-            }
-
-            return coveoIndexDocuments.Where(x => !filteredOutChosenSuggestions.Contains(x));
+            return coveoIndexDocuments.Where(x => !queries.Any(y => y.Contains(x.Uri)));
         }
 
         private IEnumerable<SuggestedDocument> SearchCoveoIndex(string query)
