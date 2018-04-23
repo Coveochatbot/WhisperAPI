@@ -21,20 +21,29 @@ namespace WhisperAPI.Controllers
 
         public override void OnActionExecuting(ActionExecutingContext actionExecutingContext)
         {
-            var searchQuery = (SearchQuery)actionExecutingContext.ActionArguments["searchQuery"];
-
-            log4net.ThreadContext.Properties["requestId"] = Guid.NewGuid();
-            if (!this.ModelState.IsValid)
+            Guid chatKey;
+            object param;
+            if (actionExecutingContext.ActionArguments.TryGetValue("searchQuery", out param))
             {
-                actionExecutingContext.Result = this.BadRequest(this.ModelState);
-                Log.Error($"Search query:\r\n{JsonConvert.SerializeObject(searchQuery, Formatting.Indented)}");
-                return;
+                var searchQuery = (SearchQuery) param;
+                log4net.ThreadContext.Properties["requestId"] = Guid.NewGuid();
+                if (!this.ModelState.IsValid)
+                {
+                    actionExecutingContext.Result = this.BadRequest(this.ModelState);
+                    Log.Error($"Search query:\r\n{JsonConvert.SerializeObject(searchQuery, Formatting.Indented)}");
+                    return;
+                }
+
+                Log.Debug($"Search query:\r\n {JsonConvert.SerializeObject(searchQuery, Formatting.Indented)}");
+                chatKey = searchQuery.ChatKey.Value;
+            }
+            else
+            {
+                chatKey = (Guid)actionExecutingContext.ActionArguments["chatkey"];
+                Log.Debug($"chatkey:\r\n {chatKey}");
             }
 
-            Log.Debug($"Search query:\r\n {JsonConvert.SerializeObject(searchQuery, Formatting.Indented)}");
-            Guid chatKey = searchQuery.ChatKey.Value;
             this.ConversationContext = this._contexts[chatKey];
-
             base.OnActionExecuting(actionExecutingContext);
         }
     }

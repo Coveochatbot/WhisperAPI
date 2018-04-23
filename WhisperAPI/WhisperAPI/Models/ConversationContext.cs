@@ -16,6 +16,7 @@ namespace WhisperAPI.Models
         {
             this.SearchQueries = new List<SearchQuery>();
             this.SuggestedDocuments = new HashSet<SuggestedDocument>();
+            this.LastSuggestedDocuments = new HashSet<SuggestedDocument>();
         }
 
         public Guid ChatKey { get; set; }
@@ -25,5 +26,7 @@ namespace WhisperAPI.Models
         public List<SearchQuery> SearchQueries { get; set; }
 
         public HashSet<SuggestedDocument> SuggestedDocuments { get; set; }
+
+        public HashSet<SuggestedDocument> LastSuggestedDocuments { get; set; }
     }
 }
