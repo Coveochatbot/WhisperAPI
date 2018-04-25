@@ -8,6 +8,8 @@ namespace WhisperAPI.Services
 {
     public class IndexSearch : IIndexSearch
     {
+        private static readonly log4net.ILog Log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private const string URL = "https://cloudplatform.coveo.com/rest/search/v2";
         private readonly string _apiKey;
         private readonly HttpClient _httpClient;
@@ -16,35 +18,25 @@ namespace WhisperAPI.Services
         {
             this._apiKey = apiKey;
             this._httpClient = client;
+            this.InitHttpClient();
         }
 
-        public ISearchResult Search(string querry)
+        public ISearchResult Search(string query)
         {
-            return JsonConvert.DeserializeObject<SearchResult>(this.GetStringFromPost(URL, this.CreateStringContent(querry)));
+            return JsonConvert.DeserializeObject<SearchResult>(this.GetStringFromPost(URL, this.CreateStringContent(query)));
         }
 
         private string GetStringFromPost(string url, StringContent content)
         {
-            this.InitHttpClient();
             HttpResponseMessage response = this._httpClient.PostAsync(url, content).Result;
+            response.EnsureSuccessStatusCode();
 
-            if (response.IsSuccessStatusCode)
-            {
-                return response.Content.ReadAsStringAsync().Result;
-            }
-            else
-            {
-                // throw error
-                return string.Empty;
-            }
+            return response.Content.ReadAsStringAsync().Result;
         }
 
-        private StringContent CreateStringContent(string querry)
+        private StringContent CreateStringContent(string query)
         {
-            // sanitize
-            querry.Replace("\"", string.Empty);
-
-            return new StringContent($"{{\"lq\": \"{querry}\"}}", Encoding.UTF8, "application/json");
+            return new StringContent($"{{\"lq\": \"{query}\",\"numberOfResults\": \"50\"}}", Encoding.UTF8, "application/json");
         }
 
         private void InitHttpClient()

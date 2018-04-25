@@ -1,10 +1,13 @@
 ﻿using System;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using StructureMap;
 using WhisperAPI.Registries;
+using WhisperAPI.Services;
 using WhisperAPI.Settings;
 
 namespace WhisperAPI
@@ -42,14 +45,14 @@ namespace WhisperAPI
 
             container.Configure(config =>
             {
-                config.AddRegistry(new WhisperApiRegistry(applicationSettings.ApiKey));
+                config.AddRegistry(new WhisperApiRegistry(applicationSettings.ApiKey, applicationSettings.IrrelevantIntents, applicationSettings.NlpApiBaseAddress, applicationSettings.ContextLifeSpan));
                 config.Populate(services);
             });
 
             return container.GetInstance<IServiceProvider>();
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
             if (env.IsDevelopment())
             {
@@ -59,6 +62,8 @@ namespace WhisperAPI
             {
                 app.UseExceptionHandler("/Home/Error");
             }
+
+            loggerFactory.AddLog4Net();
 
             app.UseStaticFiles();
             app.UseCors("AllowAll");

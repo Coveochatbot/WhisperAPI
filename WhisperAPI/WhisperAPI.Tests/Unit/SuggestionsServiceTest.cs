@@ -1,29 +1,185 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using FluentAssertions;
 using Moq;
 using NUnit.Framework;
 using WhisperAPI.Models;
+using WhisperAPI.Models.NLPAPI;
 using WhisperAPI.Services;
+using WhisperAPI.Tests.Data.Builders;
+using static WhisperAPI.Models.SearchQuery;
 
 namespace WhisperAPI.Tests.Unit
 {
     [TestFixture]
     public class SuggestionsServiceTest
     {
-        private ISuggestionsService _suggestionsServiceValid;
-        private ISuggestionsService _suggestionsServiceEmpty;
-        private ISuggestionsService _suggestionsServiceNull;
+        private ISuggestionsService _suggestionsService;
 
-        private Mock<IIndexSearch> _indexSearchValid;
-        private Mock<IIndexSearch> _indexSearchEmpty;
-        private Mock<IIndexSearch> _indexSearchNull;
-
-        private List<SuggestedDocument> _suggestedDocumentOk;
+        private Mock<IIndexSearch> _indexSearchMock;
+        private Mock<INlpCall> _nlpCallMock;
 
         [SetUp]
         public void SetUp()
         {
-            var searchResult = new SearchResult
+            this._indexSearchMock = new Mock<IIndexSearch>();
+            this._nlpCallMock = new Mock<INlpCall>();
+
+            this._suggestionsService = new SuggestionsService(this._indexSearchMock.Object, this._nlpCallMock.Object, this.GetIrrelevantIntents());
+        }
+
+        [Test]
+        [TestCase]
+        public void When_receive_valid_searchresult_from_search_then_return_list_of_suggestedDocuments()
+        {
+            var intents = new List<Intent>
+            {
+                new IntentBuilder().WithName("Need Help").Build()
+            };
+
+            var nlpAnalysis = new NlpAnalysisBuilder().WithIntents(intents).Build();
+
+            this._indexSearchMock
+                .Setup(x => x.Search(It.IsAny<string>()))
+                .Returns(this.GetSearchResult());
+
+            this._nlpCallMock
+                .Setup(x => x.GetNlpAnalysis(It.IsAny<string>()))
+                .Returns(nlpAnalysis);
+
+            this._suggestionsService.GetSuggestions(this.GetConversationContext()).Should().BeEquivalentTo(this.GetSuggestedDocuments());
+        }
+
+        [Test]
+        [TestCase]
+        public void When_receive_empty_searchresult_from_search_then_return_empty_list_of_suggestedDocuments()
+        {
+            var intents = new List<Intent>
+            {
+                new IntentBuilder().WithName("Need Help").Build()
+            };
+
+            var nlpAnalysis = new NlpAnalysisBuilder().WithIntents(intents).Build();
+
+            this._indexSearchMock
+                .Setup(x => x.Search(It.IsAny<string>()))
+                .Returns(new SearchResult());
+
+            this._nlpCallMock
+                .Setup(x => x.GetNlpAnalysis(It.IsAny<string>()))
+                .Returns(nlpAnalysis);
+
+            this._suggestionsService.GetSuggestions(this.GetConversationContext()).Should().BeEquivalentTo(new List<SuggestedDocument>());
+        }
+
+        [Test]
+        [TestCase]
+        public void When_receive_irrelevant_intent_then_returns_empty_list_of_suggestedDocuments()
+        {
+            var intents = new List<Intent>
+            {
+                new IntentBuilder().WithName("Greetings").Build()
+            };
+
+            var nlpAnalysis = new NlpAnalysisBuilder().WithIntents(intents).Build();
+
+            this._nlpCallMock
+                .Setup(x => x.GetNlpAnalysis(It.IsAny<string>()))
+                .Returns(nlpAnalysis);
+
+            this._suggestionsService.GetSuggestions(this.GetConversationContext()).Should().BeEquivalentTo(new List<SuggestedDocument>());
+        }
+
+        [Test]
+        [TestCase]
+        public void When_query_is_selected_by_agent_suggestion_is_filter_out()
+        {
+            var suggestion = ((SuggestionsService) this._suggestionsService).FilterOutChosenSuggestions(
+                this.GetSuggestedDocuments(), this.GetQueriesSentByByAgent());
+
+            suggestion.Should().HaveCount(2);
+            suggestion.Should().NotContain(this.GetSuggestedDocuments().Find(x =>
+                x.Uri == "https://onlinehelp.coveo.com/en/cloud/Available_Coveo_Cloud_V2_Source_Types.htm"));
+            suggestion.Should().NotContain(this.GetSuggestedDocuments().Find(x =>
+                x.Uri == "https://onlinehelp.coveo.com/en/cloud/Coveo_Cloud_Query_Syntax_Reference.htm"));
+        }
+
+        [Test]
+        [TestCase("*#")]
+        [TestCase("I*")]
+        [TestCase("*like*")]
+        [TestCase("I*i*C*")]
+        [TestCase("I like C#")]
+        public void When_Intent_With_and_without_Wildcard__is_irrelevant(string wildcardString)
+        {
+            var query = new SearchQueryBuilder().WithQuery("I like C#");
+            var intentsFromApi = new List<string>
+            {
+                wildcardString
+            };
+
+            var intentsFromNLP = new List<Intent>
+            {
+                new IntentBuilder().WithName("I like C#").Build()
+            };
+
+            this._suggestionsService = new SuggestionsService(this._indexSearchMock.Object, this._nlpCallMock.Object, intentsFromApi);
+
+            var nlpAnalysis = new NlpAnalysisBuilder().WithIntents(intentsFromNLP).Build();
+            this._nlpCallMock
+                .Setup(x => x.GetNlpAnalysis(It.IsAny<string>()))
+                .Returns(nlpAnalysis);
+
+            ((SuggestionsService) this._suggestionsService).IsQueryRelevant(query.Build()).Should().BeFalse();
+        }
+
+        [Test]
+        [TestCase("smalltalk.*")]
+        public void When_Intent_is_relevant(string wildcardString)
+        {
+            var query = new SearchQueryBuilder().WithQuery("I like C#");
+            var intentsFromApi = new List<string>
+            {
+                wildcardString
+            };
+
+            var intentsFromNLP = new List<Intent>
+            {
+                new IntentBuilder().WithName("I like C#").Build()
+            };
+
+            var nlpAnalysis = new NlpAnalysisBuilder().WithIntents(intentsFromNLP).Build();
+            this._nlpCallMock
+                .Setup(x => x.GetNlpAnalysis(It.IsAny<string>()))
+                .Returns(nlpAnalysis);
+
+            ((SuggestionsService)this._suggestionsService).IsQueryRelevant(query.Build()).Should().BeTrue();
+        }
+
+
+
+        public List<SearchQuery> GetQueriesSentByByAgent()
+        {
+            return new List<SearchQuery>
+            {
+               new SearchQuery {
+                   ChatKey = new Guid("0f8fad5b-d9cb-469f-a165-708677289501"),
+                   Query = "https://onlinehelp.coveo.com/en/cloud/Available_Coveo_Cloud_V2_Source_Types.htm",
+                   Type = MessageType.Agent,
+                   Relevant = true
+               },
+               new SearchQuery {
+                   ChatKey = new Guid("0f8fad5b-d9cb-469f-a165-708677289501"),
+                   Query = "https://onlinehelp.coveo.com/en/cloud/Coveo_Cloud_Query_Syntax_Reference.htm",
+                   Type = MessageType.Agent,
+                   Relevant = true
+               }
+            };
+        }
+
+        public SearchResult GetSearchResult()
+        {
+            return new SearchResult
             {
                 NbrElements = 4,
                 Elements = new List<SearchResultElement>
@@ -62,8 +218,11 @@ namespace WhisperAPI.Tests.Unit
                     }
                 }
             };
+        }
 
-            this._suggestedDocumentOk = new List<SuggestedDocument>
+        public List<SuggestedDocument> GetSuggestedDocuments()
+        {
+            return new List<SuggestedDocument>
             {
                 new SuggestedDocument
                 {
@@ -94,46 +253,39 @@ namespace WhisperAPI.Tests.Unit
                     Summary = null
                 }
             };
-
-            this._indexSearchValid = new Mock<IIndexSearch>();
-            this._indexSearchValid
-                .Setup(x => x.Search(It.IsAny<string>()))
-                .Returns(searchResult);
-
-            this._indexSearchEmpty = new Mock<IIndexSearch>();
-            this._indexSearchEmpty
-                .Setup(x => x.Search(It.IsAny<string>()))
-                .Returns((ISearchResult)null);
-
-            this._indexSearchNull = new Mock<IIndexSearch>();
-            this._indexSearchNull
-                .Setup(x => x.Search(It.IsAny<string>()))
-                .Returns((ISearchResult)null);
-
-            this._suggestionsServiceValid = new SuggestionsService(this._indexSearchValid.Object);
-            this._suggestionsServiceEmpty = new SuggestionsService(this._indexSearchEmpty.Object);
-            this._suggestionsServiceNull = new SuggestionsService(this._indexSearchNull.Object);
         }
 
-        [Test]
-        [TestCase("test")]
-        public void When_receive_valid_searchresult_from_search_then_return_list_of_suggestedDocuments(string suggestion)
+        public List<string> GetIrrelevantIntents()
         {
-            this._suggestionsServiceValid.GetSuggestions(suggestion).Should().BeEquivalentTo(this._suggestedDocumentOk);
+            return new List<string>
+            {
+                "Greetings"
+            };
         }
 
-        [Test]
-        [TestCase("test")]
-        public void When_receive_empty_searchresult_from_search_then_return_empty_list_of_suggestedDocuments(string suggestion)
+        public ConversationContext GetConversationContext()
         {
-            this._suggestionsServiceEmpty.GetSuggestions(suggestion).Should().BeEquivalentTo(new List<SuggestedDocument>());
+            ConversationContext context = new ConversationContext(new Guid("0f8fad5b-d9cb-469f-a165-708677289501"), DateTime.Now)
+            {
+                SearchQueries = new List<SearchQuery>
+                {
+                    new SearchQuery { ChatKey = new Guid("0f8fad5b-d9cb-469f-a165-708677289501"), Query = "rest api", Type = MessageType.Customer, Relevant = true }
+                }
+            };
+            return context;
         }
 
-        [Test]
-        [TestCase("test")]
-        public void When_receive_null_searchresult_from_search_then_return_empty_list_of_suggestedDocuments(string suggestion)
+        public ConversationContext GetConversationContextForFilterChosenSuggestions()
         {
-            this._suggestionsServiceNull.GetSuggestions(suggestion).Should().BeEquivalentTo(new List<SuggestedDocument>());
+            ConversationContext context = new ConversationContext(new Guid("0f8fad5b-d9cb-469f-a165-708677289501"), DateTime.Now)
+            {
+                SearchQueries = new List<SearchQuery>
+                {
+                    new SearchQuery { ChatKey = new Guid("0f8fad5b-d9cb-469f-a165-708677289501"), Query = "rest api", Type = MessageType.Customer, Relevant = true },
+                    new SearchQuery { ChatKey = new Guid("0f8fad5b-d9cb-469f-a165-708677289501"), Query = "Available Coveo Cloud V2 Source Types", Type = MessageType.Agent, Relevant = true }
+                }
+            };
+            return context;
         }
     }
 }
