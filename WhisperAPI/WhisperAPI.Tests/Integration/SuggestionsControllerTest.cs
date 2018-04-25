@@ -71,9 +71,11 @@ namespace WhisperAPI.Tests.Integration
             var searchQuery = new SearchQueryBuilder().Build();
 
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(searchQuery));
-            var suggestions = this._suggestionController.GetSuggestions(searchQuery);
+            var result = this._suggestionController.GetSuggestions(searchQuery);
 
-            suggestions.Should().BeEquivalentTo(new OkObjectResult(this.GetSuggestedDocuments()));
+            var suggestion = result.As<OkObjectResult>().Value as Suggestion;
+
+            suggestion.SuggestedDocuments.Should().BeEquivalentTo(this.GetSuggestedDocuments());
         }
 
         [Test]
@@ -100,9 +102,11 @@ namespace WhisperAPI.Tests.Integration
 
             var searchQuery = new SearchQueryBuilder().Build();
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(searchQuery));
-            var suggestions = this._suggestionController.GetSuggestions(searchQuery);
+            var result = this._suggestionController.GetSuggestions(searchQuery);
 
-            suggestions.Should().BeEquivalentTo(new OkObjectResult(new List<SuggestedDocument>()));
+            var suggestion = result.As<OkObjectResult>().Value as Suggestion;
+
+            suggestion.SuggestedDocuments.Should().BeEquivalentTo(new List<SuggestedDocument>());
         }
 
         [Test]
@@ -176,7 +180,9 @@ namespace WhisperAPI.Tests.Integration
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(searchQuery));
             var result = this._suggestionController.GetSuggestions(searchQuery);
 
-            result.Should().BeEquivalentTo(new OkObjectResult(new List<SuggestedDocument>()));
+            var suggestion = result.As<OkObjectResult>().Value as Suggestion;
+
+            suggestion.SuggestedDocuments.Should().BeEquivalentTo(new List<SuggestedDocument>());
 
             // Customer says: I need help with CoveoSearch API
             searchQuery = new SearchQueryBuilder()
@@ -203,7 +209,9 @@ namespace WhisperAPI.Tests.Integration
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(searchQuery));
             result = this._suggestionController.GetSuggestions(searchQuery);
 
-            result.Should().BeEquivalentTo(new OkObjectResult(this.GetSuggestedDocuments()));
+            suggestion = result.As<OkObjectResult>().Value as Suggestion;
+
+            suggestion.SuggestedDocuments.Should().BeEquivalentTo(this.GetSuggestedDocuments());
 
             // Agent says: Maybe this could help: https://onlinehelp.coveo.com/en/cloud/Available_Coveo_Cloud_V2_Source_Types.htm
             searchQuery = new SearchQueryBuilder()
@@ -225,10 +233,10 @@ namespace WhisperAPI.Tests.Integration
 
             result.Should().NotBeNull();
 
-            var suggestions = result.As<OkObjectResult>().Value as List<SuggestedDocument>;
+            suggestion = result.As<OkObjectResult>().Value as Suggestion;
 
-            suggestions.Count.Should().NotBe(0);
-            suggestions.Select(x => x.Uri)
+            suggestion.SuggestedDocuments.Count.Should().NotBe(0);
+            suggestion.SuggestedDocuments.Select(x => x.Uri)
                 .Contains("https://onlinehelp.coveo.com/en/cloud/Available_Coveo_Cloud_V2_Source_Types.htm").Should().BeFalse();
         }
 
@@ -251,7 +259,9 @@ namespace WhisperAPI.Tests.Integration
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(searchQuery));
             var result = this._suggestionController.GetSuggestions(searchQuery);
 
-            result.Should().BeEquivalentTo(new OkObjectResult(new List<SuggestedDocument>()));
+            var suggestion = result.As<OkObjectResult>().Value as Suggestion;
+
+            suggestion.SuggestedDocuments.Should().BeEquivalentTo(new List<SuggestedDocument>());
 
             // Customer says: I need help with CoveoSearch API
             searchQuery = new SearchQueryBuilder()
@@ -280,10 +290,10 @@ namespace WhisperAPI.Tests.Integration
 
             result.Should().NotBeNull();
 
-            var suggestions = result.As<OkObjectResult>().Value as List<SuggestedDocument>;
+            suggestion = result.As<OkObjectResult>().Value as Suggestion;
 
-            suggestions.Count.Should().NotBe(0);
-            suggestions.Select(x => x.Uri)
+            suggestion.SuggestedDocuments.Count.Should().NotBe(0);
+            suggestion.SuggestedDocuments.Select(x => x.Uri)
                 .Contains("https://onlinehelp.coveo.com/en/cloud/Available_Coveo_Cloud_V2_Source_Types.htm").Should().BeFalse();
         }
 
@@ -311,7 +321,9 @@ namespace WhisperAPI.Tests.Integration
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(JsonConvert.DeserializeObject<SearchQuery>(jsonSearchQuery)));
             var result = this._suggestionController.GetSuggestions(JsonConvert.DeserializeObject<SearchQuery>(jsonSearchQuery));
 
-            result.Should().BeEquivalentTo(new OkObjectResult(this.GetSuggestedDocuments()));
+            var suggestion = result.As<OkObjectResult>().Value as Suggestion;
+
+            suggestion.SuggestedDocuments.Should().BeEquivalentTo(this.GetSuggestedDocuments());
         }
 
         public ActionExecutingContext GetActionExecutingContext(SearchQuery searchQuery)
@@ -367,35 +379,39 @@ namespace WhisperAPI.Tests.Integration
                     Title = "Available Coveo Cloud V2 Source Types",
                     Uri = "https://onlinehelp.coveo.com/en/cloud/Available_Coveo_Cloud_V2_Source_Types.htm",
                     PrintableUri = "https://onlinehelp.coveo.com/en/cloud/Available_Coveo_Cloud_V2_Source_Types.htm",
-                    Summary = null
+                    Summary = null,
+                    Excerpt = null
                 },
                 new SuggestedDocument
                 {
                     Title = "Coveo Cloud Query Syntax Reference",
                     Uri = "https://onlinehelp.coveo.com/en/cloud/Coveo_Cloud_Query_Syntax_Reference.htm",
                     PrintableUri = "https://onlinehelp.coveo.com/en/cloud/Coveo_Cloud_Query_Syntax_Reference.htm",
-                    Summary = null
+                    Summary = null,
+                    Excerpt = null
                 },
                 new SuggestedDocument
                 {
                     Title = "Events",
                     Uri = "https://developers.coveo.com/display/JsSearchV1/Page/27230520/27230472/27230573",
                     PrintableUri = "https://developers.coveo.com/display/JsSearchV1/Page/27230520/27230472/27230573",
-                    Summary = null
+                    Summary = null,
+                    Excerpt = null
                 },
                 new SuggestedDocument
                 {
                     Title = "Coveo Facet Component (CoveoFacet)",
                     Uri = "https://coveo.github.io/search-ui/components/facet.html",
                     PrintableUri = "https://coveo.github.io/search-ui/components/facet.html",
-                    Summary = null
+                    Summary = null,
+                    Excerpt = null
                 }
             };
         }
 
         public StringContent GetSearchResultStringContent()
         {
-            return new StringContent("{\"totalCount\": 4,\"results\": [{\"title\": \"Available Coveo Cloud V2 Source Types\",\"clickUri\": \"https://onlinehelp.coveo.com/en/cloud/Available_Coveo_Cloud_V2_Source_Types.htm\",\"printableUri\": \"https://onlinehelp.coveo.com/en/cloud/Available_Coveo_Cloud_V2_Source_Types.htm\",\"score\": 4280       },{\"title\": \"Coveo Cloud Query Syntax Reference\",\"clickUri\": \"https://onlinehelp.coveo.com/en/cloud/Coveo_Cloud_Query_Syntax_Reference.htm\",\"printableUri\": \"https://onlinehelp.coveo.com/en/cloud/Coveo_Cloud_Query_Syntax_Reference.htm\",\"score\": 3900},{\"title\": \"Events\",\"clickUri\": \"https://developers.coveo.com/display/JsSearchV1/Page/27230520/27230472/27230573\",\"printableUri\": \"https://developers.coveo.com/display/JsSearchV1/Page/27230520/27230472/27230573\",\"score\": 2947},{\"title\": \"Coveo Facet Component (CoveoFacet)\",\"clickUri\": \"https://coveo.github.io/search-ui/components/facet.html\",\"printableUri\": \"https://coveo.github.io/search-ui/components/facet.html\",\"score\": 2932}]}");
+            return new StringContent("{\"totalCount\": 4,\"results\": [{\"title\": \"Available Coveo Cloud V2 Source Types\", \"excerpt\": \"This is the excerpt\", \"clickUri\": \"https://onlinehelp.coveo.com/en/cloud/Available_Coveo_Cloud_V2_Source_Types.htm\",\"printableUri\": \"https://onlinehelp.coveo.com/en/cloud/Available_Coveo_Cloud_V2_Source_Types.htm\",\"score\": 4280       },{\"title\": \"Coveo Cloud Query Syntax Reference\",\"excerpt\": \"This is the excerpt\", \"clickUri\": \"https://onlinehelp.coveo.com/en/cloud/Coveo_Cloud_Query_Syntax_Reference.htm\",\"printableUri\": \"https://onlinehelp.coveo.com/en/cloud/Coveo_Cloud_Query_Syntax_Reference.htm\",\"score\": 3900},{\"title\": \"Events\", \"excerpt\": \"This is the excerpt\", \"clickUri\": \"https://developers.coveo.com/display/JsSearchV1/Page/27230520/27230472/27230573\",\"printableUri\": \"https://developers.coveo.com/display/JsSearchV1/Page/27230520/27230472/27230573\",\"score\": 2947},{\"title\": \"Coveo Facet Component (CoveoFacet)\", \"excerpt\": \"This is the excerpt\", \"clickUri\": \"https://coveo.github.io/search-ui/components/facet.html\",\"printableUri\": \"https://coveo.github.io/search-ui/components/facet.html\",\"score\": 2932}]}");
         }
 
         public List<string> GetIrrelevantIntents()

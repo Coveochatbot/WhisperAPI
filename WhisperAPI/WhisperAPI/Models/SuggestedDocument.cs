@@ -12,6 +12,7 @@
             this.Uri = searchResultElement.Uri;
             this.PrintableUri = searchResultElement.PrintableUri;
             this.Summary = searchResultElement.Summary;
+            this.Excerpt = searchResultElement.Excerpt;
         }
 
         public string Title { get; set; }
@@ -21,6 +22,8 @@
         public string PrintableUri { get; set; }
 
         public string Summary { get; set; }
+
+        public string Excerpt { get; set; }
 
         public override bool Equals(object obj)
         {

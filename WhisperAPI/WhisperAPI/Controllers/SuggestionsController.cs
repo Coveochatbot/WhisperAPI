@@ -27,12 +27,17 @@ namespace WhisperAPI.Controllers
             }
 
             this._suggestionsService.UpdateContextWithNewQuery(this.ConversationContext, searchQuery);
-            var suggestions = this._suggestionsService.GetSuggestions(this.ConversationContext).ToList();
-            this._suggestionsService.UpdateContextWithNewSuggestions(this.ConversationContext, suggestions);
 
-            suggestions.ForEach(x => Log.Debug($"Title: {x.Title}, Uri: {x.Uri}, PrintableUri: {x.PrintableUri}, Summary: {x.Summary}"));
+            var suggestion = new Suggestion();
 
-            return this.Ok(suggestions);
+            var suggestedDocuments = this._suggestionsService.GetSuggestedDocuments(this.ConversationContext).ToList();
+            suggestion.SuggestedDocuments = suggestedDocuments;
+
+            this._suggestionsService.UpdateContextWithNewSuggestions(this.ConversationContext, suggestedDocuments);
+
+            suggestedDocuments.ForEach(x => Log.Debug($"Title: {x.Title}, Uri: {x.Uri}, PrintableUri: {x.PrintableUri}, Summary: {x.Summary}"));
+
+            return this.Ok(suggestion);
         }
     }
 }
