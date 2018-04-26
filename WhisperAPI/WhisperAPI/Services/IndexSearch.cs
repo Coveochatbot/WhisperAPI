@@ -10,12 +10,13 @@ namespace WhisperAPI.Services
     {
         private static readonly log4net.ILog Log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        private const string URL = "https://cloudplatform.coveo.com/rest/search/v2";
+        private readonly string _searchEndPoint;
         private readonly string _apiKey;
         private readonly HttpClient _httpClient;
 
-        public IndexSearch(string apiKey, HttpClient client)
+        public IndexSearch(string apiKey, HttpClient client, string searchEndPoint)
         {
+            this._searchEndPoint = searchEndPoint;
             this._apiKey = apiKey;
             this._httpClient = client;
             this.InitHttpClient();
@@ -23,7 +24,7 @@ namespace WhisperAPI.Services
 
         public ISearchResult Search(string query)
         {
-            return JsonConvert.DeserializeObject<SearchResult>(this.GetStringFromPost(URL, this.CreateStringContent(query)));
+            return JsonConvert.DeserializeObject<SearchResult>(this.GetStringFromPost(this._searchEndPoint, this.CreateStringContent(query)));
         }
 
         private string GetStringFromPost(string url, StringContent content)
