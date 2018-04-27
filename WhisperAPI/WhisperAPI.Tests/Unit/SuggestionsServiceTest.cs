@@ -47,7 +47,7 @@ namespace WhisperAPI.Tests.Unit
                 .Setup(x => x.GetNlpAnalysis(It.IsAny<string>()))
                 .Returns(nlpAnalysis);
 
-            this._suggestionsService.GetSuggestions(this.GetConversationContext()).Should().BeEquivalentTo(this.GetSuggestedDocuments());
+            this._suggestionsService.GetSuggestedDocuments(this.GetConversationContext()).Should().BeEquivalentTo(this.GetSuggestedDocuments());
         }
 
         [Test]
@@ -69,7 +69,7 @@ namespace WhisperAPI.Tests.Unit
                 .Setup(x => x.GetNlpAnalysis(It.IsAny<string>()))
                 .Returns(nlpAnalysis);
 
-            this._suggestionsService.GetSuggestions(this.GetConversationContext()).Should().BeEquivalentTo(new List<SuggestedDocument>());
+            this._suggestionsService.GetSuggestedDocuments(this.GetConversationContext()).Should().BeEquivalentTo(new List<SuggestedDocument>());
         }
 
         [Test]
@@ -87,7 +87,7 @@ namespace WhisperAPI.Tests.Unit
                 .Setup(x => x.GetNlpAnalysis(It.IsAny<string>()))
                 .Returns(nlpAnalysis);
 
-            this._suggestionsService.GetSuggestions(this.GetConversationContext()).Should().BeEquivalentTo(new List<SuggestedDocument>());
+            this._suggestionsService.GetSuggestedDocuments(this.GetConversationContext()).Should().BeEquivalentTo(new List<SuggestedDocument>());
         }
 
         [Test]

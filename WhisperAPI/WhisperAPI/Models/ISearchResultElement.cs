@@ -11,5 +11,7 @@
         string Summary { get; set; }
 
         int Score { get; set; }
+
+        string Excerpt { get; set; }
     }
 }

@@ -23,7 +23,7 @@ namespace WhisperAPI.Services
             this._irrelevantIntents = irrelevantIntents;
         }
 
-        public IEnumerable<SuggestedDocument> GetSuggestions(ConversationContext conversationContext)
+        public IEnumerable<SuggestedDocument> GetSuggestedDocuments(ConversationContext conversationContext)
         {
             var allRelevantQueries = string.Join(" ", conversationContext.SearchQueries.Where(x => x.Relevant).Select(m => m.Query));
 

@@ -18,5 +18,8 @@ namespace WhisperAPI.Models
 
         [JsonProperty("score")]
         public int Score { get; set; }
+
+        [JsonProperty("excerpt")]
+        public string Excerpt { get; set; }
     }
 }

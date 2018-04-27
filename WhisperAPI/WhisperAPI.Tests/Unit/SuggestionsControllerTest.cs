@@ -51,7 +51,7 @@ namespace WhisperAPI.Tests.Unit
         {
             this._suggestionServiceMock = new Mock<ISuggestionsService>();
             this._suggestionServiceMock
-                .Setup(x => x.GetSuggestions(It.IsAny<ConversationContext>()))
+                .Setup(x => x.GetSuggestedDocuments(It.IsAny<ConversationContext>()))
                 .Returns(this.GetListOfDocuments());
 
             this._suggestionController = new SuggestionsController(this._suggestionServiceMock.Object, null);
@@ -66,13 +66,17 @@ namespace WhisperAPI.Tests.Unit
         {
             this._suggestionServiceMock = new Mock<ISuggestionsService>();
             this._suggestionServiceMock
-                .Setup(x => x.GetSuggestions(It.IsAny<ConversationContext>()))
+                .Setup(x => x.GetSuggestedDocuments(It.IsAny<ConversationContext>()))
                 .Returns(this.GetListOfDocuments());
 
             this._suggestionController = new SuggestionsController(this._suggestionServiceMock.Object, this._contexts);
 
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(validQueryIndex));
-            this._suggestionController.GetSuggestions(this._validSearchQueryList[validQueryIndex]).Should().BeEquivalentTo(new OkObjectResult(this.GetListOfDocuments()));
+            var result = this._suggestionController.GetSuggestions(this._validSearchQueryList[validQueryIndex]);
+
+            var suggestion = result.As<OkObjectResult>().Value as Suggestion;
+
+            suggestion.SuggestedDocuments.Should().BeEquivalentTo(this.GetListOfDocuments());
         }
 
         public ActionExecutingContext GetActionExecutingContext(int indexOfTest)
