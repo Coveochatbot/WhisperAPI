@@ -46,7 +46,13 @@ namespace WhisperAPI.Controllers
         public IActionResult GetSuggestions(Guid chatkey)
         {
             Log.Debug($"Chatkey: {chatkey}");
-            return this.Ok(this.ConversationContext.LastSuggestedDocuments);
+            var suggestion = new Suggestion()
+            {
+                SuggestedDocuments = this.ConversationContext.LastSuggestedDocuments
+            };
+            suggestion.SuggestedDocuments.ForEach(x => Log.Debug($"Title: {x.Title}, Uri: {x.Uri}, PrintableUri: {x.PrintableUri}, Summary: {x.Summary}"));
+
+            return this.Ok(suggestion);
         }
     }
 }

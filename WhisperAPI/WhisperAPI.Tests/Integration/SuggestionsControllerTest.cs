@@ -351,12 +351,12 @@ namespace WhisperAPI.Tests.Integration
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(JsonConvert.DeserializeObject<SearchQuery>(jsonSearchQuery)));
             var resultSuggestions = this._suggestionController.GetSuggestions(JsonConvert.DeserializeObject<SearchQuery>(jsonSearchQuery));
 
-            var suggestions = resultSuggestions.As<OkObjectResult>().Value as List<SuggestedDocument>;
+            var suggestedDocumentList = ((Suggestion) resultSuggestions.As<OkObjectResult>().Value).SuggestedDocuments as List<SuggestedDocument>;
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(queryChatkeyRefresh));
             var resultLastSuggestions = this._suggestionController.GetSuggestions(queryChatkeyRefresh);
 
-            var lastSuggestions = resultLastSuggestions.As<OkObjectResult>().Value;
-            lastSuggestions.Should().BeEquivalentTo(suggestions);
+            var lastSuggestedDocument = ((Suggestion)resultLastSuggestions.As<OkObjectResult>().Value).SuggestedDocuments;
+            lastSuggestedDocument.Should().BeEquivalentTo(suggestedDocumentList);
         }
 
         public ActionExecutingContext GetActionExecutingContext(SearchQuery searchQuery)
@@ -401,6 +401,11 @@ namespace WhisperAPI.Tests.Integration
             actionExecutingContext
                 .Setup(x => x.ActionArguments.TryGetValue("searchQuery", out param))
                 .Returns(false);
+
+            param = chatkey;
+            actionExecutingContext
+                .Setup(x => x.ActionArguments.TryGetValue("chatkey", out param))
+                .Returns(true);
 
             actionExecutingContext
                 .Setup(x => x.ActionArguments["chatkey"])

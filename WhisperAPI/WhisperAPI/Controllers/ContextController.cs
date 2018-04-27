@@ -21,26 +21,31 @@ namespace WhisperAPI.Controllers
 
         public override void OnActionExecuting(ActionExecutingContext actionExecutingContext)
         {
+            if (!this.ModelState.IsValid)
+            {
+                actionExecutingContext.Result = this.BadRequest(this.ModelState);
+                return;
+            }
+
             Guid chatKey;
             object param;
+
             if (actionExecutingContext.ActionArguments.TryGetValue("searchQuery", out param))
             {
                 var searchQuery = (SearchQuery) param;
-                log4net.ThreadContext.Properties["requestId"] = Guid.NewGuid();
-                if (!this.ModelState.IsValid)
-                {
-                    actionExecutingContext.Result = this.BadRequest(this.ModelState);
-                    Log.Error($"Search query:\r\n{JsonConvert.SerializeObject(searchQuery, Formatting.Indented)}");
-                    return;
-                }
-
-                Log.Debug($"Search query:\r\n {JsonConvert.SerializeObject(searchQuery, Formatting.Indented)}");
                 chatKey = searchQuery.ChatKey.Value;
+                log4net.ThreadContext.Properties["requestId"] = Guid.NewGuid();
+                Log.Debug($"Search query:\r\n {JsonConvert.SerializeObject(searchQuery, Formatting.Indented)}");
+            }
+            else if (actionExecutingContext.ActionArguments.TryGetValue("chatkey", out param))
+            {
+                chatKey = (Guid) param;
+                Log.Debug($"chatkey:\r\n {chatKey}");
             }
             else
             {
-                chatKey = (Guid)actionExecutingContext.ActionArguments["chatkey"];
-                Log.Debug($"chatkey:\r\n {chatKey}");
+                Log.Error($"Unable to retrieve chatkey with action arguments: \r\n  {JsonConvert.SerializeObject(actionExecutingContext.ActionArguments, Formatting.Indented)}");
+                return;
             }
 
             this.ConversationContext = this._contexts[chatKey];
