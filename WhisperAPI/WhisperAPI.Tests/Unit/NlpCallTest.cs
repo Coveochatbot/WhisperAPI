@@ -33,10 +33,10 @@ namespace WhisperAPI.Tests.Unit
         {
             var intents = new List<Intent>
             {
-                new IntentBuilder().WithName("Need Help").Build()
+                IntentBuilder.Build.WithName("Need Help").Instance
             };
 
-            var nlpAnalysis = new NlpAnalysisBuilder().WithIntents(intents).Build();
+            var nlpAnalysis = NlpAnalysisBuilder.Build.WithIntents(intents).Instance;
             const string baseAdress = "http://localhost:5000";
 
             this._httpClient = new HttpClient(this._httpMessageHandlerMock.Object);

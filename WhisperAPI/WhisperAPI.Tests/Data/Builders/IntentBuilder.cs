@@ -4,9 +4,23 @@ namespace WhisperAPI.Tests.Data.Builders
 {
     public class IntentBuilder
     {
-        private string _name = "IntentName";
+        private string _name;
 
-        private double _confidence = 1;
+        private double _confidence;
+
+        public static IntentBuilder Build => new IntentBuilder();
+
+        public Intent Instance => new Intent
+        {
+            Name = this._name,
+            Confidence = this._confidence
+        };
+
+        private IntentBuilder()
+        {
+            this._name = "IntenName";
+            this._confidence = 1;
+        }
 
         public IntentBuilder WithName(string name)
         {
@@ -19,11 +33,5 @@ namespace WhisperAPI.Tests.Data.Builders
             this._confidence = confidence;
             return this;
         }
-
-        public Intent Build() => new Intent
-        {
-            Name = this._name,
-            Confidence = this._confidence
-        };
     }
 }
