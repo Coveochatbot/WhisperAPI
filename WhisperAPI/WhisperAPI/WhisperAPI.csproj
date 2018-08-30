@@ -15,8 +15,6 @@
     <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.6" />
     <PackageReference Include="Microsoft.AspNetCore.Cors" Version="2.0.2" />
     <PackageReference Include="Microsoft.Extensions.Logging.Log4Net.AspNetCore" Version="2.0.3" />
-    <PackageReference Include="StructureMap" Version="4.6.1" />
-    <PackageReference Include="StructureMap.Microsoft.DependencyInjection" Version="1.4.0" />
     <PackageReference Include="StyleCop.Analyzers" Version="1.1.0-beta006" />
   </ItemGroup>
 
