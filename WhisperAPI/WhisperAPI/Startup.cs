@@ -1,12 +1,11 @@
 ﻿using System;
+using System.Net.Http;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using StructureMap;
-using WhisperAPI.Registries;
+using Swashbuckle.AspNetCore.Swagger;
 using WhisperAPI.Services;
 using WhisperAPI.Settings;
 
@@ -21,7 +20,7 @@ namespace WhisperAPI
 
         public IConfiguration Configuration { get; }
 
-        public IServiceProvider ConfigureServices(IServiceCollection services)
+        public void ConfigureServices(IServiceCollection services)
         {
             services.AddCors(options =>
             {
@@ -38,18 +37,38 @@ namespace WhisperAPI
             });
             services.AddMvc();
 
+            services.AddSwaggerGen(c =>
+                c.SwaggerDoc("v2", new Info { Title = "WhisperAPI", Version = "v2" }));
+
             var applicationSettings = new ApplicationSettings();
             this.Configuration.Bind(applicationSettings);
 
-            var container = new Container();
+            ConfigureDependancy(services, applicationSettings);
+        }
 
-            container.Configure(config =>
-            {
-                config.AddRegistry(new WhisperApiRegistry(applicationSettings.ApiKey, applicationSettings.IrrelevantIntents, applicationSettings.NlpApiBaseAddress, applicationSettings.ContextLifeSpan));
-                config.Populate(services);
-            });
+        private static void ConfigureDependancy(IServiceCollection services, ApplicationSettings applicationSettings)
+        {
+            services.AddTransient<ISuggestionsService>(
+                x => new SuggestionsService(
+                    x.GetService<IIndexSearch>(),
+                    x.GetService<INlpCall>(),
+                    applicationSettings.IrrelevantIntents));
 
-            return container.GetInstance<IServiceProvider>();
+            services.AddTransient<INlpCall>(
+                x => new NlpCall(
+                    x.GetService<HttpClient>(),
+                    applicationSettings.NlpApiBaseAddress));
+
+            services.AddTransient<IIndexSearch>(
+                x => new IndexSearch(
+                    applicationSettings.ApiKey,
+                    x.GetService<HttpClient>()));
+
+            services.AddTransient<HttpClient, HttpClient>();
+
+            services.AddSingleton<IContexts>(
+                x => new InMemoryContexts(
+                    TimeSpan.Parse(applicationSettings.ContextLifeSpan)));
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
@@ -67,6 +86,8 @@ namespace WhisperAPI
 
             app.UseStaticFiles();
             app.UseCors("AllowAll");
+            app.UseSwagger();
+            app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v2/swagger.json", "WhisperAPI v2"));
             app.UseMvc();
         }
     }

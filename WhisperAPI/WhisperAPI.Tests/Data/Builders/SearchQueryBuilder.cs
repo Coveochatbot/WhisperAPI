@@ -5,11 +5,27 @@ namespace WhisperAPI.Tests.Data.Builders
 {
     public class SearchQueryBuilder
     {
-        private Guid? _chatKey = Guid.NewGuid();
+        private Guid? _chatKey;
 
-        private string _query = "Test";
+        private string _query;
 
-        private SearchQuery.MessageType _type = 0;
+        private SearchQuery.MessageType _type;
+
+        public static SearchQueryBuilder Build => new SearchQueryBuilder();
+
+        public SearchQuery Instance => new SearchQuery
+        {
+            ChatKey = this._chatKey,
+            Query = this._query,
+            Type = this._type
+        };
+
+        private SearchQueryBuilder()
+        {
+            this._chatKey = Guid.NewGuid();
+            this._query = "Test";
+            this._type = SearchQuery.MessageType.Customer;
+        }
 
         public SearchQueryBuilder WithChatKey(Guid? chatKey)
         {
@@ -28,12 +44,5 @@ namespace WhisperAPI.Tests.Data.Builders
             this._type = type;
             return this;
         }
-
-        public SearchQuery Build() => new SearchQuery
-        {
-            ChatKey = this._chatKey,
-            Query = this._query,
-            Type = this._type
-        };
     }
 }

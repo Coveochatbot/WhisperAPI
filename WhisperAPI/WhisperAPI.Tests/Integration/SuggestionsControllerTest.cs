@@ -68,7 +68,7 @@ namespace WhisperAPI.Tests.Integration
                     Content = this.GetSearchResultStringContent()
                 }));
 
-            var searchQuery = new SearchQueryBuilder().Build();
+            var searchQuery = SearchQueryBuilder.Build.Instance;
 
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(searchQuery));
             var result = this._suggestionController.GetSuggestions(searchQuery);
@@ -81,7 +81,7 @@ namespace WhisperAPI.Tests.Integration
         [Test]
         public void When_getting_suggestions_with_null_query_then_returns_bad_request()
         {
-            var searchQuery = new SearchQueryBuilder().WithQuery(null).Build();
+            var searchQuery = SearchQueryBuilder.Build.WithQuery(null).Instance;
 
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(searchQuery));
             var suggestions = this._suggestionController.GetSuggestions(searchQuery);
@@ -100,7 +100,7 @@ namespace WhisperAPI.Tests.Integration
                     Content = new StringContent(JsonConvert.SerializeObject(this.GetIrrelevantNlpAnalysis()))
                 }));
 
-            var searchQuery = new SearchQueryBuilder().Build();
+            var searchQuery = SearchQueryBuilder.Build.Instance;
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(searchQuery));
             var result = this._suggestionController.GetSuggestions(searchQuery);
 
@@ -115,9 +115,9 @@ namespace WhisperAPI.Tests.Integration
         [TestCase(System.Net.HttpStatusCode.InternalServerError)]
         public void When_getting_suggestions_but_nlp_returns_Error_then_throws_exception(System.Net.HttpStatusCode httpStatusCode)
         {
-            var searchQuery = new SearchQueryBuilder()
+            var searchQuery = SearchQueryBuilder.Build
                 .WithQuery("Hello")
-                .Build();
+                .Instance;
 
             this._nlpCallHttpMessageHandleMock.Protected()
                 .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
@@ -137,9 +137,9 @@ namespace WhisperAPI.Tests.Integration
         [TestCase(System.Net.HttpStatusCode.InternalServerError)]
         public void When_getting_suggestions_but_coveo_returns_Error_then_throws_exception(System.Net.HttpStatusCode httpStatusCode)
         {
-            var searchQuery = new SearchQueryBuilder()
+            var searchQuery = SearchQueryBuilder.Build
                 .WithQuery("I need help with CoveoSearch API")
-                .Build();
+                .Instance;
 
             this._nlpCallHttpMessageHandleMock.Protected()
                 .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
@@ -165,9 +165,9 @@ namespace WhisperAPI.Tests.Integration
         public void When_getting_suggestions_with_agent_sending_uri_then_suggestion_is_filter_then_returns_suggestions_correctly()
         {
             // Customer says: Hello
-            var searchQuery = new SearchQueryBuilder()
+            var searchQuery = SearchQueryBuilder.Build
                 .WithQuery("Hello")
-                .Build();
+                .Instance;
 
             this._nlpCallHttpMessageHandleMock.Protected()
                 .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
@@ -185,10 +185,10 @@ namespace WhisperAPI.Tests.Integration
             suggestion.SuggestedDocuments.Should().BeEquivalentTo(new List<SuggestedDocument>());
 
             // Customer says: I need help with CoveoSearch API
-            searchQuery = new SearchQueryBuilder()
+            searchQuery = SearchQueryBuilder.Build
                 .WithQuery("I need help with CoveoSearch API")
                 .WithChatKey(searchQuery.ChatKey)
-                .Build();
+                .Instance;
 
             this._nlpCallHttpMessageHandleMock.Protected()
                 .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
@@ -214,11 +214,11 @@ namespace WhisperAPI.Tests.Integration
             suggestion.SuggestedDocuments.Should().BeEquivalentTo(this.GetSuggestedDocuments());
 
             // Agent says: Maybe this could help: https://onlinehelp.coveo.com/en/cloud/Available_Coveo_Cloud_V2_Source_Types.htm
-            searchQuery = new SearchQueryBuilder()
+            searchQuery = SearchQueryBuilder.Build
                 .WithQuery("Maybe this can help: https://onlinehelp.coveo.com/en/cloud/Available_Coveo_Cloud_V2_Source_Types.htm")
                 .WithMessageType(SearchQuery.MessageType.Agent)
                 .WithChatKey(searchQuery.ChatKey)
-                .Build();
+                .Instance;
 
             this._nlpCallHttpMessageHandleMock.Protected()
                 .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
@@ -244,9 +244,9 @@ namespace WhisperAPI.Tests.Integration
         public void When_getting_suggestions_with_customer_sending_uri_then_suggestion_is_filter_then_returns_suggestions_correctly()
         {
             // Customer says: Hello
-            var searchQuery = new SearchQueryBuilder()
+            var searchQuery = SearchQueryBuilder.Build
                 .WithQuery("Hello")
-                .Build();
+                .Instance;
 
             this._nlpCallHttpMessageHandleMock.Protected()
                 .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
@@ -264,10 +264,10 @@ namespace WhisperAPI.Tests.Integration
             suggestion.SuggestedDocuments.Should().BeEquivalentTo(new List<SuggestedDocument>());
 
             // Customer says: I need help with CoveoSearch API
-            searchQuery = new SearchQueryBuilder()
+            searchQuery = SearchQueryBuilder.Build
                 .WithQuery("I need help with CoveoSearch API and I look at this: https://onlinehelp.coveo.com/en/cloud/Available_Coveo_Cloud_V2_Source_Types.htm")
                 .WithChatKey(searchQuery.ChatKey)
-                .Build();
+                .Instance;
 
             this._nlpCallHttpMessageHandleMock.Protected()
                 .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
@@ -364,8 +364,7 @@ namespace WhisperAPI.Tests.Integration
             var actionContext = new ActionContext(
                 new Mock<HttpContext>().Object,
                 new Mock<RouteData>().Object,
-                new Mock<ActionDescriptor>().Object
-            );
+                new Mock<ActionDescriptor>().Object);
 
             var actionExecutingContext = new Mock<ActionExecutingContext>(
                 MockBehavior.Strict,
@@ -418,22 +417,22 @@ namespace WhisperAPI.Tests.Integration
         {
             var intents = new List<Intent>
             {
-                new IntentBuilder().WithName("Need Help").WithConfidence(98).Build(),
-                new IntentBuilder().WithName("Greetings").WithConfidence(2).Build()
+                IntentBuilder.Build.WithName("Need Help").WithConfidence(98).Instance,
+                IntentBuilder.Build.WithName("Greetings").WithConfidence(2).Instance
             };
 
-            return new NlpAnalysisBuilder().WithIntents(intents).Build();
+            return NlpAnalysisBuilder.Build.WithIntents(intents).Instance;
         }
 
         public NlpAnalysis GetIrrelevantNlpAnalysis()
         {
             var intents = new List<Intent>
             {
-                new IntentBuilder().WithName("Need Help").WithConfidence(2).Build(),
-                new IntentBuilder().WithName("Greetings").WithConfidence(98).Build()
+                IntentBuilder.Build.WithName("Need Help").WithConfidence(2).Instance,
+                IntentBuilder.Build.WithName("Greetings").WithConfidence(98).Instance
             };
 
-            return new NlpAnalysisBuilder().WithIntents(intents).Build();
+            return NlpAnalysisBuilder.Build.WithIntents(intents).Instance;
         }
 
         public List<SuggestedDocument> GetSuggestedDocuments()
