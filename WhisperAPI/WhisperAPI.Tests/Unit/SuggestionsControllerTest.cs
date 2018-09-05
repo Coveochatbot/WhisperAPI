@@ -84,8 +84,7 @@ namespace WhisperAPI.Tests.Unit
             var actionContext = new ActionContext(
                 new Mock<HttpContext>().Object,
                 new Mock<RouteData>().Object,
-                new Mock<ActionDescriptor>().Object
-            );
+                new Mock<ActionDescriptor>().Object);
 
             var actionExecutingContext = new Mock<ActionExecutingContext>(
                 MockBehavior.Strict,

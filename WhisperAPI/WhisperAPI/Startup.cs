@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Swashbuckle.AspNetCore.Swagger;
 using WhisperAPI.Services;
 using WhisperAPI.Settings;
 
@@ -35,6 +36,9 @@ namespace WhisperAPI
                     });
             });
             services.AddMvc();
+
+            services.AddSwaggerGen(c =>
+                c.SwaggerDoc("v2", new Info { Title = "WhisperAPI", Version = "v2" }));
 
             var applicationSettings = new ApplicationSettings();
             this.Configuration.Bind(applicationSettings);
@@ -82,6 +86,8 @@ namespace WhisperAPI
 
             app.UseStaticFiles();
             app.UseCors("AllowAll");
+            app.UseSwagger();
+            app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v2/swagger.json", "WhisperAPI v2"));
             app.UseMvc();
         }
     }

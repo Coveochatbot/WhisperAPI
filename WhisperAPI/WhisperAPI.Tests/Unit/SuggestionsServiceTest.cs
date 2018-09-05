@@ -34,10 +34,10 @@ namespace WhisperAPI.Tests.Unit
         {
             var intents = new List<Intent>
             {
-                new IntentBuilder().WithName("Need Help").Build()
+                IntentBuilder.Build.WithName("Need Help").Instance
             };
 
-            var nlpAnalysis = new NlpAnalysisBuilder().WithIntents(intents).Build();
+            var nlpAnalysis = NlpAnalysisBuilder.Build.WithIntents(intents).Instance;
 
             this._indexSearchMock
                 .Setup(x => x.Search(It.IsAny<string>()))
@@ -56,10 +56,10 @@ namespace WhisperAPI.Tests.Unit
         {
             var intents = new List<Intent>
             {
-                new IntentBuilder().WithName("Need Help").Build()
+                IntentBuilder.Build.WithName("Need Help").Instance
             };
 
-            var nlpAnalysis = new NlpAnalysisBuilder().WithIntents(intents).Build();
+            var nlpAnalysis = NlpAnalysisBuilder.Build.WithIntents(intents).Instance;
 
             this._indexSearchMock
                 .Setup(x => x.Search(It.IsAny<string>()))
@@ -78,10 +78,10 @@ namespace WhisperAPI.Tests.Unit
         {
             var intents = new List<Intent>
             {
-                new IntentBuilder().WithName("Greetings").Build()
+                IntentBuilder.Build.WithName("Greetings").Instance
             };
 
-            var nlpAnalysis = new NlpAnalysisBuilder().WithIntents(intents).Build();
+            var nlpAnalysis = NlpAnalysisBuilder.Build.WithIntents(intents).Instance;
 
             this._nlpCallMock
                 .Setup(x => x.GetNlpAnalysis(It.IsAny<string>()))
@@ -94,7 +94,7 @@ namespace WhisperAPI.Tests.Unit
         [TestCase]
         public void When_query_is_selected_by_agent_suggestion_is_filter_out()
         {
-            var suggestion = ((SuggestionsService) this._suggestionsService).FilterOutChosenSuggestions(
+            var suggestion = ((SuggestionsService)this._suggestionsService).FilterOutChosenSuggestions(
                 this.GetSuggestedDocuments(), this.GetQueriesSentByByAgent());
 
             suggestion.Should().HaveCount(2);
@@ -112,7 +112,7 @@ namespace WhisperAPI.Tests.Unit
         [TestCase("I like C#")]
         public void When_Intent_With_and_without_Wildcard__is_irrelevant(string wildcardString)
         {
-            var query = new SearchQueryBuilder().WithQuery("I like C#");
+            var query = SearchQueryBuilder.Build.WithQuery("I like C#").Instance;
             var intentsFromApi = new List<string>
             {
                 wildcardString
@@ -120,24 +120,24 @@ namespace WhisperAPI.Tests.Unit
 
             var intentsFromNLP = new List<Intent>
             {
-                new IntentBuilder().WithName("I like C#").Build()
+                IntentBuilder.Build.WithName("I like C#").Instance
             };
 
             this._suggestionsService = new SuggestionsService(this._indexSearchMock.Object, this._nlpCallMock.Object, intentsFromApi);
 
-            var nlpAnalysis = new NlpAnalysisBuilder().WithIntents(intentsFromNLP).Build();
+            var nlpAnalysis = NlpAnalysisBuilder.Build.WithIntents(intentsFromNLP).Instance;
             this._nlpCallMock
                 .Setup(x => x.GetNlpAnalysis(It.IsAny<string>()))
                 .Returns(nlpAnalysis);
 
-            ((SuggestionsService) this._suggestionsService).IsQueryRelevant(query.Build()).Should().BeFalse();
+            ((SuggestionsService)this._suggestionsService).IsQueryRelevant(query).Should().BeFalse();
         }
 
         [Test]
         [TestCase("smalltalk.*")]
         public void When_Intent_is_relevant(string wildcardString)
         {
-            var query = new SearchQueryBuilder().WithQuery("I like C#");
+            var query = SearchQueryBuilder.Build.WithQuery("I like C#").Instance;
             var intentsFromApi = new List<string>
             {
                 wildcardString
@@ -145,30 +145,30 @@ namespace WhisperAPI.Tests.Unit
 
             var intentsFromNLP = new List<Intent>
             {
-                new IntentBuilder().WithName("I like C#").Build()
+                IntentBuilder.Build.WithName("I like C#").Instance
             };
 
-            var nlpAnalysis = new NlpAnalysisBuilder().WithIntents(intentsFromNLP).Build();
+            var nlpAnalysis = NlpAnalysisBuilder.Build.WithIntents(intentsFromNLP).Instance;
             this._nlpCallMock
                 .Setup(x => x.GetNlpAnalysis(It.IsAny<string>()))
                 .Returns(nlpAnalysis);
 
-            ((SuggestionsService)this._suggestionsService).IsQueryRelevant(query.Build()).Should().BeTrue();
+            ((SuggestionsService)this._suggestionsService).IsQueryRelevant(query).Should().BeTrue();
         }
-
-
 
         public List<SearchQuery> GetQueriesSentByByAgent()
         {
             return new List<SearchQuery>
             {
-               new SearchQuery {
+               new SearchQuery
+               {
                    ChatKey = new Guid("0f8fad5b-d9cb-469f-a165-708677289501"),
                    Query = "https://onlinehelp.coveo.com/en/cloud/Available_Coveo_Cloud_V2_Source_Types.htm",
                    Type = MessageType.Agent,
                    Relevant = true
                },
-               new SearchQuery {
+               new SearchQuery
+               {
                    ChatKey = new Guid("0f8fad5b-d9cb-469f-a165-708677289501"),
                    Query = "https://onlinehelp.coveo.com/en/cloud/Coveo_Cloud_Query_Syntax_Reference.htm",
                    Type = MessageType.Agent,

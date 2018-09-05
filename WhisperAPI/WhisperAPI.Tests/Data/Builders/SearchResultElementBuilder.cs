@@ -4,15 +4,35 @@ namespace WhisperAPI.Tests.Data.Builders
 {
     public class SearchResultElementBuilder
     {
-        private string _title = "Title";
+        private string _title;
 
-        private string _uri = "Uri";
+        private string _uri;
 
-        private string _printableUri = "PrintableUri";
+        private string _printableUri;
 
-        private string _summary = "Summary";
+        private string _summary;
 
-        private int _score = 1;
+        private int _score;
+
+        public static SearchResultElementBuilder Build => new SearchResultElementBuilder();
+
+        public SearchResultElement Instance => new SearchResultElement
+        {
+            PrintableUri = this._printableUri,
+            Summary = this._summary,
+            Title = this._title,
+            Uri = this._uri,
+            Score = this._score
+        };
+
+        private SearchResultElementBuilder()
+        {
+            this._title = "Title";
+            this._uri = "Uri";
+            this._printableUri = "PrintableUri";
+            this._summary = "Summary";
+            this._score = 1;
+        }
 
         public SearchResultElementBuilder WithTitle(string title)
         {
@@ -43,14 +63,5 @@ namespace WhisperAPI.Tests.Data.Builders
             this._score = score;
             return this;
         }
-
-        public SearchResultElement Build() => new SearchResultElement
-        {
-            PrintableUri = this._printableUri,
-            Summary = this._summary,
-            Title = this._title,
-            Uri = this._uri,
-            Score = this._score
-        };
-}
+    }
 }
