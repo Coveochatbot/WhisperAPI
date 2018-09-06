@@ -41,6 +41,8 @@ WhisperAPI/bin/
 WhisperAPI.Tests/bin/
 WhisperAPI/obj/
 WhisperAPI.Tests/obj/
+ConsoleApp1/obj
+ConsoleApp1/bin
 
 WhisperAPI\logs
 
