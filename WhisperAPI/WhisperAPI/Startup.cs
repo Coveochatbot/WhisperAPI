@@ -43,10 +43,10 @@ namespace WhisperAPI
             var applicationSettings = new ApplicationSettings();
             this.Configuration.Bind(applicationSettings);
 
-            ConfigureDependancy(services, applicationSettings);
+            ConfigureDependency(services, applicationSettings);
         }
 
-        private static void ConfigureDependancy(IServiceCollection services, ApplicationSettings applicationSettings)
+        private static void ConfigureDependency(IServiceCollection services, ApplicationSettings applicationSettings)
         {
             services.AddTransient<ISuggestionsService>(
                 x => new SuggestionsService(
@@ -62,7 +62,8 @@ namespace WhisperAPI
             services.AddTransient<IIndexSearch>(
                 x => new IndexSearch(
                     applicationSettings.ApiKey,
-                    x.GetService<HttpClient>()));
+                    x.GetService<HttpClient>(),
+                    applicationSettings.SearchBaseAddress));
 
             services.AddTransient<HttpClient, HttpClient>();
 
