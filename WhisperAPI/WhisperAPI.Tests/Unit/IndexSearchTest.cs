@@ -6,8 +6,8 @@ using FluentAssertions;
 using Moq;
 using Moq.Protected;
 using NUnit.Framework;
-using WhisperAPI.Models;
-using WhisperAPI.Services;
+using WhisperAPI.Models.Search;
+using WhisperAPI.Services.Search;
 
 namespace WhisperAPI.Tests.Unit
 {
