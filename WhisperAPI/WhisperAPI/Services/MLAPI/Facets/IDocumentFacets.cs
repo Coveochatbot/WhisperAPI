@@ -4,7 +4,7 @@ using WhisperAPI.Models.MLAPI;
 
 namespace WhisperAPI.Services.MLAPI.Facets
 {
-    public interface IMlCall
+    public interface IDocumentFacets
     {
         FacetAnalysis GetFacetAnalysis(IEnumerable<SuggestedDocument> suggestedDocuments);
     }

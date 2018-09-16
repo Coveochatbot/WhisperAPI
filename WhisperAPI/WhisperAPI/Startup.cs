@@ -83,8 +83,8 @@ namespace WhisperAPI
                     x.GetService<HttpClient>(),
                     applicationSettings.NlpApiBaseAddress));
 
-            services.AddTransient<IMlCall>(
-                x => new MlCall(
+            services.AddTransient<IDocumentFacets>(
+                x => new DocumentFacets(
                     x.GetService<HttpClient>(),
                     applicationSettings.MlApiBaseAddress));
 

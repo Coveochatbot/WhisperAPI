@@ -10,7 +10,7 @@ using WhisperAPI.Models.MLAPI;
 
 namespace WhisperAPI.Services.MLAPI.Facets
 {
-    public class MlCall : IMlCall
+    public class DocumentFacets : IDocumentFacets
     {
         private static readonly log4net.ILog Log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -18,7 +18,7 @@ namespace WhisperAPI.Services.MLAPI.Facets
 
         private readonly HttpClient _httpClient;
 
-        public MlCall(HttpClient httpClient, string baseAdress)
+        public DocumentFacets(HttpClient httpClient, string baseAdress)
         {
             this._httpClient = httpClient;
             this._baseAdress = baseAdress;
