@@ -5,7 +5,10 @@ using Moq;
 using NUnit.Framework;
 using WhisperAPI.Models;
 using WhisperAPI.Models.NLPAPI;
-using WhisperAPI.Services;
+using WhisperAPI.Models.Search;
+using WhisperAPI.Services.NLPAPI;
+using WhisperAPI.Services.Search;
+using WhisperAPI.Services.Suggestions;
 using WhisperAPI.Tests.Data.Builders;
 using static WhisperAPI.Models.SearchQuery;
 

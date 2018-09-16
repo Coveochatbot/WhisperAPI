@@ -2,9 +2,9 @@
 using System.Net.Http.Headers;
 using System.Text;
 using Newtonsoft.Json;
-using WhisperAPI.Models;
+using WhisperAPI.Models.Search;
 
-namespace WhisperAPI.Services
+namespace WhisperAPI.Services.Search
 {
     public class IndexSearch : IIndexSearch
     {
@@ -36,7 +36,14 @@ namespace WhisperAPI.Services
 
         private StringContent CreateStringContent(string query)
         {
-            return new StringContent($"{{\"lq\": \"{query}\",\"numberOfResults\": \"50\"}}", Encoding.UTF8, "application/json");
+            var searchParameters = new SearchParameters
+            {
+                Lq = query,
+                NumberOfResults = 50
+            };
+
+            var json = JsonConvert.SerializeObject(searchParameters);
+            return new StringContent(json, Encoding.UTF8, "application/json");
         }
 
         private void InitHttpClient(string baseURL)

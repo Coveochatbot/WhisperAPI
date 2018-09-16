@@ -17,7 +17,10 @@ using NUnit.Framework;
 using WhisperAPI.Controllers;
 using WhisperAPI.Models;
 using WhisperAPI.Models.NLPAPI;
-using WhisperAPI.Services;
+using WhisperAPI.Services.Context;
+using WhisperAPI.Services.NLPAPI;
+using WhisperAPI.Services.Search;
+using WhisperAPI.Services.Suggestions;
 using WhisperAPI.Tests.Data.Builders;
 using BadRequestResult = Microsoft.AspNetCore.Mvc.BadRequestResult;
 

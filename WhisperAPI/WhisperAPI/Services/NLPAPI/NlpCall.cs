@@ -5,7 +5,7 @@ using System.Text;
 using Newtonsoft.Json;
 using WhisperAPI.Models.NLPAPI;
 
-namespace WhisperAPI.Services
+namespace WhisperAPI.Services.NLPAPI
 {
     public class NlpCall : INlpCall
     {
