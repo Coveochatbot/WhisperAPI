@@ -38,8 +38,8 @@ namespace WhisperAPI.Services.Search
         {
             var searchParameters = new SearchParameters
             {
-                lq = query,
-                numberOfResults = 50
+                Lq = query,
+                NumberOfResults = 50
             };
 
             var json = JsonConvert.SerializeObject(searchParameters);

@@ -1,9 +1,13 @@
-﻿namespace WhisperAPI.Models.Search
+﻿using Newtonsoft.Json;
+
+namespace WhisperAPI.Models.Search
 {
     public class SearchParameters
     {
-        public string lq { get; set; }
+        [JsonProperty(PropertyName = "lq")]
+        public string Lq { get; set; }
 
-        public int numberOfResults { get; set; }
+        [JsonProperty(PropertyName = "numberOfResults")]
+        public int NumberOfResults { get; set; }
     }
 }
