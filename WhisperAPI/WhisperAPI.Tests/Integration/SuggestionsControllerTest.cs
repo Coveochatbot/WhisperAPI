@@ -17,7 +17,10 @@ using NUnit.Framework;
 using WhisperAPI.Controllers;
 using WhisperAPI.Models;
 using WhisperAPI.Models.NLPAPI;
-using WhisperAPI.Services;
+using WhisperAPI.Services.Context;
+using WhisperAPI.Services.NLPAPI;
+using WhisperAPI.Services.Search;
+using WhisperAPI.Services.Suggestions;
 using WhisperAPI.Tests.Data.Builders;
 using BadRequestResult = Microsoft.AspNetCore.Mvc.BadRequestResult;
 
@@ -40,7 +43,7 @@ namespace WhisperAPI.Tests.Integration
             var indexSearchHttpClient = new HttpClient(this._indexSearchHttpMessageHandleMock.Object);
             var nlpCallHttpClient = new HttpClient(this._nlpCallHttpMessageHandleMock.Object);
 
-            var indexSearch = new IndexSearch(null, indexSearchHttpClient);
+            var indexSearch = new IndexSearch(null, indexSearchHttpClient, "https://localhost:5000");
             var nlpCall = new NlpCall(nlpCallHttpClient, "https://localhost:5000");
 
             var suggestionsService = new SuggestionsService(indexSearch, nlpCall, this.GetIrrelevantIntents());

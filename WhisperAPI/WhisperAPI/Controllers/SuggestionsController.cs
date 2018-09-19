@@ -2,7 +2,8 @@
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using WhisperAPI.Models;
-using WhisperAPI.Services;
+using WhisperAPI.Services.Context;
+using WhisperAPI.Services.Suggestions;
 
 namespace WhisperAPI.Controllers
 {

@@ -3,8 +3,11 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using WhisperAPI.Models;
 using WhisperAPI.Models.NLPAPI;
+using WhisperAPI.Models.Search;
+using WhisperAPI.Services.NLPAPI;
+using WhisperAPI.Services.Search;
 
-namespace WhisperAPI.Services
+namespace WhisperAPI.Services.Suggestions
 {
     public class SuggestionsService : ISuggestionsService
     {
