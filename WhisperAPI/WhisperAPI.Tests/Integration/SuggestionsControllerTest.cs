@@ -364,17 +364,7 @@ namespace WhisperAPI.Tests.Integration
 
         public ActionExecutingContext GetActionExecutingContext(SearchQuery searchQuery)
         {
-            var actionContext = new ActionContext(
-                new Mock<HttpContext>().Object,
-                new Mock<RouteData>().Object,
-                new Mock<ActionDescriptor>().Object);
-
-            var actionExecutingContext = new Mock<ActionExecutingContext>(
-                MockBehavior.Strict,
-                actionContext,
-                new List<IFilterMetadata>(),
-                new Dictionary<string, object>(),
-                this._suggestionController);
+            var actionExecutingContext = this.CreateActionContextMock();
 
             object param = searchQuery;
             actionExecutingContext
@@ -384,29 +374,17 @@ namespace WhisperAPI.Tests.Integration
             return actionExecutingContext.Object;
         }
 
-        public ActionExecutingContext GetActionExecutingContext(Guid chatkey)
+        public ActionExecutingContext GetActionExecutingContext(object chatkey)
         {
-            var actionContext = new ActionContext(
-                new Mock<HttpContext>().Object,
-                new Mock<RouteData>().Object,
-                new Mock<ActionDescriptor>().Object
-            );
-
-            var actionExecutingContext = new Mock<ActionExecutingContext>(
-                MockBehavior.Strict,
-                actionContext,
-                new List<IFilterMetadata>(),
-                new Dictionary<string, object>(),
-                this._suggestionController);
+            var actionExecutingContext = this.CreateActionContextMock();
 
             var param = new object();
             actionExecutingContext
                 .Setup(x => x.ActionArguments.TryGetValue("searchQuery", out param))
                 .Returns(false);
 
-            param = chatkey;
             actionExecutingContext
-                .Setup(x => x.ActionArguments.TryGetValue("chatkey", out param))
+                .Setup(x => x.ActionArguments.TryGetValue("chatkey", out chatkey))
                 .Returns(true);
 
             actionExecutingContext
@@ -488,6 +466,21 @@ namespace WhisperAPI.Tests.Integration
             {
                 "Greetings"
             };
+        }
+
+        private Mock<ActionExecutingContext> CreateActionContextMock()
+        {
+            var actionContext = new ActionContext(
+                new Mock<HttpContext>().Object,
+                new Mock<RouteData>().Object,
+                new Mock<ActionDescriptor>().Object);
+
+            return new Mock<ActionExecutingContext>(
+                MockBehavior.Strict,
+                actionContext,
+                new List<IFilterMetadata>(),
+                new Dictionary<string, object>(),
+                this._suggestionController);
         }
     }
 }
