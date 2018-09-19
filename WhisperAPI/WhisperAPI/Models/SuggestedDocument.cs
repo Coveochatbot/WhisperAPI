@@ -1,5 +1,4 @@
-﻿using WhisperAPI.Models.MLAPI;
-using WhisperAPI.Models.Search;
+﻿using WhisperAPI.Models.Search;
 
 namespace WhisperAPI.Models
 {
@@ -27,8 +26,6 @@ namespace WhisperAPI.Models
         public string Summary { get; set; }
 
         public string Excerpt { get; set; }
-
-        public Facet Facet { get; set; }
 
         public override bool Equals(object obj)
         {
@@ -60,7 +57,7 @@ namespace WhisperAPI.Models
 
         protected bool Equals(SuggestedDocument other)
         {
-            return string.Equals(this.Title, other.Title) && string.Equals(this.Uri, other.Uri) && Equals(this.Facet, other.Facet);
+            return string.Equals(this.Title, other.Title) && string.Equals(this.Uri, other.Uri);
         }
     }
 }
