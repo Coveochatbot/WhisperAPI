@@ -17,6 +17,8 @@ namespace WhisperAPI.Tests.Unit
     [TestFixture]
     public class DocumentFacetsTest
     {
+        private const string BaseAdress = "http://localhost:5000";
+
         private IDocumentFacets _documentFacets;
 
         private Mock<HttpMessageHandler> _httpMessageHandlerMock;
@@ -36,18 +38,10 @@ namespace WhisperAPI.Tests.Unit
                 QuestionBuilder.Build.Instance
             };
 
-            const string baseAdress = "http://localhost:5000";
-
             this._httpClient = new HttpClient(this._httpMessageHandlerMock.Object);
-            this._documentFacets = new DocumentFacets(this._httpClient, baseAdress);
+            this._documentFacets = new DocumentFacets(this._httpClient, BaseAdress);
 
-            this._httpMessageHandlerMock.Protected()
-                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
-                .Returns(Task.FromResult(new HttpResponseMessage
-                {
-                    StatusCode = System.Net.HttpStatusCode.OK,
-                    Content = new StringContent(JsonConvert.SerializeObject(questions))
-                }));
+            this.HttpMessageHandlerMock(questions, HttpStatusCode.OK);
 
             var result = this._documentFacets.GetQuestions(new List<SuggestedDocument>());
 
@@ -59,18 +53,10 @@ namespace WhisperAPI.Tests.Unit
         [TestCase(HttpStatusCode.NotFound)]
         public void When_receive_not_ok_response_from_post_then_throws_exception(HttpStatusCode status)
         {
-            const string baseAdress = "http://localhost:5000";
-
             this._httpClient = new HttpClient(this._httpMessageHandlerMock.Object);
-            this._documentFacets = new DocumentFacets(this._httpClient, baseAdress);
+            this._documentFacets = new DocumentFacets(this._httpClient, BaseAdress);
 
-            this._httpMessageHandlerMock.Protected()
-                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
-                .Returns(Task.FromResult(new HttpResponseMessage
-                {
-                    StatusCode = status,
-                    Content = new StringContent(string.Empty)
-                }));
+            this.HttpMessageHandlerMock(null, status);
 
             Assert.Throws<HttpRequestException>(() => this._documentFacets.GetQuestions(new List<SuggestedDocument>()));
         }
@@ -78,21 +64,24 @@ namespace WhisperAPI.Tests.Unit
         [Test]
         public void When_receive_ok_response_with_empty_content_from_post_then_returns_null()
         {
-            const string baseAdress = "http://localhost:5000";
-
             this._httpClient = new HttpClient(this._httpMessageHandlerMock.Object);
-            this._documentFacets = new DocumentFacets(this._httpClient, baseAdress);
+            this._documentFacets = new DocumentFacets(this._httpClient, BaseAdress);
 
+            this.HttpMessageHandlerMock(null, HttpStatusCode.OK);
+
+            var result = this._documentFacets.GetQuestions(new List<SuggestedDocument>());
+            result.Should().BeEquivalentTo((List<Question>)null);
+        }
+
+        private void HttpMessageHandlerMock(List<Question> questions, HttpStatusCode httpStatusCode)
+        {
             this._httpMessageHandlerMock.Protected()
                 .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
                 .Returns(Task.FromResult(new HttpResponseMessage
                 {
-                    StatusCode = System.Net.HttpStatusCode.OK,
-                    Content = new StringContent(JsonConvert.SerializeObject(string.Empty))
+                    StatusCode = httpStatusCode,
+                    Content = new StringContent(JsonConvert.SerializeObject(questions))
                 }));
-
-            var result = this._documentFacets.GetQuestions(new List<SuggestedDocument>());
-            result.Should().BeEquivalentTo((List<Question>)null);
         }
     }
 }
