@@ -1,10 +1,10 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using Newtonsoft.Json;
+using WhisperAPI.Models.Queries;
 
 namespace WhisperAPI.Models
 {
-    public class SearchQuery
+    public class SearchQuery : Query
     {
         public enum MessageType
         {
@@ -14,10 +14,6 @@ namespace WhisperAPI.Models
 
         [JsonIgnore]
         public int Id { get; set; }
-
-        [Required(AllowEmptyStrings = false, ErrorMessage = "ChatKey is required")]
-        [JsonProperty("chatkey")]
-        public Guid? ChatKey { get; set; }
 
         [JsonProperty("query")]
         public string Query { get; set; }

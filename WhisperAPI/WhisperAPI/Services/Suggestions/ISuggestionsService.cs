@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using WhisperAPI.Models;
 
 namespace WhisperAPI.Services.Suggestions
@@ -11,6 +12,6 @@ namespace WhisperAPI.Services.Suggestions
 
         void UpdateContextWithNewSuggestions(ConversationContext conversationContext, List<SuggestedDocument> suggestedDocuments);
 
-        bool UpdateContextWithSelectedSuggestion(ConversationContext conversationContext, SearchQuery searchQuery);
+        bool UpdateContextWithSelectedSuggestion(ConversationContext conversationContext, Guid selectQueryId);
     }
 }

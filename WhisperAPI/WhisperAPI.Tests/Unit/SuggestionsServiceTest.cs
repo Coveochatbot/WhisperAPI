@@ -23,7 +23,6 @@ namespace WhisperAPI.Tests.Unit
         private Mock<IIndexSearch> _indexSearchMock;
         private Mock<INlpCall> _nlpCallMock;
         private Mock<IDocumentFacets> _documentFacetsMock;
-        private Guid _chatkey;
         private ConversationContext _conversationContext;
 
         [SetUp]
@@ -34,8 +33,7 @@ namespace WhisperAPI.Tests.Unit
             this._documentFacetsMock = new Mock<IDocumentFacets>();
 
             this._suggestionsService = new SuggestionsService(this._indexSearchMock.Object, this._nlpCallMock.Object, this._documentFacetsMock.Object, this.GetIrrelevantIntents());
-            this._chatkey = new Guid("a21d07d5-fd5a-42ab-ac2c-2ef6101e58d9");
-            this._conversationContext = new ConversationContext(this._chatkey, DateTime.Now);
+            this._conversationContext = new ConversationContext(new Guid("a21d07d5-fd5a-42ab-ac2c-2ef6101e58d9"), DateTime.Now);
         }
 
         [Test]
@@ -169,20 +167,17 @@ namespace WhisperAPI.Tests.Unit
         [Test]
         [TestCase("a21d07d5-fd5a-42ab-ac2c-2ef6101e58d1", "a21d07d5-fd5a-42ab-ac2c-2ef6101e58d2", "a21d07d5-fd5a-42ab-ac2c-2ef6101e58d1")]
         [TestCase("a21d07d5-fd5a-42ab-ac2c-2ef6101e58d1", "a21d07d5-fd5a-42ab-ac2c-2ef6101e58d2", "a21d07d5-fd5a-42ab-ac2c-2ef6101e58d2")]
-        public void When_receiving_valid_suggestion_selection_add_suggestion_to_list_and_return_true(string suggestedDocumentId, string questionId, string selectSuggestionId)
+        public void When_receiving_valid_selectQueryId_add_suggestion_to_list_and_return_true(string suggestedDocumentId, string questionId, string selectQueryId)
         {
             SuggestedDocument suggestedDocument = new SuggestedDocument();
             Question question = new Question();
             suggestedDocument.Id = new Guid(suggestedDocumentId);
             question.Id = new Guid(questionId);
-            SearchQuery searchQuery = new SearchQuery();
-            searchQuery.ChatKey = this._chatkey;
-            searchQuery.Query = selectSuggestionId;
 
             this._conversationContext.SuggestedDocuments.Add(suggestedDocument);
             this._conversationContext.Questions.Add(question);
 
-            bool isContextUpdated = this._suggestionsService.UpdateContextWithSelectedSuggestion(this._conversationContext, searchQuery);
+            bool isContextUpdated = this._suggestionsService.UpdateContextWithSelectedSuggestion(this._conversationContext, new Guid(selectQueryId));
 
             Assert.IsTrue(isContextUpdated);
             Assert.IsTrue(this._conversationContext.SelectedQuestions.Contains(question) != this._conversationContext.SelectedSuggestedDocuments.Contains(suggestedDocument));
@@ -190,15 +185,12 @@ namespace WhisperAPI.Tests.Unit
 
         [Test]
         [TestCase("a21d07d5-fd5a-42ab-ac2c-2ef6101e58d3")]
-        public void When_receiving_invalid_suggestion_selection_do_not_add_suggestion_to_list_and_return_false(string selectSuggestionId)
+        public void When_receiving_invalid_selectQueryId_do_not_add_suggestion_to_list_and_return_false(string selectQueryId)
         {
-            SearchQuery searchQuery = new SearchQuery();
-            searchQuery.ChatKey = this._chatkey;
-            searchQuery.Query = selectSuggestionId;
             this._conversationContext.SelectedSuggestedDocuments.Clear();
             this._conversationContext.SelectedQuestions.Clear();
 
-            bool isContextUpdated = this._suggestionsService.UpdateContextWithSelectedSuggestion(this._conversationContext, searchQuery);
+            bool isContextUpdated = this._suggestionsService.UpdateContextWithSelectedSuggestion(this._conversationContext, new Guid(selectQueryId));
 
             Assert.IsFalse(isContextUpdated);
             Assert.IsTrue(this._conversationContext.SelectedSuggestedDocuments.Count == 0);

@@ -64,17 +64,16 @@ namespace WhisperAPI.Services.Suggestions
             }
         }
 
-        public bool UpdateContextWithSelectedSuggestion(ConversationContext conversationContext, SearchQuery searchQuery)
+        public bool UpdateContextWithSelectedSuggestion(ConversationContext conversationContext, Guid selectQueryId)
         {
-            Guid suggestionId = new Guid(searchQuery.Query);
-            SuggestedDocument suggestedDocument = conversationContext.SuggestedDocuments.ToList().Find(x => x.Id == suggestionId);
+            SuggestedDocument suggestedDocument = conversationContext.SuggestedDocuments.ToList().Find(x => x.Id == selectQueryId);
             if (suggestedDocument != null)
             {
                 conversationContext.SelectedSuggestedDocuments.Add(suggestedDocument);
                 return true;
             }
 
-            Question question = conversationContext.Questions.ToList().Find(x => x.Id == suggestionId);
+            Question question = conversationContext.Questions.ToList().Find(x => x.Id == selectQueryId);
             if (question != null)
             {
                 conversationContext.SelectedQuestions.Add(question);

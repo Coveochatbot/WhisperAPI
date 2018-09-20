@@ -41,21 +41,21 @@ namespace WhisperAPI.Controllers
             return this.Ok(suggestion);
         }
 
-        [HttpPost("click")]
-        public IActionResult SelectSuggestion([FromBody] SearchQuery searchQuery)
+        [HttpPost("select")]
+        public IActionResult SelectSuggestion([FromBody] SelectQuery selectQuery)
         {
-            if (!this.ModelState.IsValid || searchQuery?.Query == null)
+            if (!this.ModelState.IsValid || selectQuery == null || selectQuery.Id == null)
             {
                 return this.BadRequest();
             }
 
-            bool isContextUpdated = this._suggestionsService.UpdateContextWithSelectedSuggestion(this.ConversationContext, searchQuery);
+            bool isContextUpdated = this._suggestionsService.UpdateContextWithSelectedSuggestion(this.ConversationContext, selectQuery.Id.Value);
             if (!isContextUpdated)
             {
                 return this.BadRequest();
             }
 
-            Log.Debug($"Select suggestion with id {searchQuery.Query}");
+            Log.Debug($"Select suggestion with id {selectQuery.Id}");
 
             return this.Ok();
         }

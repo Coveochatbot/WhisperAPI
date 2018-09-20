@@ -21,8 +21,8 @@ namespace WhisperAPI.Tests.Unit
     {
         private List<SearchQuery> _invalidSearchQueryList;
         private List<SearchQuery> _validSearchQueryList;
-        private List<SearchQuery> _invalidSearchQueryListSelectSuggestion;
-        private List<SearchQuery> _validSearchQueryListSelectSuggestion;
+        private List<SelectQuery> _invalidSelectQueryList;
+        private List<SelectQuery> _validSelectQueryList;
 
         private Mock<ISuggestionsService> _suggestionServiceMock;
         private SuggestionsController _suggestionController;
@@ -45,16 +45,15 @@ namespace WhisperAPI.Tests.Unit
                  new SearchQuery { ChatKey = new Guid("0f8fad5b-d9cb-469f-a165-708677289501"), Query = "test", Type = MessageType.Agent }
             };
 
-            this._invalidSearchQueryListSelectSuggestion = new List<SearchQuery>
+            this._invalidSelectQueryList = new List<SelectQuery>
             {
                 null,
-                new SearchQuery { ChatKey = new Guid("0f8fad5b-d9cb-469f-a165-708677289501"), Query = null, Type = MessageType.Agent },
-                new SearchQuery { ChatKey = new Guid("0f8fad5b-d9cb-469f-a165-708677289501"), Query = "not_a_suggestion_id", Type = MessageType.Agent }
+                new SelectQuery { ChatKey = new Guid("0f8fad5b-d9cb-469f-a165-708677289501"), Id = null }
             };
 
-            this._validSearchQueryListSelectSuggestion = new List<SearchQuery>
+            this._validSelectQueryList = new List<SelectQuery>
             {
-                new SearchQuery { ChatKey = new Guid("0f8fad5b-d9cb-469f-a165-708677289501"), Query = "0f8fad7b-d9cb-469f-a165-708677289501", Type = MessageType.Agent }
+                new SelectQuery { ChatKey = new Guid("0f8fad5b-d9cb-469f-a165-708677289501"), Id = new Guid("0f8fad7b-d9cb-469f-a165-708677289501") }
             };
         }
 
@@ -97,28 +96,27 @@ namespace WhisperAPI.Tests.Unit
         [Test]
         [TestCase(0)]
         [TestCase(1)]
-        [TestCase(2)]
-        public void When_receive_invalid_or_null_searchQuery_then_return_bad_request_select_suggestion(int invalidQueryIndex)
+        public void When_receive_invalid_or_null_selectQuery_then_return_bad_request(int invalidQueryIndex)
         {
             this._suggestionServiceMock = new Mock<ISuggestionsService>();
             this._suggestionServiceMock
-                .Setup(x => x.UpdateContextWithSelectedSuggestion(It.IsAny<ConversationContext>(), It.IsAny<SearchQuery>()))
+                .Setup(x => x.UpdateContextWithSelectedSuggestion(It.IsAny<ConversationContext>(), new Guid("c21d07d5-fd5a-42ab-ac2c-2ef6101e58d1")))
                 .Returns(false);
 
             this._suggestionController = new SuggestionsController(this._suggestionServiceMock.Object, null);
-            this._suggestionController.SelectSuggestion(this._invalidSearchQueryListSelectSuggestion[invalidQueryIndex]).Should().BeEquivalentTo(new BadRequestResult());
+            this._suggestionController.SelectSuggestion(this._invalidSelectQueryList[invalidQueryIndex]).Should().BeEquivalentTo(new BadRequestResult());
         }
 
         [Test]
         [TestCase(0)]
-        public void When_receive_valid_searchQuery_then_return_Ok_request_select_suggestion(int validQueryIndex)
+        public void When_receive_valid_selectQuery_then_return_Ok_request(int validQueryIndex)
         {
             this._suggestionServiceMock = new Mock<ISuggestionsService>();
             this._suggestionServiceMock
-                .Setup(x => x.UpdateContextWithSelectedSuggestion(It.IsAny<ConversationContext>(), It.IsAny<SearchQuery>()))
+                .Setup(x => x.UpdateContextWithSelectedSuggestion(It.IsAny<ConversationContext>(), this._validSelectQueryList[validQueryIndex].Id.Value))
                 .Returns(true);
             this._suggestionController = new SuggestionsController(this._suggestionServiceMock.Object, null);
-            this._suggestionController.SelectSuggestion(this._validSearchQueryListSelectSuggestion[validQueryIndex]).Should().BeEquivalentTo(new OkResult());
+            this._suggestionController.SelectSuggestion(this._validSelectQueryList[validQueryIndex]).Should().BeEquivalentTo(new OkResult());
         }
 
         public ActionExecutingContext GetActionExecutingContext(int indexOfTest)
