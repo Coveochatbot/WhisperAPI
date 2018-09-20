@@ -41,8 +41,7 @@ namespace WhisperAPI.Controllers
             return this.Ok(suggestion);
         }
 
-        [Route("/Whisper/[Controller]/click")]
-        [HttpPost]
+        [HttpPost("click")]
         public IActionResult SelectSuggestion([FromBody] SearchQuery searchQuery)
         {
             if (!this.ModelState.IsValid || searchQuery?.Query == null)
