@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Newtonsoft.Json;
@@ -22,15 +23,7 @@ namespace WhisperAPI.Controllers
 
         public override void OnActionExecuting(ActionExecutingContext actionExecutingContext)
         {
-            Query query;
-            if (actionExecutingContext.ActionArguments.Count > 0 && actionExecutingContext.ActionArguments.ContainsKey("selectQuery"))
-            {
-                query = (SelectQuery)actionExecutingContext.ActionArguments["selectQuery"];
-            }
-            else
-            {
-                query = (SearchQuery)actionExecutingContext.ActionArguments["searchQuery"];
-            }
+            Query query = actionExecutingContext.ActionArguments.Values.OfType<Query>().FirstOrDefault();
 
             log4net.ThreadContext.Properties["requestId"] = Guid.NewGuid();
             if (!this.ModelState.IsValid)
