@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -10,6 +11,7 @@ using Moq;
 using NUnit.Framework;
 using WhisperAPI.Controllers;
 using WhisperAPI.Models;
+using WhisperAPI.Models.Queries;
 using WhisperAPI.Services.Context;
 using WhisperAPI.Services.Suggestions;
 using static WhisperAPI.Models.SearchQuery;
@@ -23,6 +25,8 @@ namespace WhisperAPI.Tests.Unit
         private List<SearchQuery> _validSearchQueryList;
         private List<SelectQuery> _invalidSelectQueryList;
         private List<SelectQuery> _validSelectQueryList;
+
+        private Dictionary<string, List<Query>> _queryDictionary;
 
         private Mock<ISuggestionsService> _suggestionServiceMock;
         private SuggestionsController _suggestionController;
@@ -68,9 +72,12 @@ namespace WhisperAPI.Tests.Unit
                 .Setup(x => x.GetSuggestedDocuments(It.IsAny<ConversationContext>()))
                 .Returns(this.GetListOfDocuments());
 
-            this._suggestionController = new SuggestionsController(this._suggestionServiceMock.Object, null);
+            this._suggestionController = new SuggestionsController(this._suggestionServiceMock.Object, this._contexts);
 
-            this._suggestionController.GetSuggestions(this._invalidSearchQueryList[invalidQueryIndex]).Should().BeEquivalentTo(new BadRequestResult());
+            SearchQuery query = this._invalidSearchQueryList[invalidQueryIndex];
+
+            this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(query));
+            this._suggestionController.GetSuggestions(query).Should().BeEquivalentTo(new BadRequestResult());
         }
 
         [Test]
@@ -85,11 +92,12 @@ namespace WhisperAPI.Tests.Unit
 
             this._suggestionController = new SuggestionsController(this._suggestionServiceMock.Object, this._contexts);
 
-            this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(validQueryIndex));
-            var result = this._suggestionController.GetSuggestions(this._validSearchQueryList[validQueryIndex]);
+            SearchQuery query = this._validSearchQueryList[validQueryIndex];
+
+            this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(query));
+            var result = this._suggestionController.GetSuggestions(query);
 
             var suggestion = result.As<OkObjectResult>().Value as Suggestion;
-
             suggestion.SuggestedDocuments.Should().BeEquivalentTo(this.GetListOfDocuments());
         }
 
@@ -103,8 +111,12 @@ namespace WhisperAPI.Tests.Unit
                 .Setup(x => x.UpdateContextWithSelectedSuggestion(It.IsAny<ConversationContext>(), new Guid("c21d07d5-fd5a-42ab-ac2c-2ef6101e58d1")))
                 .Returns(false);
 
-            this._suggestionController = new SuggestionsController(this._suggestionServiceMock.Object, null);
-            this._suggestionController.SelectSuggestion(this._invalidSelectQueryList[invalidQueryIndex]).Should().BeEquivalentTo(new BadRequestResult());
+            SelectQuery query = this._invalidSelectQueryList[invalidQueryIndex];
+
+            this._suggestionController = new SuggestionsController(this._suggestionServiceMock.Object, this._contexts);
+
+            this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(query));
+            this._suggestionController.SelectSuggestion(query).Should().BeEquivalentTo(new BadRequestResult());
         }
 
         [Test]
@@ -115,11 +127,16 @@ namespace WhisperAPI.Tests.Unit
             this._suggestionServiceMock
                 .Setup(x => x.UpdateContextWithSelectedSuggestion(It.IsAny<ConversationContext>(), this._validSelectQueryList[validQueryIndex].Id.Value))
                 .Returns(true);
-            this._suggestionController = new SuggestionsController(this._suggestionServiceMock.Object, null);
+
+            SelectQuery query = this._invalidSelectQueryList[validQueryIndex];
+
+            this._suggestionController = new SuggestionsController(this._suggestionServiceMock.Object, this._contexts);
+
+            this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(query));
             this._suggestionController.SelectSuggestion(this._validSelectQueryList[validQueryIndex]).Should().BeEquivalentTo(new OkResult());
         }
 
-        public ActionExecutingContext GetActionExecutingContext(int indexOfTest)
+        public ActionExecutingContext GetActionExecutingContext(Query query)
         {
             var actionContext = new ActionContext(
                 new Mock<HttpContext>().Object,
@@ -134,8 +151,18 @@ namespace WhisperAPI.Tests.Unit
                 this._suggestionController);
 
             actionExecutingContext
-                .Setup(x => x.ActionArguments["searchQuery"])
-                .Returns(this._validSearchQueryList[indexOfTest]);
+                .Setup(x => x.ActionArguments.Values)
+                .Returns(new Query[] { query });
+
+            IActionResult result = new OkResult();
+
+            actionExecutingContext
+                .SetupSet(x => x.Result = It.IsAny<IActionResult>())
+                .Callback<IActionResult>(value => result = value);
+
+            actionExecutingContext
+                .SetupGet(x => x.Result)
+                .Returns(result);
 
             return actionExecutingContext.Object;
         }

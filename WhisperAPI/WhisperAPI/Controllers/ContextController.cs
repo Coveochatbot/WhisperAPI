@@ -26,7 +26,7 @@ namespace WhisperAPI.Controllers
             Query query = actionExecutingContext.ActionArguments.Values.OfType<Query>().FirstOrDefault();
 
             log4net.ThreadContext.Properties["requestId"] = Guid.NewGuid();
-            if (!this.ModelState.IsValid)
+            if (!this.ModelState.IsValid || query == null)
             {
                 actionExecutingContext.Result = this.BadRequest(this.ModelState);
                 Log.Error($"Search query:\r\n{JsonConvert.SerializeObject(query, Formatting.Indented)}");
