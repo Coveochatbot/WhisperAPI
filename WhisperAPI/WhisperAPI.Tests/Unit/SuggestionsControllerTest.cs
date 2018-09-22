@@ -26,8 +26,6 @@ namespace WhisperAPI.Tests.Unit
         private List<SelectQuery> _invalidSelectQueryList;
         private List<SelectQuery> _validSelectQueryList;
 
-        private Dictionary<string, List<Query>> _queryDictionary;
-
         private Mock<ISuggestionsService> _suggestionServiceMock;
         private SuggestionsController _suggestionController;
         private InMemoryContexts _contexts;
