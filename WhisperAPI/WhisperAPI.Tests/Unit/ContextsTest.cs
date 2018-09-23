@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using FluentAssertions;
 using NUnit.Framework;
 using WhisperAPI.Models;
+using WhisperAPI.Models.Queries;
 using WhisperAPI.Services.Context;
 
 namespace WhisperAPI.Tests.Unit

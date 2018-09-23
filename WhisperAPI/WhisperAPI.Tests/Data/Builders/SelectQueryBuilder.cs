@@ -1,5 +1,5 @@
 ﻿using System;
-using WhisperAPI.Models;
+using WhisperAPI.Models.Queries;
 
 namespace WhisperAPI.Tests.Data.Builders
 {

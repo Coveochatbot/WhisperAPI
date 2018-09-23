@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using WhisperAPI.Models;
+using WhisperAPI.Models.Queries;
 
 namespace WhisperAPI.Services.Suggestions
 {

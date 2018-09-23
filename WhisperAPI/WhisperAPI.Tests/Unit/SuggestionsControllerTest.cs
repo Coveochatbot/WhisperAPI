@@ -14,7 +14,6 @@ using WhisperAPI.Models.Queries;
 using WhisperAPI.Services.Context;
 using WhisperAPI.Services.Suggestions;
 using WhisperAPI.Tests.Data.Builders;
-using static WhisperAPI.Models.SearchQuery;
 
 namespace WhisperAPI.Tests.Unit
 {
@@ -39,14 +38,14 @@ namespace WhisperAPI.Tests.Unit
             this._invalidSearchQueryList = new List<SearchQuery>
             {
                 null,
-                SearchQueryBuilder.Build.WithChatKey(chatKey).WithQuery(null).WithMessageType(MessageType.Customer).Instance,
-                SearchQueryBuilder.Build.WithChatKey(chatKey).WithQuery(null).WithMessageType(MessageType.Agent).Instance,
+                SearchQueryBuilder.Build.WithChatKey(chatKey).WithQuery(null).WithMessageType(SearchQuery.MessageType.Customer).Instance,
+                SearchQueryBuilder.Build.WithChatKey(chatKey).WithQuery(null).WithMessageType(SearchQuery.MessageType.Agent).Instance,
             };
 
             this._validSearchQueryList = new List<SearchQuery>
             {
-                SearchQueryBuilder.Build.WithChatKey(chatKey).WithQuery("test").WithMessageType(MessageType.Customer).Instance,
-                SearchQueryBuilder.Build.WithChatKey(chatKey).WithQuery("test").WithMessageType(MessageType.Agent).Instance,
+                SearchQueryBuilder.Build.WithChatKey(chatKey).WithQuery("test").WithMessageType(SearchQuery.MessageType.Customer).Instance,
+                SearchQueryBuilder.Build.WithChatKey(chatKey).WithQuery("test").WithMessageType(SearchQuery.MessageType.Agent).Instance,
             };
 
             this._invalidSelectQueryList = new List<SelectQuery>

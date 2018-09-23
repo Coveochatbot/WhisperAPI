@@ -5,13 +5,13 @@ using Moq;
 using NUnit.Framework;
 using WhisperAPI.Models;
 using WhisperAPI.Models.NLPAPI;
+using WhisperAPI.Models.Queries;
 using WhisperAPI.Models.Search;
 using WhisperAPI.Services.MLAPI.Facets;
 using WhisperAPI.Services.NLPAPI;
 using WhisperAPI.Services.Search;
 using WhisperAPI.Services.Suggestions;
 using WhisperAPI.Tests.Data.Builders;
-using static WhisperAPI.Models.SearchQuery;
 
 namespace WhisperAPI.Tests.Unit
 {
@@ -205,14 +205,14 @@ namespace WhisperAPI.Tests.Unit
                {
                    ChatKey = new Guid("0f8fad5b-d9cb-469f-a165-708677289501"),
                    Query = "https://onlinehelp.coveo.com/en/cloud/Available_Coveo_Cloud_V2_Source_Types.htm",
-                   Type = MessageType.Agent,
+                   Type = SearchQuery.MessageType.Agent,
                    Relevant = true
                },
                new SearchQuery
                {
                    ChatKey = new Guid("0f8fad5b-d9cb-469f-a165-708677289501"),
                    Query = "https://onlinehelp.coveo.com/en/cloud/Coveo_Cloud_Query_Syntax_Reference.htm",
-                   Type = MessageType.Agent,
+                   Type = SearchQuery.MessageType.Agent,
                    Relevant = true
                }
             };
@@ -310,7 +310,7 @@ namespace WhisperAPI.Tests.Unit
             {
                 SearchQueries = new List<SearchQuery>
                 {
-                    new SearchQuery { ChatKey = new Guid("0f8fad5b-d9cb-469f-a165-708677289501"), Query = "rest api", Type = MessageType.Customer, Relevant = true }
+                    new SearchQuery { ChatKey = new Guid("0f8fad5b-d9cb-469f-a165-708677289501"), Query = "rest api", Type = SearchQuery.MessageType.Customer, Relevant = true }
                 }
             };
             return context;
@@ -322,8 +322,8 @@ namespace WhisperAPI.Tests.Unit
             {
                 SearchQueries = new List<SearchQuery>
                 {
-                    new SearchQuery { ChatKey = new Guid("0f8fad5b-d9cb-469f-a165-708677289501"), Query = "rest api", Type = MessageType.Customer, Relevant = true },
-                    new SearchQuery { ChatKey = new Guid("0f8fad5b-d9cb-469f-a165-708677289501"), Query = "Available Coveo Cloud V2 Source Types", Type = MessageType.Agent, Relevant = true }
+                    new SearchQuery { ChatKey = new Guid("0f8fad5b-d9cb-469f-a165-708677289501"), Query = "rest api", Type = SearchQuery.MessageType.Customer, Relevant = true },
+                    new SearchQuery { ChatKey = new Guid("0f8fad5b-d9cb-469f-a165-708677289501"), Query = "Available Coveo Cloud V2 Source Types", Type = SearchQuery.MessageType.Agent, Relevant = true }
                 }
             };
             return context;
