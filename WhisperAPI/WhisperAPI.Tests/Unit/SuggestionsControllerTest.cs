@@ -52,12 +52,12 @@ namespace WhisperAPI.Tests.Unit
             this._invalidSelectQueryList = new List<SelectQuery>
             {
                 null,
-                new SelectQuery { ChatKey = new Guid("0f8fad5b-d9cb-469f-a165-708677289501"), Id = null }
+                SelectQueryBuilder.Build.WithChatKey(chatKey).WithId(null).Instance,
             };
 
             this._validSelectQueryList = new List<SelectQuery>
             {
-                new SelectQuery { ChatKey = new Guid("0f8fad5b-d9cb-469f-a165-708677289501"), Id = new Guid("0f8fad7b-d9cb-469f-a165-708677289501") }
+                SelectQueryBuilder.Build.WithChatKey(chatKey).WithId(new Guid("0f8fad7b-d9cb-469f-a165-708677289501")).Instance,
             };
         }
 

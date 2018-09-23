@@ -23,13 +23,13 @@ namespace WhisperAPI.Tests.Data.Builders
             this._id = Guid.NewGuid();
         }
 
-        public SelectQueryBuilder WithId(Guid id)
+        public SelectQueryBuilder WithId(Guid? id)
         {
             this._id = id;
             return this;
         }
 
-        public SelectQueryBuilder WithChatKey(Guid chatKey)
+        public SelectQueryBuilder WithChatKey(Guid? chatKey)
         {
             this._chatKey = chatKey;
             return this;
