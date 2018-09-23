@@ -10,14 +10,35 @@ namespace WhisperAPI.Models
 
         public override bool Equals(object obj)
         {
-            var question = obj as Question;
-            return question != null &&
-                   Id.Equals(question.Id);
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != this.GetType())
+            {
+                return false;
+            }
+
+            return this.Equals((Question)obj);
         }
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(Id);
+            unchecked
+            {
+                return ((this.Id != null ? this.Id.GetHashCode() : 0) * 397) ^ (this.Text != null ? this.Text.GetHashCode() : 0);
+            }
+        }
+
+        protected bool Equals(Question other)
+        {
+            return string.Equals(this.Text, other.Text) && this.Id.Equals(other.Id);
         }
     }
 }
