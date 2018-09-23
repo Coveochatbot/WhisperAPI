@@ -351,7 +351,7 @@ namespace WhisperAPI.Tests.Integration
 
             actionExecutingContext
                 .Setup(x => x.ActionArguments.Values)
-                .Returns(new Query[] { query });
+                .Returns(new[] { query });
 
             IActionResult result = new OkResult();
 

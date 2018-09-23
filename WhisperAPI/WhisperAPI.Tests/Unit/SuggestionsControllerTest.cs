@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -14,6 +13,7 @@ using WhisperAPI.Models;
 using WhisperAPI.Models.Queries;
 using WhisperAPI.Services.Context;
 using WhisperAPI.Services.Suggestions;
+using WhisperAPI.Tests.Data.Builders;
 using static WhisperAPI.Models.SearchQuery;
 
 namespace WhisperAPI.Tests.Unit
@@ -33,18 +33,20 @@ namespace WhisperAPI.Tests.Unit
         [SetUp]
         public void SetUp()
         {
+            var chatKey = new Guid("0f8fad5b-d9cb-469f-a165-708677289501");
+
             this._contexts = new InMemoryContexts(new TimeSpan(1, 0, 0, 0));
             this._invalidSearchQueryList = new List<SearchQuery>
             {
                 null,
-                new SearchQuery { ChatKey = new Guid("0f8fad5b-d9cb-469f-a165-708677289501"), Query = null, Type = MessageType.Customer },
-                new SearchQuery { ChatKey = new Guid("0f8fad5b-d9cb-469f-a165-708677289501"), Query = null, Type = MessageType.Agent }
+                SearchQueryBuilder.Build.WithChatKey(chatKey).WithQuery(null).WithMessageType(MessageType.Customer).Instance,
+                SearchQueryBuilder.Build.WithChatKey(chatKey).WithQuery(null).WithMessageType(MessageType.Agent).Instance,
             };
 
             this._validSearchQueryList = new List<SearchQuery>
             {
-                 new SearchQuery { ChatKey = new Guid("0f8fad5b-d9cb-469f-a165-708677289501"), Query = "test", Type = MessageType.Customer },
-                 new SearchQuery { ChatKey = new Guid("0f8fad5b-d9cb-469f-a165-708677289501"), Query = "test", Type = MessageType.Agent }
+                SearchQueryBuilder.Build.WithChatKey(chatKey).WithQuery("test").WithMessageType(MessageType.Customer).Instance,
+                SearchQueryBuilder.Build.WithChatKey(chatKey).WithQuery("test").WithMessageType(MessageType.Agent).Instance,
             };
 
             this._invalidSelectQueryList = new List<SelectQuery>
@@ -150,7 +152,7 @@ namespace WhisperAPI.Tests.Unit
 
             actionExecutingContext
                 .Setup(x => x.ActionArguments.Values)
-                .Returns(new Query[] { query });
+                .Returns(new[] { query });
 
             IActionResult result = new OkResult();
 
