@@ -1,9 +1,12 @@
-﻿using WhisperAPI.Models;
+﻿using System;
+using WhisperAPI.Models;
 
 namespace WhisperAPI.Tests.Data.Builders
 {
     public class SuggestedDocumentBuilder
     {
+        private Guid _id;
+
         private string _title;
 
         private string _uri;
@@ -18,6 +21,7 @@ namespace WhisperAPI.Tests.Data.Builders
 
         public SuggestedDocument Instance => new SuggestedDocument
         {
+            Id = this._id,
             Summary = this._summary,
             Title = this._title,
             Uri = this._uri,
@@ -27,11 +31,18 @@ namespace WhisperAPI.Tests.Data.Builders
 
         public SuggestedDocumentBuilder()
         {
+            this._id = Guid.NewGuid();
             this._summary = "Summary";
             this._uri = "Uri";
             this._excerpt = "Excerpt";
             this._printableUri = "PrintableUri";
             this._title = "Title";
+        }
+
+        public SuggestedDocumentBuilder WithId(Guid id)
+        {
+            this._id = id;
+            return this;
         }
 
         public SuggestedDocumentBuilder WithTitle(string title)
