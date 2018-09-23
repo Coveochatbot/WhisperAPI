@@ -1,9 +1,8 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 using Newtonsoft.Json;
-using WhisperAPI.Models.Queries;
 
-namespace WhisperAPI.Models
+namespace WhisperAPI.Models.Queries
 {
     public class SelectQuery : Query
     {
