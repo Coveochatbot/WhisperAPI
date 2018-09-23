@@ -46,7 +46,7 @@ namespace WhisperAPI.Services.Suggestions
 
         public List<Question> GetQuestionsFromDocument(IEnumerable<SuggestedDocument> suggestedDocuments)
         {
-            return this._documentFacets.GetQuestions(suggestedDocuments);
+            return this._documentFacets.GetQuestions(suggestedDocuments.Select(x => x.Uri));
         }
 
         public void UpdateContextWithNewQuery(ConversationContext context, SearchQuery searchQuery)

@@ -43,7 +43,7 @@ namespace WhisperAPI.Tests.Unit
 
             this.HttpMessageHandlerMock(questions, HttpStatusCode.OK);
 
-            var result = this._documentFacets.GetQuestions(new List<SuggestedDocument>());
+            var result = this._documentFacets.GetQuestions(new List<string>());
 
             result.Should().BeEquivalentTo(questions);
         }
@@ -58,7 +58,7 @@ namespace WhisperAPI.Tests.Unit
 
             this.HttpMessageHandlerMock(null, status);
 
-            Assert.Throws<HttpRequestException>(() => this._documentFacets.GetQuestions(new List<SuggestedDocument>()));
+            Assert.Throws<HttpRequestException>(() => this._documentFacets.GetQuestions(new List<string>()));
         }
 
         [Test]
@@ -69,7 +69,7 @@ namespace WhisperAPI.Tests.Unit
 
             this.HttpMessageHandlerMock(null, HttpStatusCode.OK);
 
-            var result = this._documentFacets.GetQuestions(new List<SuggestedDocument>());
+            var result = this._documentFacets.GetQuestions(new List<string>());
             result.Should().BeEquivalentTo((List<Question>)null);
         }
 
