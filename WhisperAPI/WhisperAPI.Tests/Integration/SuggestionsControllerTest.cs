@@ -17,6 +17,7 @@ using NUnit.Framework;
 using WhisperAPI.Controllers;
 using WhisperAPI.Models;
 using WhisperAPI.Models.NLPAPI;
+using WhisperAPI.Models.Queries;
 using WhisperAPI.Services.Context;
 using WhisperAPI.Services.MLAPI.Facets;
 using WhisperAPI.Services.NLPAPI;
@@ -334,7 +335,7 @@ namespace WhisperAPI.Tests.Integration
             suggestion.SuggestedDocuments.Should().BeEquivalentTo(this.GetSuggestedDocuments());
         }
 
-        public ActionExecutingContext GetActionExecutingContext(SearchQuery searchQuery)
+        public ActionExecutingContext GetActionExecutingContext(Query query)
         {
             var actionContext = new ActionContext(
                 new Mock<HttpContext>().Object,
@@ -349,8 +350,18 @@ namespace WhisperAPI.Tests.Integration
                 this._suggestionController);
 
             actionExecutingContext
-                .Setup(x => x.ActionArguments["searchQuery"])
-                .Returns(searchQuery);
+                .Setup(x => x.ActionArguments.Values)
+                .Returns(new[] { query });
+
+            IActionResult result = new OkResult();
+
+            actionExecutingContext
+                .SetupSet(x => x.Result = It.IsAny<IActionResult>())
+                .Callback<IActionResult>(value => result = value);
+
+            actionExecutingContext
+                .SetupGet(x => x.Result)
+                .Returns(result);
 
             return actionExecutingContext.Object;
         }

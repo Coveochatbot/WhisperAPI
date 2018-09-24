@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using WhisperAPI.Models;
+using WhisperAPI.Models.Queries;
 using WhisperAPI.Services.Context;
 using WhisperAPI.Services.Suggestions;
 
@@ -39,6 +40,25 @@ namespace WhisperAPI.Controllers
             suggestedDocuments.ForEach(x => Log.Debug($"Title: {x.Title}, Uri: {x.Uri}, PrintableUri: {x.PrintableUri}, Summary: {x.Summary}"));
 
             return this.Ok(suggestion);
+        }
+
+        [HttpPost("select")]
+        public IActionResult SelectSuggestion([FromBody] SelectQuery selectQuery)
+        {
+            if (!this.ModelState.IsValid || selectQuery == null || selectQuery.Id == null)
+            {
+                return this.BadRequest();
+            }
+
+            bool isContextUpdated = this._suggestionsService.UpdateContextWithSelectedSuggestion(this.ConversationContext, selectQuery.Id.Value);
+            if (!isContextUpdated)
+            {
+                return this.BadRequest();
+            }
+
+            Log.Debug($"Select suggestion with id {selectQuery.Id}");
+
+            return this.Ok();
         }
     }
 }
