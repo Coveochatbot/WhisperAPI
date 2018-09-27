@@ -89,6 +89,11 @@ namespace WhisperAPI
                     x.GetService<HttpClient>(),
                     applicationSettings.MlApiBaseAddress));
 
+            services.AddTransient<IFilterDocuments>(
+                x => new FilterDocuments(
+                    x.GetService<HttpClient>(),
+                    applicationSettings.MlApiBaseAddress));
+
             services.AddTransient<IIndexSearch>(
                 x => new IndexSearch(
                     applicationSettings.ApiKey,
