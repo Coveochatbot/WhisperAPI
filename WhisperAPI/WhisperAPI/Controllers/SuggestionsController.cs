@@ -36,13 +36,21 @@ namespace WhisperAPI.Controllers
             suggestion.SuggestedDocuments = suggestedDocuments;
 
             this._suggestionsService.UpdateContextWithNewSuggestions(this.ConversationContext, suggestedDocuments);
+            suggestedDocuments.ForEach(x => Log.Debug($"Id: {x.Id}, Title: {x.Title}, Uri: {x.Uri}, PrintableUri: {x.PrintableUri}, Summary: {x.Summary}"));
 
-            suggestedDocuments.ForEach(x => Log.Debug($"Title: {x.Title}, Uri: {x.Uri}, PrintableUri: {x.PrintableUri}, Summary: {x.Summary}"));
+            if (suggestedDocuments.Any())
+            {
+                var questions = this._suggestionsService.GetQuestionsFromDocument(this.ConversationContext, suggestedDocuments).ToList();
+                suggestion.Questions = questions;
+
+                this._suggestionsService.UpdateContextWithNewQuestions(this.ConversationContext, questions);
+                questions.ForEach(x => Log.Debug($"Id: {x.Id}, Text: {x.Text}"));
+            }
 
             return this.Ok(suggestion);
         }
 
-        [HttpPost("select")]
+        [HttpPost("Select")]
         public IActionResult SelectSuggestion([FromBody] SelectQuery selectQuery)
         {
             if (!this.ModelState.IsValid || selectQuery == null || selectQuery.Id == null)

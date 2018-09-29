@@ -46,9 +46,10 @@ namespace WhisperAPI.Services.Suggestions
             return this.FilterOutChosenSuggestions(coveoIndexDocuments, conversationContext.SearchQueries);
         }
 
-        public List<Question> GetQuestionsFromDocument(IEnumerable<SuggestedDocument> suggestedDocuments)
+        public IEnumerable<Question> GetQuestionsFromDocument(ConversationContext conversationContext, IEnumerable<SuggestedDocument> suggestedDocuments)
         {
-            return this._documentFacets.GetQuestions(suggestedDocuments.Select(x => x.Uri));
+            var questions = this._documentFacets.GetQuestions(suggestedDocuments.Select(x => x.Uri));
+            return FilterOutChosenQuestions(conversationContext, questions);
         }
 
         public void UpdateContextWithNewQuery(ConversationContext context, SearchQuery searchQuery)
@@ -62,6 +63,14 @@ namespace WhisperAPI.Services.Suggestions
             foreach (var suggestedDocument in suggestedDocuments)
             {
                 context.SuggestedDocuments.Add(suggestedDocument);
+            }
+        }
+
+        public void UpdateContextWithNewQuestions(ConversationContext context, List<Question> questions)
+        {
+            foreach (var question in questions)
+            {
+                context.Questions.Add(question);
             }
         }
 
@@ -102,6 +111,15 @@ namespace WhisperAPI.Services.Suggestions
                 .ToList();
 
             return coveoIndexDocuments.Where(x => !queries.Any(y => y.Contains(x.Uri)));
+        }
+
+        private static IEnumerable<Question> FilterOutChosenQuestions(
+            ConversationContext conversationContext,
+            IEnumerable<Question> questions)
+        {
+            var questionsText = conversationContext.SelectedQuestions.Select(x => x.Text);
+
+            return questions.Where(x => !questionsText.Any(y => y.Contains(x.Text)));
         }
 
         private IEnumerable<SuggestedDocument> SearchCoveoIndex(string query)
