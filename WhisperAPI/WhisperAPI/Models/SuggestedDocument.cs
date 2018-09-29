@@ -1,4 +1,4 @@
-﻿using WhisperAPI.Models.MLAPI;
+using System;
 using WhisperAPI.Models.Search;
 
 namespace WhisperAPI.Models
@@ -11,12 +11,15 @@ namespace WhisperAPI.Models
 
         public SuggestedDocument(ISearchResultElement searchResultElement)
         {
+            this.Id = Guid.NewGuid();
             this.Title = searchResultElement.Title;
             this.Uri = searchResultElement.Uri;
             this.PrintableUri = searchResultElement.PrintableUri;
             this.Summary = searchResultElement.Summary;
             this.Excerpt = searchResultElement.Excerpt;
         }
+
+        public Guid Id { get; set; }
 
         public string Title { get; set; }
 
@@ -27,8 +30,6 @@ namespace WhisperAPI.Models
         public string Summary { get; set; }
 
         public string Excerpt { get; set; }
-
-        public Facet Facet { get; set; }
 
         public override bool Equals(object obj)
         {
@@ -60,7 +61,7 @@ namespace WhisperAPI.Models
 
         protected bool Equals(SuggestedDocument other)
         {
-            return string.Equals(this.Title, other.Title) && string.Equals(this.Uri, other.Uri) && Equals(this.Facet, other.Facet);
+            return string.Equals(this.Title, other.Title) && string.Equals(this.Uri, other.Uri);
         }
     }
 }

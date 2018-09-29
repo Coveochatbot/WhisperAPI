@@ -2,6 +2,7 @@
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using WhisperAPI.Models;
+using WhisperAPI.Models.Queries;
 using WhisperAPI.Services.Context;
 using WhisperAPI.Services.Suggestions;
 
@@ -36,16 +37,24 @@ namespace WhisperAPI.Controllers
             suggestion.SuggestedDocuments = suggestedDocuments;
 
             this._suggestionsService.UpdateContextWithNewSuggestions(this.ConversationContext, suggestedDocuments);
+            suggestedDocuments.ForEach(x => Log.Debug($"Id: {x.Id}, Title: {x.Title}, Uri: {x.Uri}, PrintableUri: {x.PrintableUri}, Summary: {x.Summary}"));
 
-            suggestedDocuments.ForEach(x => Log.Debug($"Title: {x.Title}, Uri: {x.Uri}, PrintableUri: {x.PrintableUri}, Summary: {x.Summary}"));
+            if (suggestedDocuments.Any())
+            {
+                var questions = this._suggestionsService.GetQuestionsFromDocument(this.ConversationContext, suggestedDocuments).ToList();
+                suggestion.Questions = questions;
+
+                this._suggestionsService.UpdateContextWithNewQuestions(this.ConversationContext, questions);
+                questions.ForEach(x => Log.Debug($"Id: {x.Id}, Text: {x.Text}"));
+            }
 
             return this.Ok(suggestion);
         }
 
         [HttpGet]
-        public IActionResult GetSuggestions(Guid chatkey)
+        public IActionResult GetSuggestions(Query query)
         {
-            Log.Debug($"Chatkey: {chatkey}");
+            Log.Debug($"Query: {query}");
             var suggestion = new Suggestion()
             {
                 SuggestedDocuments = this.ConversationContext.LastSuggestedDocuments
@@ -53,6 +62,25 @@ namespace WhisperAPI.Controllers
             suggestion.SuggestedDocuments.ForEach(x => Log.Debug($"Title: {x.Title}, Uri: {x.Uri}, PrintableUri: {x.PrintableUri}, Summary: {x.Summary}"));
 
             return this.Ok(suggestion);
+        }
+
+        [HttpPost("Select")]
+        public IActionResult SelectSuggestion([FromBody] SelectQuery selectQuery)
+        {
+            if (!this.ModelState.IsValid || selectQuery == null || selectQuery.Id == null)
+            {
+                return this.BadRequest();
+            }
+
+            bool isContextUpdated = this._suggestionsService.UpdateContextWithSelectedSuggestion(this.ConversationContext, selectQuery.Id.Value);
+            if (!isContextUpdated)
+            {
+                return this.BadRequest();
+            }
+
+            Log.Debug($"Select suggestion with id {selectQuery.Id}");
+
+            return this.Ok();
         }
     }
 }

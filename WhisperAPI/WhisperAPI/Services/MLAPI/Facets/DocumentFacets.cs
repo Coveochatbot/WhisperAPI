@@ -6,7 +6,6 @@ using System.Net.Http.Headers;
 using System.Text;
 using Newtonsoft.Json;
 using WhisperAPI.Models;
-using WhisperAPI.Models.MLAPI;
 
 namespace WhisperAPI.Services.MLAPI.Facets
 {
@@ -25,17 +24,17 @@ namespace WhisperAPI.Services.MLAPI.Facets
             this.InitHttpClient();
         }
 
-        public FacetAnalysis GetFacetAnalysis(IEnumerable<SuggestedDocument> suggestedDocuments)
+        public List<Question> GetQuestions(IEnumerable<string> suggestedDocumentsUri)
         {
-            var response = this._httpClient.PostAsync("ML/Analyze", CreateStringContent(suggestedDocuments)).Result;
+            var response = this._httpClient.PostAsync("ML/Analyze", CreateStringContent(suggestedDocumentsUri)).Result;
             response.EnsureSuccessStatusCode();
 
-            return JsonConvert.DeserializeObject<FacetAnalysis>(response.Content.ReadAsStringAsync().Result);
+            return JsonConvert.DeserializeObject<List<Question>>(response.Content.ReadAsStringAsync().Result);
         }
 
-        private static StringContent CreateStringContent(IEnumerable<SuggestedDocument> suggestedDocuments)
+        private static StringContent CreateStringContent(IEnumerable<string> suggestedDocumentsUri)
         {
-            var json = JsonConvert.SerializeObject(suggestedDocuments.ToList());
+            var json = JsonConvert.SerializeObject(suggestedDocumentsUri.ToList());
             return new StringContent(json, Encoding.UTF8, "application/json");
         }
 

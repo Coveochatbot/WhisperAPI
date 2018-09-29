@@ -5,12 +5,13 @@ using Moq;
 using NUnit.Framework;
 using WhisperAPI.Models;
 using WhisperAPI.Models.NLPAPI;
+using WhisperAPI.Models.Queries;
 using WhisperAPI.Models.Search;
+using WhisperAPI.Services.MLAPI.Facets;
 using WhisperAPI.Services.NLPAPI;
 using WhisperAPI.Services.Search;
 using WhisperAPI.Services.Suggestions;
 using WhisperAPI.Tests.Data.Builders;
-using static WhisperAPI.Models.SearchQuery;
 
 namespace WhisperAPI.Tests.Unit
 {
@@ -21,14 +22,18 @@ namespace WhisperAPI.Tests.Unit
 
         private Mock<IIndexSearch> _indexSearchMock;
         private Mock<INlpCall> _nlpCallMock;
+        private Mock<IDocumentFacets> _documentFacetsMock;
+        private ConversationContext _conversationContext;
 
         [SetUp]
         public void SetUp()
         {
             this._indexSearchMock = new Mock<IIndexSearch>();
             this._nlpCallMock = new Mock<INlpCall>();
+            this._documentFacetsMock = new Mock<IDocumentFacets>();
 
-            this._suggestionsService = new SuggestionsService(this._indexSearchMock.Object, this._nlpCallMock.Object, this.GetIrrelevantIntents());
+            this._suggestionsService = new SuggestionsService(this._indexSearchMock.Object, this._nlpCallMock.Object, this._documentFacetsMock.Object, this.GetIrrelevantIntents());
+            this._conversationContext = new ConversationContext(new Guid("a21d07d5-fd5a-42ab-ac2c-2ef6101e58d9"), DateTime.Now);
         }
 
         [Test]
@@ -126,7 +131,7 @@ namespace WhisperAPI.Tests.Unit
                 IntentBuilder.Build.WithName("I like C#").Instance
             };
 
-            this._suggestionsService = new SuggestionsService(this._indexSearchMock.Object, this._nlpCallMock.Object, intentsFromApi);
+            this._suggestionsService = new SuggestionsService(this._indexSearchMock.Object, this._nlpCallMock.Object, this._documentFacetsMock.Object, intentsFromApi);
 
             var nlpAnalysis = NlpAnalysisBuilder.Build.WithIntents(intentsFromNLP).Instance;
             this._nlpCallMock
@@ -159,6 +164,39 @@ namespace WhisperAPI.Tests.Unit
             ((SuggestionsService)this._suggestionsService).IsQueryRelevant(query).Should().BeTrue();
         }
 
+        [Test]
+        [TestCase("a21d07d5-fd5a-42ab-ac2c-2ef6101e58d1", "a21d07d5-fd5a-42ab-ac2c-2ef6101e58d2", "a21d07d5-fd5a-42ab-ac2c-2ef6101e58d1")]
+        [TestCase("a21d07d5-fd5a-42ab-ac2c-2ef6101e58d1", "a21d07d5-fd5a-42ab-ac2c-2ef6101e58d2", "a21d07d5-fd5a-42ab-ac2c-2ef6101e58d2")]
+        public void When_receiving_valid_selectQueryId_add_suggestion_to_list_and_return_true(string suggestedDocumentId, string questionId, string selectQueryId)
+        {
+            SuggestedDocument suggestedDocument = new SuggestedDocument();
+            Question question = new Question();
+            suggestedDocument.Id = new Guid(suggestedDocumentId);
+            question.Id = new Guid(questionId);
+
+            this._conversationContext.SuggestedDocuments.Add(suggestedDocument);
+            this._conversationContext.Questions.Add(question);
+
+            bool isContextUpdated = this._suggestionsService.UpdateContextWithSelectedSuggestion(this._conversationContext, new Guid(selectQueryId));
+
+            Assert.IsTrue(isContextUpdated);
+            Assert.IsTrue(this._conversationContext.SelectedQuestions.Contains(question) != this._conversationContext.SelectedSuggestedDocuments.Contains(suggestedDocument));
+        }
+
+        [Test]
+        [TestCase("a21d07d5-fd5a-42ab-ac2c-2ef6101e58d3")]
+        public void When_receiving_invalid_selectQueryId_do_not_add_suggestion_to_list_and_return_false(string selectQueryId)
+        {
+            this._conversationContext.SelectedSuggestedDocuments.Clear();
+            this._conversationContext.SelectedQuestions.Clear();
+
+            bool isContextUpdated = this._suggestionsService.UpdateContextWithSelectedSuggestion(this._conversationContext, new Guid(selectQueryId));
+
+            Assert.IsFalse(isContextUpdated);
+            Assert.IsTrue(this._conversationContext.SelectedSuggestedDocuments.Count == 0);
+            Assert.IsTrue(this._conversationContext.SelectedQuestions.Count == 0);
+        }
+
         public List<SearchQuery> GetQueriesSentByByAgent()
         {
             return new List<SearchQuery>
@@ -167,14 +205,14 @@ namespace WhisperAPI.Tests.Unit
                {
                    ChatKey = new Guid("0f8fad5b-d9cb-469f-a165-708677289501"),
                    Query = "https://onlinehelp.coveo.com/en/cloud/Available_Coveo_Cloud_V2_Source_Types.htm",
-                   Type = MessageType.Agent,
+                   Type = SearchQuery.MessageType.Agent,
                    Relevant = true
                },
                new SearchQuery
                {
                    ChatKey = new Guid("0f8fad5b-d9cb-469f-a165-708677289501"),
                    Query = "https://onlinehelp.coveo.com/en/cloud/Coveo_Cloud_Query_Syntax_Reference.htm",
-                   Type = MessageType.Agent,
+                   Type = SearchQuery.MessageType.Agent,
                    Relevant = true
                }
             };
@@ -272,7 +310,7 @@ namespace WhisperAPI.Tests.Unit
             {
                 SearchQueries = new List<SearchQuery>
                 {
-                    new SearchQuery { ChatKey = new Guid("0f8fad5b-d9cb-469f-a165-708677289501"), Query = "rest api", Type = MessageType.Customer, Relevant = true }
+                    new SearchQuery { ChatKey = new Guid("0f8fad5b-d9cb-469f-a165-708677289501"), Query = "rest api", Type = SearchQuery.MessageType.Customer, Relevant = true }
                 }
             };
             return context;
@@ -284,8 +322,8 @@ namespace WhisperAPI.Tests.Unit
             {
                 SearchQueries = new List<SearchQuery>
                 {
-                    new SearchQuery { ChatKey = new Guid("0f8fad5b-d9cb-469f-a165-708677289501"), Query = "rest api", Type = MessageType.Customer, Relevant = true },
-                    new SearchQuery { ChatKey = new Guid("0f8fad5b-d9cb-469f-a165-708677289501"), Query = "Available Coveo Cloud V2 Source Types", Type = MessageType.Agent, Relevant = true }
+                    new SearchQuery { ChatKey = new Guid("0f8fad5b-d9cb-469f-a165-708677289501"), Query = "rest api", Type = SearchQuery.MessageType.Customer, Relevant = true },
+                    new SearchQuery { ChatKey = new Guid("0f8fad5b-d9cb-469f-a165-708677289501"), Query = "Available Coveo Cloud V2 Source Types", Type = SearchQuery.MessageType.Agent, Relevant = true }
                 }
             };
             return context;

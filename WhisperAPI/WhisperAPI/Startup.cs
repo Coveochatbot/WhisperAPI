@@ -76,6 +76,7 @@ namespace WhisperAPI
                 x => new SuggestionsService(
                     x.GetService<IIndexSearch>(),
                     x.GetService<INlpCall>(),
+                    x.GetService<IDocumentFacets>(),
                     applicationSettings.IrrelevantIntents));
 
             services.AddTransient<INlpCall>(

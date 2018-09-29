@@ -17,7 +17,9 @@ using NUnit.Framework;
 using WhisperAPI.Controllers;
 using WhisperAPI.Models;
 using WhisperAPI.Models.NLPAPI;
+using WhisperAPI.Models.Queries;
 using WhisperAPI.Services.Context;
+using WhisperAPI.Services.MLAPI.Facets;
 using WhisperAPI.Services.NLPAPI;
 using WhisperAPI.Services.Search;
 using WhisperAPI.Services.Suggestions;
@@ -33,20 +35,24 @@ namespace WhisperAPI.Tests.Integration
 
         private Mock<HttpMessageHandler> _indexSearchHttpMessageHandleMock;
         private Mock<HttpMessageHandler> _nlpCallHttpMessageHandleMock;
+        private Mock<HttpMessageHandler> _documentFacetsHttpMessageHandleMock;
 
         [SetUp]
         public void SetUp()
         {
             this._indexSearchHttpMessageHandleMock = new Mock<HttpMessageHandler>();
             this._nlpCallHttpMessageHandleMock = new Mock<HttpMessageHandler>();
+            this._documentFacetsHttpMessageHandleMock = new Mock<HttpMessageHandler>();
 
             var indexSearchHttpClient = new HttpClient(this._indexSearchHttpMessageHandleMock.Object);
             var nlpCallHttpClient = new HttpClient(this._nlpCallHttpMessageHandleMock.Object);
+            var documentFacetHttpClient = new HttpClient(this._documentFacetsHttpMessageHandleMock.Object);
 
             var indexSearch = new IndexSearch(null, indexSearchHttpClient, "https://localhost:5000");
             var nlpCall = new NlpCall(nlpCallHttpClient, "https://localhost:5000");
+            var documentFacets = new DocumentFacets(documentFacetHttpClient, "https://localhost:5000");
 
-            var suggestionsService = new SuggestionsService(indexSearch, nlpCall, this.GetIrrelevantIntents());
+            var suggestionsService = new SuggestionsService(indexSearch, nlpCall, documentFacets, this.GetIrrelevantIntents());
 
             var contexts = new InMemoryContexts(new TimeSpan(1, 0, 0, 0));
             this._suggestionController = new SuggestionsController(suggestionsService, contexts);
@@ -55,6 +61,8 @@ namespace WhisperAPI.Tests.Integration
         [Test]
         public void When_getting_suggestions_with_good_query_then_returns_suggestions_correctly()
         {
+            var questions = GetQuestions();
+
             this._nlpCallHttpMessageHandleMock.Protected()
                 .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
                 .Returns(Task.FromResult(new HttpResponseMessage
@@ -71,6 +79,14 @@ namespace WhisperAPI.Tests.Integration
                     Content = this.GetSearchResultStringContent()
                 }));
 
+            this._documentFacetsHttpMessageHandleMock.Protected()
+                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
+                .Returns(Task.FromResult(new HttpResponseMessage
+                {
+                    StatusCode = System.Net.HttpStatusCode.OK,
+                    Content = new StringContent(JsonConvert.SerializeObject(questions))
+                }));
+
             var searchQuery = SearchQueryBuilder.Build.Instance;
 
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(searchQuery));
@@ -78,7 +94,8 @@ namespace WhisperAPI.Tests.Integration
 
             var suggestion = result.As<OkObjectResult>().Value as Suggestion;
 
-            suggestion.SuggestedDocuments.Should().BeEquivalentTo(this.GetSuggestedDocuments());
+            suggestion.SuggestedDocuments.Should().BeEquivalentTo(GetSuggestedDocuments());
+            suggestion.Questions.Should().BeEquivalentTo(questions);
         }
 
         [Test]
@@ -101,6 +118,14 @@ namespace WhisperAPI.Tests.Integration
                 {
                     StatusCode = System.Net.HttpStatusCode.OK,
                     Content = new StringContent(JsonConvert.SerializeObject(this.GetIrrelevantNlpAnalysis()))
+                }));
+
+            this._documentFacetsHttpMessageHandleMock.Protected()
+                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
+                .Returns(Task.FromResult(new HttpResponseMessage
+                {
+                    StatusCode = System.Net.HttpStatusCode.OK,
+                    Content = new StringContent(JsonConvert.SerializeObject(new List<string>()))
                 }));
 
             var searchQuery = SearchQueryBuilder.Build.Instance;
@@ -186,12 +211,15 @@ namespace WhisperAPI.Tests.Integration
             var suggestion = result.As<OkObjectResult>().Value as Suggestion;
 
             suggestion.SuggestedDocuments.Should().BeEquivalentTo(new List<SuggestedDocument>());
+            suggestion.Questions.Should().BeEquivalentTo(null);
 
             // Customer says: I need help with CoveoSearch API
             searchQuery = SearchQueryBuilder.Build
                 .WithQuery("I need help with CoveoSearch API")
                 .WithChatKey(searchQuery.ChatKey)
                 .Instance;
+
+            var questions = GetQuestions();
 
             this._nlpCallHttpMessageHandleMock.Protected()
                 .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
@@ -209,12 +237,21 @@ namespace WhisperAPI.Tests.Integration
                     Content = this.GetSearchResultStringContent()
                 }));
 
+            this._documentFacetsHttpMessageHandleMock.Protected()
+                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
+                .Returns(Task.FromResult(new HttpResponseMessage
+                {
+                    StatusCode = System.Net.HttpStatusCode.OK,
+                    Content = new StringContent(JsonConvert.SerializeObject(questions))
+                }));
+
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(searchQuery));
             result = this._suggestionController.GetSuggestions(searchQuery);
 
             suggestion = result.As<OkObjectResult>().Value as Suggestion;
 
-            suggestion.SuggestedDocuments.Should().BeEquivalentTo(this.GetSuggestedDocuments());
+            suggestion.SuggestedDocuments.Should().BeEquivalentTo(GetSuggestedDocuments());
+            suggestion.Questions.Should().BeEquivalentTo(questions);
 
             // Agent says: Maybe this could help: https://onlinehelp.coveo.com/en/cloud/Available_Coveo_Cloud_V2_Source_Types.htm
             searchQuery = SearchQueryBuilder.Build
@@ -265,12 +302,15 @@ namespace WhisperAPI.Tests.Integration
             var suggestion = result.As<OkObjectResult>().Value as Suggestion;
 
             suggestion.SuggestedDocuments.Should().BeEquivalentTo(new List<SuggestedDocument>());
+            suggestion.Questions.Should().BeEquivalentTo(null);
 
             // Customer says: I need help with CoveoSearch API
             searchQuery = SearchQueryBuilder.Build
                 .WithQuery("I need help with CoveoSearch API and I look at this: https://onlinehelp.coveo.com/en/cloud/Available_Coveo_Cloud_V2_Source_Types.htm")
                 .WithChatKey(searchQuery.ChatKey)
                 .Instance;
+
+            var questions = GetQuestions();
 
             this._nlpCallHttpMessageHandleMock.Protected()
                 .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
@@ -286,6 +326,14 @@ namespace WhisperAPI.Tests.Integration
                 {
                     StatusCode = System.Net.HttpStatusCode.OK,
                     Content = this.GetSearchResultStringContent()
+                }));
+
+            this._documentFacetsHttpMessageHandleMock.Protected()
+                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
+                .Returns(Task.FromResult(new HttpResponseMessage
+                {
+                    StatusCode = System.Net.HttpStatusCode.OK,
+                    Content = new StringContent(JsonConvert.SerializeObject(questions))
                 }));
 
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(searchQuery));
@@ -304,6 +352,7 @@ namespace WhisperAPI.Tests.Integration
         public void When_getting_suggestions_with_more_attribute_then_required_then_returns_correctly()
         {
             var jsonSearchQuery = "{\"chatkey\": \"aecaa8db-abc8-4ac9-aa8d-87987da2dbb0\",\"Query\": \"Need help with CoveoSearch API\",\"Type\": 1,\"command\": \"sudo ls\"}";
+            var questions = GetQuestions();
 
             this._nlpCallHttpMessageHandleMock.Protected()
                 .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
@@ -319,6 +368,14 @@ namespace WhisperAPI.Tests.Integration
                 {
                     StatusCode = System.Net.HttpStatusCode.OK,
                     Content = this.GetSearchResultStringContent()
+                }));
+
+            this._documentFacetsHttpMessageHandleMock.Protected()
+                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
+                .Returns(Task.FromResult(new HttpResponseMessage
+                {
+                    StatusCode = System.Net.HttpStatusCode.OK,
+                    Content = new StringContent(JsonConvert.SerializeObject(questions))
                 }));
 
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(JsonConvert.DeserializeObject<SearchQuery>(jsonSearchQuery)));
@@ -326,15 +383,16 @@ namespace WhisperAPI.Tests.Integration
 
             var suggestion = result.As<OkObjectResult>().Value as Suggestion;
 
-            suggestion.SuggestedDocuments.Should().BeEquivalentTo(this.GetSuggestedDocuments());
+            suggestion.SuggestedDocuments.Should().BeEquivalentTo(GetSuggestedDocuments());
         }
 
         [Test]
         public void When_getting_suggestions_then_refresh_result_are_the_same()
         {
-            var jsonSearchQuery = "{\"chatkey\": \"aecaa8db-abc8-4ac9-aa8d-87987da2dbb0\",\"Query\": \"Need help with CoveoSearch API\",\"Type\": 1,\"command\": \"sudo ls\"}";
-            var queryChatkeyRefresh = new Guid("aecaa8db-abc8-4ac9-aa8d-87987da2dbb0");
-
+            var queryChatkeyRefresh = new Query
+            {
+                ChatKey = new Guid("aecaa8db-abc8-4ac9-aa8d-87987da2dbb0")
+            };
             this._nlpCallHttpMessageHandleMock.Protected()
                 .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
                 .Returns(Task.FromResult(new HttpResponseMessage
@@ -351,8 +409,8 @@ namespace WhisperAPI.Tests.Integration
                     Content = this.GetSearchResultStringContent()
                 }));
 
-            this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(JsonConvert.DeserializeObject<SearchQuery>(jsonSearchQuery)));
-            var resultSuggestions = this._suggestionController.GetSuggestions(JsonConvert.DeserializeObject<SearchQuery>(jsonSearchQuery));
+            this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(queryChatkeyRefresh));
+            var resultSuggestions = this._suggestionController.GetSuggestions(queryChatkeyRefresh);
 
             var suggestedDocumentList = ((Suggestion) resultSuggestions.As<OkObjectResult>().Value).SuggestedDocuments as List<SuggestedDocument>;
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(queryChatkeyRefresh));
@@ -362,61 +420,62 @@ namespace WhisperAPI.Tests.Integration
             lastSuggestedDocument.Should().BeEquivalentTo(suggestedDocumentList);
         }
 
-        public ActionExecutingContext GetActionExecutingContext(SearchQuery searchQuery)
+        [Test]
+        public void When_getting_suggestions_and_agent_click_on_question_then_question_is_filter_out()
         {
-            var actionExecutingContext = this.CreateActionContextMock();
+            // Customer says: I need help with CoveoSearch API
+            var searchQuery = SearchQueryBuilder.Build
+                .WithQuery("I need help with CoveoSearch API")
+                .Instance;
 
-            object param = searchQuery;
-            actionExecutingContext
-                .Setup(x => x.ActionArguments.TryGetValue("searchQuery", out param))
-                .Returns(true);
+            var questions = GetQuestions();
 
-            return actionExecutingContext.Object;
+            this._nlpCallHttpMessageHandleMock.Protected()
+                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
+                .Returns(Task.FromResult(new HttpResponseMessage
+                {
+                    StatusCode = System.Net.HttpStatusCode.OK,
+                    Content = new StringContent(JsonConvert.SerializeObject(this.GetRelevantNlpAnalysis()))
+                }));
+
+            this._indexSearchHttpMessageHandleMock.Protected()
+                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
+                .Returns(Task.FromResult(new HttpResponseMessage
+                {
+                    StatusCode = System.Net.HttpStatusCode.OK,
+                    Content = this.GetSearchResultStringContent()
+                }));
+
+            this._documentFacetsHttpMessageHandleMock.Protected()
+                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
+                .Returns(Task.FromResult(new HttpResponseMessage
+                {
+                    StatusCode = System.Net.HttpStatusCode.OK,
+                    Content = new StringContent(JsonConvert.SerializeObject(questions))
+                }));
+
+            this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(searchQuery));
+            var result = this._suggestionController.GetSuggestions(searchQuery);
+
+            var suggestion = result.As<OkObjectResult>().Value as Suggestion;
+
+            suggestion.SuggestedDocuments.Should().BeEquivalentTo(GetSuggestedDocuments());
+            suggestion.Questions.Should().BeEquivalentTo(questions);
+
+            // Agent click on a question in the UI
+            var selectQuery = SelectQueryBuilder.Build.WithChatKey(searchQuery.ChatKey).WithId(questions[0].Id).Instance;
+            this._suggestionController.SelectSuggestion(selectQuery);
+
+            // New query sent
+            result = this._suggestionController.GetSuggestions(searchQuery);
+            suggestion = result.As<OkObjectResult>().Value as Suggestion;
+
+            suggestion.SuggestedDocuments.Should().BeEquivalentTo(GetSuggestedDocuments());
+            suggestion.Questions.Count.Should().Be(1);
+            suggestion.Questions.Single().Should().BeEquivalentTo(questions[1]);
         }
 
-        public ActionExecutingContext GetActionExecutingContext(object chatkey)
-        {
-            var actionExecutingContext = this.CreateActionContextMock();
-
-            var param = new object();
-            actionExecutingContext
-                .Setup(x => x.ActionArguments.TryGetValue("searchQuery", out param))
-                .Returns(false);
-
-            actionExecutingContext
-                .Setup(x => x.ActionArguments.TryGetValue("chatkey", out chatkey))
-                .Returns(true);
-
-            actionExecutingContext
-                .Setup(x => x.ActionArguments["chatkey"])
-                .Returns(chatkey);
-
-            return actionExecutingContext.Object;
-        }
-
-        public NlpAnalysis GetRelevantNlpAnalysis()
-        {
-            var intents = new List<Intent>
-            {
-                IntentBuilder.Build.WithName("Need Help").WithConfidence(98).Instance,
-                IntentBuilder.Build.WithName("Greetings").WithConfidence(2).Instance
-            };
-
-            return NlpAnalysisBuilder.Build.WithIntents(intents).Instance;
-        }
-
-        public NlpAnalysis GetIrrelevantNlpAnalysis()
-        {
-            var intents = new List<Intent>
-            {
-                IntentBuilder.Build.WithName("Need Help").WithConfidence(2).Instance,
-                IntentBuilder.Build.WithName("Greetings").WithConfidence(98).Instance
-            };
-
-            return NlpAnalysisBuilder.Build.WithIntents(intents).Instance;
-        }
-
-        public List<SuggestedDocument> GetSuggestedDocuments()
+        private static List<SuggestedDocument> GetSuggestedDocuments()
         {
             return new List<SuggestedDocument>
             {
@@ -455,12 +514,74 @@ namespace WhisperAPI.Tests.Integration
             };
         }
 
-        public StringContent GetSearchResultStringContent()
+        private static List<Question> GetQuestions()
+        {
+            return new List<Question>
+            {
+                QuestionBuilder.Build.WithText("A, B or C?").Instance,
+                QuestionBuilder.Build.WithText("C, D or E?").Instance
+            };
+        }
+
+        private ActionExecutingContext GetActionExecutingContext(Query query)
+        {
+            var actionContext = new ActionContext(
+                new Mock<HttpContext>().Object,
+                new Mock<RouteData>().Object,
+                new Mock<ActionDescriptor>().Object);
+
+            var actionExecutingContext = new Mock<ActionExecutingContext>(
+                MockBehavior.Strict,
+                actionContext,
+                new List<IFilterMetadata>(),
+                new Dictionary<string, object>(),
+                this._suggestionController);
+
+            actionExecutingContext
+                .Setup(x => x.ActionArguments.Values)
+                .Returns(new[] { query });
+
+            IActionResult result = new OkResult();
+
+            actionExecutingContext
+                .SetupSet(x => x.Result = It.IsAny<IActionResult>())
+                .Callback<IActionResult>(value => result = value);
+
+            actionExecutingContext
+                .SetupGet(x => x.Result)
+                .Returns(result);
+
+            return actionExecutingContext.Object;
+        }
+
+        private NlpAnalysis GetRelevantNlpAnalysis()
+        {
+            var intents = new List<Intent>
+            {
+                IntentBuilder.Build.WithName("Need Help").WithConfidence(98).Instance,
+                IntentBuilder.Build.WithName("Greetings").WithConfidence(2).Instance
+            };
+
+            return NlpAnalysisBuilder.Build.WithIntents(intents).Instance;
+        }
+
+        private NlpAnalysis GetIrrelevantNlpAnalysis()
+        {
+            var intents = new List<Intent>
+            {
+                IntentBuilder.Build.WithName("Need Help").WithConfidence(2).Instance,
+                IntentBuilder.Build.WithName("Greetings").WithConfidence(98).Instance
+            };
+
+            return NlpAnalysisBuilder.Build.WithIntents(intents).Instance;
+        }
+
+        private StringContent GetSearchResultStringContent()
         {
             return new StringContent("{\"totalCount\": 4,\"results\": [{\"title\": \"Available Coveo Cloud V2 Source Types\", \"excerpt\": \"This is the excerpt\", \"clickUri\": \"https://onlinehelp.coveo.com/en/cloud/Available_Coveo_Cloud_V2_Source_Types.htm\",\"printableUri\": \"https://onlinehelp.coveo.com/en/cloud/Available_Coveo_Cloud_V2_Source_Types.htm\",\"score\": 4280       },{\"title\": \"Coveo Cloud Query Syntax Reference\",\"excerpt\": \"This is the excerpt\", \"clickUri\": \"https://onlinehelp.coveo.com/en/cloud/Coveo_Cloud_Query_Syntax_Reference.htm\",\"printableUri\": \"https://onlinehelp.coveo.com/en/cloud/Coveo_Cloud_Query_Syntax_Reference.htm\",\"score\": 3900},{\"title\": \"Events\", \"excerpt\": \"This is the excerpt\", \"clickUri\": \"https://developers.coveo.com/display/JsSearchV1/Page/27230520/27230472/27230573\",\"printableUri\": \"https://developers.coveo.com/display/JsSearchV1/Page/27230520/27230472/27230573\",\"score\": 2947},{\"title\": \"Coveo Facet Component (CoveoFacet)\", \"excerpt\": \"This is the excerpt\", \"clickUri\": \"https://coveo.github.io/search-ui/components/facet.html\",\"printableUri\": \"https://coveo.github.io/search-ui/components/facet.html\",\"score\": 2932}]}");
         }
 
-        public List<string> GetIrrelevantIntents()
+        private List<string> GetIrrelevantIntents()
         {
             return new List<string>
             {
