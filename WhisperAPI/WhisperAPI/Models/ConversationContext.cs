@@ -17,6 +17,7 @@ namespace WhisperAPI.Models
         {
             this.SearchQueries = new List<SearchQuery>();
             this.SuggestedDocuments = new HashSet<SuggestedDocument>();
+            this.LastSuggestedDocuments = new List<SuggestedDocument>();
             this.Questions = new HashSet<Question>();
             this.SelectedSuggestedDocuments = new HashSet<SuggestedDocument>();
             this.SelectedQuestions = new HashSet<Question>();
@@ -35,5 +36,7 @@ namespace WhisperAPI.Models
         public HashSet<SuggestedDocument> SelectedSuggestedDocuments { get; set; }
 
         public HashSet<Question> SelectedQuestions { get; set; }
+
+        public List<SuggestedDocument> LastSuggestedDocuments { get; set; }
     }
 }

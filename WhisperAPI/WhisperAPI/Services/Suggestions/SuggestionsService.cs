@@ -60,9 +60,11 @@ namespace WhisperAPI.Services.Suggestions
 
         public void UpdateContextWithNewSuggestions(ConversationContext context, List<SuggestedDocument> suggestedDocuments)
         {
+            context.LastSuggestedDocuments.Clear();
             foreach (var suggestedDocument in suggestedDocuments)
             {
                 context.SuggestedDocuments.Add(suggestedDocument);
+                context.LastSuggestedDocuments.Add(suggestedDocument);
             }
         }
 
