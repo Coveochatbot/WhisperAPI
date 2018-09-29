@@ -86,7 +86,7 @@ namespace WhisperAPI.Services.Suggestions
             Question question = conversationContext.Questions.ToList().Find(x => x.Id == selectQueryId);
             if (question != null)
             {
-                conversationContext.SelectedQuestions.Add(question);
+                question.Status = QuestionStatus.AnswerPending;
                 return true;
             }
 

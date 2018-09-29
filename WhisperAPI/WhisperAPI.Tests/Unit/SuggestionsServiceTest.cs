@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using FluentAssertions;
 using Moq;
 using NUnit.Framework;
@@ -170,7 +171,7 @@ namespace WhisperAPI.Tests.Unit
         public void When_receiving_valid_selectQueryId_add_suggestion_to_list_and_return_true(string suggestedDocumentId, string questionId, string selectQueryId)
         {
             SuggestedDocument suggestedDocument = new SuggestedDocument();
-            Question question = new Question();
+            Question question = QuestionBuilder.Build.Instance;
             suggestedDocument.Id = new Guid(suggestedDocumentId);
             question.Id = new Guid(questionId);
 
@@ -188,7 +189,6 @@ namespace WhisperAPI.Tests.Unit
         public void When_receiving_invalid_selectQueryId_do_not_add_suggestion_to_list_and_return_false(string selectQueryId)
         {
             this._conversationContext.SelectedSuggestedDocuments.Clear();
-            this._conversationContext.SelectedQuestions.Clear();
 
             bool isContextUpdated = this._suggestionsService.UpdateContextWithSelectedSuggestion(this._conversationContext, new Guid(selectQueryId));
 

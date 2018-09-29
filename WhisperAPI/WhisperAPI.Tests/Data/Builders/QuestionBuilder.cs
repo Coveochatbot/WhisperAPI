@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Moq;
+using System;
 using WhisperAPI.Models;
 
 namespace WhisperAPI.Tests.Data.Builders
@@ -11,9 +12,9 @@ namespace WhisperAPI.Tests.Data.Builders
 
         public static QuestionBuilder Build => new QuestionBuilder();
 
-        public Question Instance => new Question
+        public Question Instance => new FacetQuestion
         {
-            Text = this._text,
+            // Text = this._text,
             Id = this._id
         };
 
