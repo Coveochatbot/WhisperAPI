@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using WhisperAPI.Models;
 using WhisperAPI.Models.Queries;
 using WhisperAPI.Services.Context;
+using WhisperAPI.Services.Questions;
 using WhisperAPI.Services.Suggestions;
 
 namespace WhisperAPI.Controllers
@@ -15,10 +16,13 @@ namespace WhisperAPI.Controllers
 
         private readonly ISuggestionsService _suggestionsService;
 
-        public SuggestionsController(ISuggestionsService suggestionsService, IContexts contexts)
+        private readonly IQuestionsService _questionsService;
+
+        public SuggestionsController(ISuggestionsService suggestionsService, IQuestionsService questionsService, IContexts contexts)
             : base(contexts)
         {
             this._suggestionsService = suggestionsService;
+            this._questionsService = questionsService;
         }
 
         [HttpPost]
@@ -30,6 +34,8 @@ namespace WhisperAPI.Controllers
             }
 
             this._suggestionsService.UpdateContextWithNewQuery(this.ConversationContext, searchQuery);
+            this._questionsService.DetectAnswer(this.ConversationContext, searchQuery);
+            this._questionsService.DetectQuestionAsked(this.ConversationContext, searchQuery);
 
             var suggestion = new Suggestion();
 
@@ -42,7 +48,7 @@ namespace WhisperAPI.Controllers
             if (suggestedDocuments.Any())
             {
                 var questions = this._suggestionsService.GetQuestionsFromDocument(this.ConversationContext, suggestedDocuments).ToList();
-                suggestion.Questions = questions;
+                suggestion.Questions = questions.Select(q => QuestionToClient.FromQuestion(q)).ToList();
 
                 this._suggestionsService.UpdateContextWithNewQuestions(this.ConversationContext, questions);
                 questions.ForEach(x => Log.Debug($"Id: {x.Id}, Text: {x.Text}"));

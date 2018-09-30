@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using FluentAssertions;
 using Moq;
 using NUnit.Framework;
@@ -170,7 +171,7 @@ namespace WhisperAPI.Tests.Unit
         public void When_receiving_valid_selectQueryId_add_suggestion_to_list_and_return_true(string suggestedDocumentId, string questionId, string selectQueryId)
         {
             SuggestedDocument suggestedDocument = new SuggestedDocument();
-            Question question = new Question();
+            Question question = FacetQuestionBuilder.Build.Instance;
             suggestedDocument.Id = new Guid(suggestedDocumentId);
             question.Id = new Guid(questionId);
 
@@ -180,7 +181,7 @@ namespace WhisperAPI.Tests.Unit
             bool isContextUpdated = this._suggestionsService.UpdateContextWithSelectedSuggestion(this._conversationContext, new Guid(selectQueryId));
 
             Assert.IsTrue(isContextUpdated);
-            Assert.IsTrue(this._conversationContext.SelectedQuestions.Contains(question) != this._conversationContext.SelectedSuggestedDocuments.Contains(suggestedDocument));
+            Assert.IsTrue(this._conversationContext.ClickedQuestions.Contains(question) != this._conversationContext.SelectedSuggestedDocuments.Contains(suggestedDocument));
         }
 
         [Test]
@@ -188,13 +189,12 @@ namespace WhisperAPI.Tests.Unit
         public void When_receiving_invalid_selectQueryId_do_not_add_suggestion_to_list_and_return_false(string selectQueryId)
         {
             this._conversationContext.SelectedSuggestedDocuments.Clear();
-            this._conversationContext.SelectedQuestions.Clear();
 
             bool isContextUpdated = this._suggestionsService.UpdateContextWithSelectedSuggestion(this._conversationContext, new Guid(selectQueryId));
 
             Assert.IsFalse(isContextUpdated);
             Assert.IsTrue(this._conversationContext.SelectedSuggestedDocuments.Count == 0);
-            Assert.IsTrue(this._conversationContext.SelectedQuestions.Count == 0);
+            Assert.IsTrue(this._conversationContext.AnswerPendingQuestions.Count == 0);
         }
 
         public List<SearchQuery> GetQueriesSentByByAgent()

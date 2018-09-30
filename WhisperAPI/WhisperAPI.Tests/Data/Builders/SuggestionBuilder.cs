@@ -5,7 +5,7 @@ namespace WhisperAPI.Tests.Data.Builders
 {
     public class SuggestionBuilder
     {
-        private List<Question> _questions;
+        private List<QuestionToClient> _questions;
 
         private List<SuggestedDocument> _suggestedDocuments;
 
@@ -19,11 +19,11 @@ namespace WhisperAPI.Tests.Data.Builders
 
         private SuggestionBuilder()
         {
-            this._questions = new List<Question>();
+            this._questions = new List<QuestionToClient>();
             this._suggestedDocuments = new List<SuggestedDocument>();
         }
 
-        public SuggestionBuilder WithQuestions(List<Question> questions)
+        public SuggestionBuilder WithQuestions(List<QuestionToClient> questions)
         {
             this._questions = questions;
             return this;

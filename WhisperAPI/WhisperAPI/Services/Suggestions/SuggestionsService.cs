@@ -49,7 +49,17 @@ namespace WhisperAPI.Services.Suggestions
         public IEnumerable<Question> GetQuestionsFromDocument(ConversationContext conversationContext, IEnumerable<SuggestedDocument> suggestedDocuments)
         {
             var questions = this._documentFacets.GetQuestions(suggestedDocuments.Select(x => x.Uri));
+            this.AssociateKnownQuestionsWithId(conversationContext, questions.Cast<Question>().ToList());
             return FilterOutChosenQuestions(conversationContext, questions);
+        }
+
+        public void AssociateKnownQuestionsWithId(ConversationContext conversationContext, List<Question> questions)
+        {
+            foreach (var question in questions)
+            {
+                var associatedQuestion = conversationContext.Questions.Where(contextQuestion => contextQuestion.Text.Equals(question.Text)).SingleOrDefault();
+                question.Id = associatedQuestion?.Id ?? question.Id;
+            }
         }
 
         public void UpdateContextWithNewQuery(ConversationContext context, SearchQuery searchQuery)
@@ -88,7 +98,7 @@ namespace WhisperAPI.Services.Suggestions
             Question question = conversationContext.Questions.ToList().Find(x => x.Id == selectQueryId);
             if (question != null)
             {
-                conversationContext.SelectedQuestions.Add(question);
+                question.Status = QuestionStatus.Clicked;
                 return true;
             }
 
@@ -119,7 +129,9 @@ namespace WhisperAPI.Services.Suggestions
             ConversationContext conversationContext,
             IEnumerable<Question> questions)
         {
-            var questionsText = conversationContext.SelectedQuestions.Select(x => x.Text);
+            var questionsText = conversationContext.
+                Questions.Where(question => question.Status != QuestionStatus.None && question.Status != QuestionStatus.Clicked)
+                .Select(x => x.Text);
 
             return questions.Where(x => !questionsText.Any(y => y.Contains(x.Text)));
         }

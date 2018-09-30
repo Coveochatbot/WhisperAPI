@@ -24,12 +24,12 @@ namespace WhisperAPI.Services.MLAPI.Facets
             this.InitHttpClient();
         }
 
-        public List<Question> GetQuestions(IEnumerable<string> suggestedDocumentsUri)
+        public List<FacetQuestion> GetQuestions(IEnumerable<string> suggestedDocumentsUri)
         {
             var response = this._httpClient.PostAsync("ML/Analyze", CreateStringContent(suggestedDocumentsUri)).Result;
             response.EnsureSuccessStatusCode();
 
-            return JsonConvert.DeserializeObject<List<Question>>(response.Content.ReadAsStringAsync().Result);
+            return JsonConvert.DeserializeObject<List<FacetQuestion>>(response.Content.ReadAsStringAsync().Result);
         }
 
         private static StringContent CreateStringContent(IEnumerable<string> suggestedDocumentsUri)
