@@ -26,14 +26,38 @@ namespace WhisperAPI.Services.Questions
             }
         }
 
-        private void UpdateQuestionWithAnswer(object question, string messageText)
+        private void UpdateQuestionWithAnswer(Question question, string messageText)
         {
-            throw new NotImplementedException();
+            switch(question)
+            {
+                case FacetQuestion facetQuestion:
+                    UpdateQuestionWithAnswer(facetQuestion, messageText);
+                    return;
+            }
+
+            throw new NotSupportedException("Question type not supported.");
         }
 
-        private bool Answered(Question pendingQuestion, string messageText)
+        private void UpdateQuestionWithAnswer(FacetQuestion question, string messageText)
         {
-            throw new NotImplementedException();
+            question.Status = QuestionStatus.Answered;
+            question.Answer = question.FacetValues.FirstOrDefault(facet => messageText.Contains(facet));
+        }
+
+        public bool Answered(Question pendingQuestion, string messageText)
+        {
+            switch(pendingQuestion)
+            {
+                case FacetQuestion facetQuestion:
+                    return Answered(facetQuestion, messageText);
+            }
+
+            throw new NotSupportedException("Question type not supported");
+        }
+
+        public bool Answered(FacetQuestion pendingQuestion, string messageText)
+        {
+            return pendingQuestion.FacetValues.Any(facet => messageText.Contains(facet));
         }
     }
 }

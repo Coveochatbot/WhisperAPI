@@ -387,6 +387,40 @@ namespace WhisperAPI.Tests.Integration
         }
 
         [Test]
+        public void When_getting_suggestions_then_refresh_result_are_the_same()
+        {
+            var queryChatkeyRefresh = new Query
+            {
+                ChatKey = new Guid("aecaa8db-abc8-4ac9-aa8d-87987da2dbb0")
+            };
+            this._nlpCallHttpMessageHandleMock.Protected()
+                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
+                .Returns(Task.FromResult(new HttpResponseMessage
+                {
+                    StatusCode = System.Net.HttpStatusCode.OK,
+                    Content = new StringContent(JsonConvert.SerializeObject(this.GetRelevantNlpAnalysis()))
+                }));
+
+            this._indexSearchHttpMessageHandleMock.Protected()
+                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
+                .Returns(Task.FromResult(new HttpResponseMessage
+                {
+                    StatusCode = System.Net.HttpStatusCode.OK,
+                    Content = this.GetSearchResultStringContent()
+                }));
+
+            this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(queryChatkeyRefresh));
+            var resultSuggestions = this._suggestionController.GetSuggestions(queryChatkeyRefresh);
+
+            var suggestedDocumentList = ((Suggestion) resultSuggestions.As<OkObjectResult>().Value).SuggestedDocuments as List<SuggestedDocument>;
+            this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(queryChatkeyRefresh));
+            var resultLastSuggestions = this._suggestionController.GetSuggestions(queryChatkeyRefresh);
+
+            var lastSuggestedDocument = ((Suggestion)resultLastSuggestions.As<OkObjectResult>().Value).SuggestedDocuments;
+            lastSuggestedDocument.Should().BeEquivalentTo(suggestedDocumentList);
+        }
+
+        [Test]
         public void When_getting_suggestions_and_agent_click_on_question_then_question_is_filter_out()
         {
             // Customer says: I need help with CoveoSearch API
@@ -553,6 +587,21 @@ namespace WhisperAPI.Tests.Integration
             {
                 "Greetings"
             };
+        }
+
+        private Mock<ActionExecutingContext> CreateActionContextMock()
+        {
+            var actionContext = new ActionContext(
+                new Mock<HttpContext>().Object,
+                new Mock<RouteData>().Object,
+                new Mock<ActionDescriptor>().Object);
+
+            return new Mock<ActionExecutingContext>(
+                MockBehavior.Strict,
+                actionContext,
+                new List<IFilterMetadata>(),
+                new Dictionary<string, object>(),
+                this._suggestionController);
         }
     }
 }

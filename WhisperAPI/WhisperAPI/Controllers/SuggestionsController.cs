@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using WhisperAPI.Models;
 using WhisperAPI.Models.Queries;
@@ -46,6 +47,19 @@ namespace WhisperAPI.Controllers
                 this._suggestionsService.UpdateContextWithNewQuestions(this.ConversationContext, questions);
                 questions.ForEach(x => Log.Debug($"Id: {x.Id}, Text: {x.Text}"));
             }
+
+            return this.Ok(suggestion);
+        }
+
+        [HttpGet]
+        public IActionResult GetSuggestions(Query query)
+        {
+            Log.Debug($"Query: {query}");
+            var suggestion = new Suggestion()
+            {
+                SuggestedDocuments = this.ConversationContext.LastSuggestedDocuments
+            };
+            suggestion.SuggestedDocuments.ForEach(x => Log.Debug($"Title: {x.Title}, Uri: {x.Uri}, PrintableUri: {x.PrintableUri}, Summary: {x.Summary}"));
 
             return this.Ok(suggestion);
         }
