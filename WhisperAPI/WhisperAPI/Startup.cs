@@ -80,7 +80,7 @@ namespace WhisperAPI
                     x.GetService<IDocumentFacets>(),
                     applicationSettings.IrrelevantIntents));
 
-            services.AddTransient<IQuestionsService>();
+            services.AddTransient<IQuestionsService>(x => new QuestionsService());
 
             services.AddTransient<INlpCall>(
                 x => new NlpCall(
