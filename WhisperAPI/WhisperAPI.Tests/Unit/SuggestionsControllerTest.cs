@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -12,6 +13,7 @@ using WhisperAPI.Controllers;
 using WhisperAPI.Models;
 using WhisperAPI.Models.Queries;
 using WhisperAPI.Services.Context;
+using WhisperAPI.Services.Questions;
 using WhisperAPI.Services.Suggestions;
 using WhisperAPI.Tests.Data.Builders;
 
@@ -26,6 +28,7 @@ namespace WhisperAPI.Tests.Unit
         private List<SelectQuery> _validSelectQueryList;
 
         private Mock<ISuggestionsService> _suggestionServiceMock;
+        private Mock<IQuestionsService> _questionsServiceMock;
         private SuggestionsController _suggestionController;
         private InMemoryContexts _contexts;
 
@@ -71,7 +74,9 @@ namespace WhisperAPI.Tests.Unit
                 .Setup(x => x.GetSuggestedDocuments(It.IsAny<ConversationContext>()))
                 .Returns(GetListOfDocuments());
 
-            this._suggestionController = new SuggestionsController(this._suggestionServiceMock.Object, this._contexts);
+            this._questionsServiceMock = new Mock<IQuestionsService>();
+
+            this._suggestionController = new SuggestionsController(this._suggestionServiceMock.Object, this._questionsServiceMock.Object, this._contexts);
 
             SearchQuery query = this._invalidSearchQueryList[invalidQueryIndex];
 
@@ -97,16 +102,20 @@ namespace WhisperAPI.Tests.Unit
                 .Setup(x => x.GetQuestionsFromDocument(It.IsAny<ConversationContext>(), documents))
                 .Returns(questions);
 
-            this._suggestionController = new SuggestionsController(this._suggestionServiceMock.Object, this._contexts);
+            this._questionsServiceMock = new Mock<IQuestionsService>();
+
+            this._suggestionController = new SuggestionsController(this._suggestionServiceMock.Object, this._questionsServiceMock.Object, this._contexts);
 
             var query = this._validSearchQueryList[validQueryIndex];
 
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(query));
             var result = this._suggestionController.GetSuggestions(query);
 
+            var questionsToClient = questions.Select(q => QuestionToClient.FromQuestion(q)).ToList();
+
             var suggestion = result.As<OkObjectResult>().Value as Suggestion;
             suggestion.SuggestedDocuments.Should().BeEquivalentTo(documents);
-            suggestion.Questions.Should().BeEquivalentTo(questions);
+            suggestion.Questions.Should().BeEquivalentTo(questionsToClient);
         }
 
         [Test]
@@ -121,7 +130,8 @@ namespace WhisperAPI.Tests.Unit
 
             SelectQuery query = this._invalidSelectQueryList[invalidQueryIndex];
 
-            this._suggestionController = new SuggestionsController(this._suggestionServiceMock.Object, this._contexts);
+            this._questionsServiceMock = new Mock<IQuestionsService>();
+            this._suggestionController = new SuggestionsController(this._suggestionServiceMock.Object, this._questionsServiceMock.Object, this._contexts);
 
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(query));
             this._suggestionController.SelectSuggestion(query).Should().BeEquivalentTo(new BadRequestResult());
@@ -138,7 +148,9 @@ namespace WhisperAPI.Tests.Unit
 
             SelectQuery query = this._invalidSelectQueryList[validQueryIndex];
 
-            this._suggestionController = new SuggestionsController(this._suggestionServiceMock.Object, this._contexts);
+            this._questionsServiceMock = new Mock<IQuestionsService>();
+
+            this._suggestionController = new SuggestionsController(this._suggestionServiceMock.Object, this._questionsServiceMock.Object, this._contexts);
 
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(query));
             this._suggestionController.SelectSuggestion(this._validSelectQueryList[validQueryIndex]).Should().BeEquivalentTo(new OkResult());
@@ -206,8 +218,8 @@ namespace WhisperAPI.Tests.Unit
         {
             return new List<Question>
             {
-                QuestionBuilder.Build.WithText("A, B or C?").Instance,
-                QuestionBuilder.Build.WithText("C, D or E?").Instance
+                FacetQuestionBuilder.Build.WithFacetName("Dummy").WithFacetValues("A", "B", "C").Instance,
+                FacetQuestionBuilder.Build.WithFacetName("Dummy").WithFacetValues("C", "D", "E").Instance,
             };
         }
     }

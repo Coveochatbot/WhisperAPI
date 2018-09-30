@@ -35,7 +35,11 @@ namespace WhisperAPI.Models
 
         public HashSet<Question> Questions { get; set; }
 
-        public IReadOnlyList<Question> SelectedQuestions => this.Questions.Where(q => q.Status == QuestionStatus.AnswerPending).ToList();
+        public IReadOnlyList<Question> ClickedQuestions => this.Questions.Where(q => q.Status == QuestionStatus.Clicked).ToList();
+
+        public IReadOnlyList<Question> AnswerPendingQuestions => this.Questions.Where(q => q.Status == QuestionStatus.AnswerPending).ToList();
+
+        public IReadOnlyList<Question> AnsweredQuestions => this.Questions.Where(q => q.Status == QuestionStatus.Answered).ToList();
 
         public List<SuggestedDocument> LastSuggestedDocuments { get; set; }
     }

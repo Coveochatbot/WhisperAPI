@@ -17,7 +17,7 @@ namespace WhisperAPI.Models
         {
             get
             {
-                return $"What {FacetName} is it? Is it {String.Join(", ", FacetValues)} ?";
+                return $"What {this.FacetName} is it? Is it {string.Join(", ", this.FacetValues)} ?";
             }
         }
     }

@@ -10,7 +10,12 @@ namespace WhisperAPI.Models
         None,
 
         /// <summary>
-        /// Question was selected and we are expecting an answer in the upcoming messages
+        /// Question was clicked in the UI, we don't know if it was sent or not yet.
+        /// </summary>
+        Clicked,
+
+        /// <summary>
+        /// Question was detected in an agent message and we are expecting answer in upcoming messages
         /// </summary>
         AnswerPending,
 

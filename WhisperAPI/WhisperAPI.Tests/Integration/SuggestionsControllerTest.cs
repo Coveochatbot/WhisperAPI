@@ -21,6 +21,7 @@ using WhisperAPI.Models.Queries;
 using WhisperAPI.Services.Context;
 using WhisperAPI.Services.MLAPI.Facets;
 using WhisperAPI.Services.NLPAPI;
+using WhisperAPI.Services.Questions;
 using WhisperAPI.Services.Search;
 using WhisperAPI.Services.Suggestions;
 using WhisperAPI.Tests.Data.Builders;
@@ -55,7 +56,8 @@ namespace WhisperAPI.Tests.Integration
             var suggestionsService = new SuggestionsService(indexSearch, nlpCall, documentFacets, this.GetIrrelevantIntents());
 
             var contexts = new InMemoryContexts(new TimeSpan(1, 0, 0, 0));
-            this._suggestionController = new SuggestionsController(suggestionsService, contexts);
+            var questionsService = new QuestionsService();
+            this._suggestionController = new SuggestionsController(suggestionsService, questionsService, contexts);
         }
 
         [Test]
@@ -94,8 +96,10 @@ namespace WhisperAPI.Tests.Integration
 
             var suggestion = result.As<OkObjectResult>().Value as Suggestion;
 
+            var questionsToClient = questions.Select(q => QuestionToClient.FromQuestion(q)).ToList();
+
             suggestion.SuggestedDocuments.Should().BeEquivalentTo(GetSuggestedDocuments());
-            suggestion.Questions.Should().BeEquivalentTo(questions);
+            suggestion.Questions.Should().BeEquivalentTo(questionsToClient);
         }
 
         [Test]
@@ -250,8 +254,10 @@ namespace WhisperAPI.Tests.Integration
 
             suggestion = result.As<OkObjectResult>().Value as Suggestion;
 
+            var questionsToClient = questions.Select(q => QuestionToClient.FromQuestion(q)).ToList();
+
             suggestion.SuggestedDocuments.Should().BeEquivalentTo(GetSuggestedDocuments());
-            suggestion.Questions.Should().BeEquivalentTo(questions);
+            suggestion.Questions.Should().BeEquivalentTo(questionsToClient);
 
             // Agent says: Maybe this could help: https://onlinehelp.coveo.com/en/cloud/Available_Coveo_Cloud_V2_Source_Types.htm
             searchQuery = SearchQueryBuilder.Build
@@ -412,7 +418,7 @@ namespace WhisperAPI.Tests.Integration
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(queryChatkeyRefresh));
             var resultSuggestions = this._suggestionController.GetSuggestions(queryChatkeyRefresh);
 
-            var suggestedDocumentList = ((Suggestion) resultSuggestions.As<OkObjectResult>().Value).SuggestedDocuments as List<SuggestedDocument>;
+            var suggestedDocumentList = ((Suggestion)resultSuggestions.As<OkObjectResult>().Value).SuggestedDocuments as List<SuggestedDocument>;
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(queryChatkeyRefresh));
             var resultLastSuggestions = this._suggestionController.GetSuggestions(queryChatkeyRefresh);
 
@@ -421,7 +427,7 @@ namespace WhisperAPI.Tests.Integration
         }
 
         [Test]
-        public void When_getting_suggestions_and_agent_click_on_question_then_question_is_filter_out()
+        public void When_getting_suggestions_and_agent_click_on_question_and_agent_asks_question_to_custommer_then_question_is_filter_out()
         {
             // Customer says: I need help with CoveoSearch API
             var searchQuery = SearchQueryBuilder.Build
@@ -459,20 +465,24 @@ namespace WhisperAPI.Tests.Integration
 
             var suggestion = result.As<OkObjectResult>().Value as Suggestion;
 
+            var questionsToClient = questions.Select(q => QuestionToClient.FromQuestion(q)).ToList();
+
             suggestion.SuggestedDocuments.Should().BeEquivalentTo(GetSuggestedDocuments());
-            suggestion.Questions.Should().BeEquivalentTo(questions);
+            suggestion.Questions.Should().BeEquivalentTo(questionsToClient);
 
             // Agent click on a question in the UI
             var selectQuery = SelectQueryBuilder.Build.WithChatKey(searchQuery.ChatKey).WithId(questions[0].Id).Instance;
             this._suggestionController.SelectSuggestion(selectQuery);
 
-            // New query sent
+            // Agent asks the question he clicked to the custommer
+            searchQuery.Type = SearchQuery.MessageType.Agent;
+            searchQuery.Query = questions[0].Text;
             result = this._suggestionController.GetSuggestions(searchQuery);
             suggestion = result.As<OkObjectResult>().Value as Suggestion;
 
             suggestion.SuggestedDocuments.Should().BeEquivalentTo(GetSuggestedDocuments());
             suggestion.Questions.Count.Should().Be(1);
-            suggestion.Questions.Single().Should().BeEquivalentTo(questions[1]);
+            suggestion.Questions.Single().Should().BeEquivalentTo(questionsToClient[1]);
         }
 
         private static List<SuggestedDocument> GetSuggestedDocuments()
@@ -518,8 +528,8 @@ namespace WhisperAPI.Tests.Integration
         {
             return new List<Question>
             {
-                QuestionBuilder.Build.WithText("A, B or C?").Instance,
-                QuestionBuilder.Build.WithText("C, D or E?").Instance
+                FacetQuestionBuilder.Build.WithFacetName("Dummy").WithFacetValues("A", "B", "C").Instance,
+                FacetQuestionBuilder.Build.WithFacetName("Dummy").WithFacetValues("C", "D", "E").Instance,
             };
         }
 

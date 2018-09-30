@@ -7,31 +7,74 @@ using WhisperAPI.Models.Queries;
 
 namespace WhisperAPI.Services.Questions
 {
-    public class QuestionsService
+    public class QuestionsService : IQuestionsService
     {
         private static readonly log4net.ILog Log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        public void DetectAnswer(ConversationContext context, SearchQuery message)
+        public bool DetectQuestionAsked(ConversationContext context, SearchQuery message)
         {
-            if (message.Type == SearchQuery.MessageType.Agent)
-                return;
-
-            string messageText = message.Query;
-            foreach (var pendingQuestion in context.SelectedQuestions)
+            if (message.Type == SearchQuery.MessageType.Customer)
             {
-                if (Answered(pendingQuestion, messageText))
+                return false;
+            }
+
+
+            bool detectedAskedQuestion = false;
+            foreach (var clickedQuestion in context.ClickedQuestions)
+            {
+                if (message.Query.Contains(clickedQuestion.Text))
                 {
-                    UpdateQuestionWithAnswer(pendingQuestion, messageText);
+                    clickedQuestion.Status = QuestionStatus.AnswerPending;
+                    detectedAskedQuestion = true;
                 }
             }
+
+            return detectedAskedQuestion;
+        }
+
+        public bool DetectAnswer(ConversationContext context, SearchQuery message)
+        {
+            if (message.Type == SearchQuery.MessageType.Agent)
+            {
+                return false;
+            }
+
+            bool detectedAnswer = false;
+            string messageText = message.Query;
+            foreach (var pendingQuestion in context.AnswerPendingQuestions)
+            {
+                if (this.Answered(pendingQuestion, messageText))
+                {
+                    this.UpdateQuestionWithAnswer(pendingQuestion, messageText);
+                    detectedAnswer = true;
+                }
+            }
+
+            return detectedAnswer;
+        }
+
+        private bool Answered(Question pendingQuestion, string messageText)
+        {
+            switch (pendingQuestion)
+            {
+                case FacetQuestion facetQuestion:
+                    return this.Answered(facetQuestion, messageText);
+            }
+
+            throw new NotSupportedException("Question type not supported");
+        }
+
+        private bool Answered(FacetQuestion pendingQuestion, string messageText)
+        {
+            return pendingQuestion.FacetValues.Any(facet => messageText.Contains(facet));
         }
 
         private void UpdateQuestionWithAnswer(Question question, string messageText)
         {
-            switch(question)
+            switch (question)
             {
                 case FacetQuestion facetQuestion:
-                    UpdateQuestionWithAnswer(facetQuestion, messageText);
+                    this.UpdateQuestionWithAnswer(facetQuestion, messageText);
                     return;
             }
 
@@ -42,22 +85,6 @@ namespace WhisperAPI.Services.Questions
         {
             question.Status = QuestionStatus.Answered;
             question.Answer = question.FacetValues.FirstOrDefault(facet => messageText.Contains(facet));
-        }
-
-        public bool Answered(Question pendingQuestion, string messageText)
-        {
-            switch(pendingQuestion)
-            {
-                case FacetQuestion facetQuestion:
-                    return Answered(facetQuestion, messageText);
-            }
-
-            throw new NotSupportedException("Question type not supported");
-        }
-
-        public bool Answered(FacetQuestion pendingQuestion, string messageText)
-        {
-            return pendingQuestion.FacetValues.Any(facet => messageText.Contains(facet));
         }
     }
 }

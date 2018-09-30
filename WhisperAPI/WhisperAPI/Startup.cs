@@ -9,6 +9,7 @@ using Swashbuckle.AspNetCore.Swagger;
 using WhisperAPI.Services.Context;
 using WhisperAPI.Services.MLAPI.Facets;
 using WhisperAPI.Services.NLPAPI;
+using WhisperAPI.Services.Questions;
 using WhisperAPI.Services.Search;
 using WhisperAPI.Services.Suggestions;
 using WhisperAPI.Settings;
@@ -78,6 +79,8 @@ namespace WhisperAPI
                     x.GetService<INlpCall>(),
                     x.GetService<IDocumentFacets>(),
                     applicationSettings.IrrelevantIntents));
+
+            services.AddTransient<IQuestionsService>();
 
             services.AddTransient<INlpCall>(
                 x => new NlpCall(
