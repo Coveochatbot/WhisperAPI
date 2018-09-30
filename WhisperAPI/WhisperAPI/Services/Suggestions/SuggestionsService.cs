@@ -46,9 +46,20 @@ namespace WhisperAPI.Services.Suggestions
             return this.FilterOutChosenSuggestions(coveoIndexDocuments, conversationContext.SearchQueries);
         }
 
-        public List<Question> GetQuestionsFromDocument(IEnumerable<SuggestedDocument> suggestedDocuments)
+        public IEnumerable<Question> GetQuestionsFromDocument(ConversationContext conversationContext, IEnumerable<SuggestedDocument> suggestedDocuments)
         {
-            return this._documentFacets.GetQuestions(suggestedDocuments.Select(x => x.Uri));
+            var questions = this._documentFacets.GetQuestions(suggestedDocuments.Select(x => x.Uri));
+            this.AssociateKnownQuestionsWithId(conversationContext, questions.Cast<Question>().ToList());
+            return FilterOutChosenQuestions(conversationContext, questions);
+        }
+
+        public void AssociateKnownQuestionsWithId(ConversationContext conversationContext, List<Question> questions)
+        {
+            foreach (var question in questions)
+            {
+                var associatedQuestion = conversationContext.Questions.Where(contextQuestion => contextQuestion.Text.Equals(question.Text)).SingleOrDefault();
+                question.Id = associatedQuestion?.Id ?? question.Id;
+            }
         }
 
         public void UpdateContextWithNewQuery(ConversationContext context, SearchQuery searchQuery)
@@ -59,9 +70,19 @@ namespace WhisperAPI.Services.Suggestions
 
         public void UpdateContextWithNewSuggestions(ConversationContext context, List<SuggestedDocument> suggestedDocuments)
         {
+            context.LastSuggestedDocuments.Clear();
             foreach (var suggestedDocument in suggestedDocuments)
             {
                 context.SuggestedDocuments.Add(suggestedDocument);
+                context.LastSuggestedDocuments.Add(suggestedDocument);
+            }
+        }
+
+        public void UpdateContextWithNewQuestions(ConversationContext context, List<Question> questions)
+        {
+            foreach (var question in questions)
+            {
+                context.Questions.Add(question);
             }
         }
 
@@ -77,7 +98,7 @@ namespace WhisperAPI.Services.Suggestions
             Question question = conversationContext.Questions.ToList().Find(x => x.Id == selectQueryId);
             if (question != null)
             {
-                conversationContext.SelectedQuestions.Add(question);
+                question.Status = QuestionStatus.Clicked;
                 return true;
             }
 
@@ -102,6 +123,17 @@ namespace WhisperAPI.Services.Suggestions
                 .ToList();
 
             return coveoIndexDocuments.Where(x => !queries.Any(y => y.Contains(x.Uri)));
+        }
+
+        private static IEnumerable<Question> FilterOutChosenQuestions(
+            ConversationContext conversationContext,
+            IEnumerable<Question> questions)
+        {
+            var questionsText = conversationContext.
+                Questions.Where(question => question.Status != QuestionStatus.None && question.Status != QuestionStatus.Clicked)
+                .Select(x => x.Text);
+
+            return questions.Where(x => !questionsText.Any(y => y.Contains(x.Text)));
         }
 
         private IEnumerable<SuggestedDocument> SearchCoveoIndex(string query)

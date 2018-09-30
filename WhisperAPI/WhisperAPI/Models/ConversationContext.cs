@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using WhisperAPI.Models.Queries;
 
 namespace WhisperAPI.Models
@@ -17,9 +18,9 @@ namespace WhisperAPI.Models
         {
             this.SearchQueries = new List<SearchQuery>();
             this.SuggestedDocuments = new HashSet<SuggestedDocument>();
+            this.LastSuggestedDocuments = new List<SuggestedDocument>();
             this.Questions = new HashSet<Question>();
             this.SelectedSuggestedDocuments = new HashSet<SuggestedDocument>();
-            this.SelectedQuestions = new HashSet<Question>();
         }
 
         public Guid ChatKey { get; set; }
@@ -30,10 +31,16 @@ namespace WhisperAPI.Models
 
         public HashSet<SuggestedDocument> SuggestedDocuments { get; set; }
 
-        public HashSet<Question> Questions { get; set; }
-
         public HashSet<SuggestedDocument> SelectedSuggestedDocuments { get; set; }
 
-        public HashSet<Question> SelectedQuestions { get; set; }
+        public HashSet<Question> Questions { get; set; }
+
+        public IReadOnlyList<Question> ClickedQuestions => this.Questions.Where(q => q.Status == QuestionStatus.Clicked).ToList();
+
+        public IReadOnlyList<Question> AnswerPendingQuestions => this.Questions.Where(q => q.Status == QuestionStatus.AnswerPending).ToList();
+
+        public IReadOnlyList<Question> AnsweredQuestions => this.Questions.Where(q => q.Status == QuestionStatus.Answered).ToList();
+
+        public List<SuggestedDocument> LastSuggestedDocuments { get; set; }
     }
 }

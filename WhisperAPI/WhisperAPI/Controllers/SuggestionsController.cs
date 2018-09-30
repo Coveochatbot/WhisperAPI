@@ -1,8 +1,10 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using WhisperAPI.Models;
 using WhisperAPI.Models.Queries;
 using WhisperAPI.Services.Context;
+using WhisperAPI.Services.Questions;
 using WhisperAPI.Services.Suggestions;
 
 namespace WhisperAPI.Controllers
@@ -14,10 +16,13 @@ namespace WhisperAPI.Controllers
 
         private readonly ISuggestionsService _suggestionsService;
 
-        public SuggestionsController(ISuggestionsService suggestionsService, IContexts contexts)
+        private readonly IQuestionsService _questionsService;
+
+        public SuggestionsController(ISuggestionsService suggestionsService, IQuestionsService questionsService, IContexts contexts)
             : base(contexts)
         {
             this._suggestionsService = suggestionsService;
+            this._questionsService = questionsService;
         }
 
         [HttpPost]
@@ -29,6 +34,8 @@ namespace WhisperAPI.Controllers
             }
 
             this._suggestionsService.UpdateContextWithNewQuery(this.ConversationContext, searchQuery);
+            this._questionsService.DetectAnswer(this.ConversationContext, searchQuery);
+            this._questionsService.DetectQuestionAsked(this.ConversationContext, searchQuery);
 
             var suggestion = new Suggestion();
 
@@ -36,13 +43,34 @@ namespace WhisperAPI.Controllers
             suggestion.SuggestedDocuments = suggestedDocuments;
 
             this._suggestionsService.UpdateContextWithNewSuggestions(this.ConversationContext, suggestedDocuments);
+            suggestedDocuments.ForEach(x => Log.Debug($"Id: {x.Id}, Title: {x.Title}, Uri: {x.Uri}, PrintableUri: {x.PrintableUri}, Summary: {x.Summary}"));
 
-            suggestedDocuments.ForEach(x => Log.Debug($"Title: {x.Title}, Uri: {x.Uri}, PrintableUri: {x.PrintableUri}, Summary: {x.Summary}"));
+            if (suggestedDocuments.Any())
+            {
+                var questions = this._suggestionsService.GetQuestionsFromDocument(this.ConversationContext, suggestedDocuments).ToList();
+                suggestion.Questions = questions.Select(q => QuestionToClient.FromQuestion(q)).ToList();
+
+                this._suggestionsService.UpdateContextWithNewQuestions(this.ConversationContext, questions);
+                questions.ForEach(x => Log.Debug($"Id: {x.Id}, Text: {x.Text}"));
+            }
 
             return this.Ok(suggestion);
         }
 
-        [HttpPost("select")]
+        [HttpGet]
+        public IActionResult GetSuggestions(Query query)
+        {
+            Log.Debug($"Query: {query}");
+            var suggestion = new Suggestion()
+            {
+                SuggestedDocuments = this.ConversationContext.LastSuggestedDocuments
+            };
+            suggestion.SuggestedDocuments.ForEach(x => Log.Debug($"Title: {x.Title}, Uri: {x.Uri}, PrintableUri: {x.PrintableUri}, Summary: {x.Summary}"));
+
+            return this.Ok(suggestion);
+        }
+
+        [HttpPost("Select")]
         public IActionResult SelectSuggestion([FromBody] SelectQuery selectQuery)
         {
             if (!this.ModelState.IsValid || selectQuery == null || selectQuery.Id == null)

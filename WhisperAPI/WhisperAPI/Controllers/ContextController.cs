@@ -36,7 +36,6 @@ namespace WhisperAPI.Controllers
             Log.Debug($"Search query:\r\n {JsonConvert.SerializeObject(query, Formatting.Indented)}");
             Guid chatKey = query.ChatKey.Value;
             this.ConversationContext = this._contexts[chatKey];
-
             base.OnActionExecuting(actionExecutingContext);
         }
     }

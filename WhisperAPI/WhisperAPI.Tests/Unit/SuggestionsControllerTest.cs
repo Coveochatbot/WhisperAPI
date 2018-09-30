@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -12,6 +13,7 @@ using WhisperAPI.Controllers;
 using WhisperAPI.Models;
 using WhisperAPI.Models.Queries;
 using WhisperAPI.Services.Context;
+using WhisperAPI.Services.Questions;
 using WhisperAPI.Services.Suggestions;
 using WhisperAPI.Tests.Data.Builders;
 
@@ -26,6 +28,7 @@ namespace WhisperAPI.Tests.Unit
         private List<SelectQuery> _validSelectQueryList;
 
         private Mock<ISuggestionsService> _suggestionServiceMock;
+        private Mock<IQuestionsService> _questionsServiceMock;
         private SuggestionsController _suggestionController;
         private InMemoryContexts _contexts;
 
@@ -69,9 +72,11 @@ namespace WhisperAPI.Tests.Unit
             this._suggestionServiceMock = new Mock<ISuggestionsService>();
             this._suggestionServiceMock
                 .Setup(x => x.GetSuggestedDocuments(It.IsAny<ConversationContext>()))
-                .Returns(this.GetListOfDocuments());
+                .Returns(GetListOfDocuments());
 
-            this._suggestionController = new SuggestionsController(this._suggestionServiceMock.Object, this._contexts);
+            this._questionsServiceMock = new Mock<IQuestionsService>();
+
+            this._suggestionController = new SuggestionsController(this._suggestionServiceMock.Object, this._questionsServiceMock.Object, this._contexts);
 
             SearchQuery query = this._invalidSearchQueryList[invalidQueryIndex];
 
@@ -84,20 +89,33 @@ namespace WhisperAPI.Tests.Unit
         [TestCase(1)]
         public void When_receive_valid_searchQuery_then_return_Ok_request(int validQueryIndex)
         {
+            var documents = GetListOfDocuments();
+            var questions = GetListOfQuestions();
+
             this._suggestionServiceMock = new Mock<ISuggestionsService>();
+
             this._suggestionServiceMock
                 .Setup(x => x.GetSuggestedDocuments(It.IsAny<ConversationContext>()))
-                .Returns(this.GetListOfDocuments());
+                .Returns(documents);
 
-            this._suggestionController = new SuggestionsController(this._suggestionServiceMock.Object, this._contexts);
+            this._suggestionServiceMock
+                .Setup(x => x.GetQuestionsFromDocument(It.IsAny<ConversationContext>(), documents))
+                .Returns(questions);
 
-            SearchQuery query = this._validSearchQueryList[validQueryIndex];
+            this._questionsServiceMock = new Mock<IQuestionsService>();
+
+            this._suggestionController = new SuggestionsController(this._suggestionServiceMock.Object, this._questionsServiceMock.Object, this._contexts);
+
+            var query = this._validSearchQueryList[validQueryIndex];
 
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(query));
             var result = this._suggestionController.GetSuggestions(query);
 
+            var questionsToClient = questions.Select(q => QuestionToClient.FromQuestion(q)).ToList();
+
             var suggestion = result.As<OkObjectResult>().Value as Suggestion;
-            suggestion.SuggestedDocuments.Should().BeEquivalentTo(this.GetListOfDocuments());
+            suggestion.SuggestedDocuments.Should().BeEquivalentTo(documents);
+            suggestion.Questions.Should().BeEquivalentTo(questionsToClient);
         }
 
         [Test]
@@ -112,7 +130,8 @@ namespace WhisperAPI.Tests.Unit
 
             SelectQuery query = this._invalidSelectQueryList[invalidQueryIndex];
 
-            this._suggestionController = new SuggestionsController(this._suggestionServiceMock.Object, this._contexts);
+            this._questionsServiceMock = new Mock<IQuestionsService>();
+            this._suggestionController = new SuggestionsController(this._suggestionServiceMock.Object, this._questionsServiceMock.Object, this._contexts);
 
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(query));
             this._suggestionController.SelectSuggestion(query).Should().BeEquivalentTo(new BadRequestResult());
@@ -129,7 +148,9 @@ namespace WhisperAPI.Tests.Unit
 
             SelectQuery query = this._invalidSelectQueryList[validQueryIndex];
 
-            this._suggestionController = new SuggestionsController(this._suggestionServiceMock.Object, this._contexts);
+            this._questionsServiceMock = new Mock<IQuestionsService>();
+
+            this._suggestionController = new SuggestionsController(this._suggestionServiceMock.Object, this._questionsServiceMock.Object, this._contexts);
 
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(query));
             this._suggestionController.SelectSuggestion(this._validSelectQueryList[validQueryIndex]).Should().BeEquivalentTo(new OkResult());
@@ -166,38 +187,39 @@ namespace WhisperAPI.Tests.Unit
             return actionExecutingContext.Object;
         }
 
-        public List<SuggestedDocument> GetListOfDocuments()
+        private static List<SuggestedDocument> GetListOfDocuments()
         {
             return new List<SuggestedDocument>
             {
-                new SuggestedDocument
-                {
-                    Title = "Available Coveo Cloud V2 Source Types",
-                    Uri = "https://onlinehelp.coveo.com/en/cloud/Available_Coveo_Cloud_V2_Source_Types.htm",
-                    PrintableUri = "https://onlinehelp.coveo.com/en/cloud/Available_Coveo_Cloud_V2_Source_Types.htm",
-                    Summary = null
-                },
-                new SuggestedDocument
-                {
-                    Title = "Coveo Cloud Query Syntax Reference",
-                    Uri = "https://onlinehelp.coveo.com/en/cloud/Coveo_Cloud_Query_Syntax_Reference.htm",
-                    PrintableUri = "https://onlinehelp.coveo.com/en/cloud/Coveo_Cloud_Query_Syntax_Reference.htm",
-                    Summary = null
-                },
-                new SuggestedDocument
-                {
-                    Title = "Events",
-                    Uri = "https://developers.coveo.com/display/JsSearchV1/Page/27230520/27230472/27230573",
-                    PrintableUri = "https://developers.coveo.com/display/JsSearchV1/Page/27230520/27230472/27230573",
-                    Summary = null
-                },
-                new SuggestedDocument
-                {
-                    Title = "Coveo Facet Component (CoveoFacet)",
-                    Uri = "https://coveo.github.io/search-ui/components/facet.html",
-                    PrintableUri = "https://coveo.github.io/search-ui/components/facet.html",
-                    Summary = null
-                }
+                SuggestedDocumentBuilder.Build
+                    .WithTitle("Available Coveo Cloud V2 Source Types")
+                    .WithUri("https://onlinehelp.coveo.com/en/cloud/Available_Coveo_Cloud_V2_Source_Types.htm")
+                    .WithPrintableUri("https://onlinehelp.coveo.com/en/cloud/Available_Coveo_Cloud_V2_Source_Types.htm")
+                    .Instance,
+                SuggestedDocumentBuilder.Build
+                    .WithTitle("Coveo Cloud Query Syntax Reference")
+                    .WithUri("https://onlinehelp.coveo.com/en/cloud/Coveo_Cloud_Query_Syntax_Reference.htm")
+                    .WithPrintableUri("https://onlinehelp.coveo.com/en/cloud/Coveo_Cloud_Query_Syntax_Reference.htm")
+                    .Instance,
+                SuggestedDocumentBuilder.Build
+                    .WithTitle("Events")
+                    .WithUri("https://developers.coveo.com/display/JsSearchV1/Page/27230520/27230472/27230573")
+                    .WithPrintableUri("https://developers.coveo.com/display/JsSearchV1/Page/27230520/27230472/27230573")
+                    .Instance,
+                SuggestedDocumentBuilder.Build
+                    .WithTitle("Coveo Facet Component (CoveoFacet)")
+                    .WithUri("https://coveo.github.io/search-ui/components/facet.html")
+                    .WithPrintableUri("https://coveo.github.io/search-ui/components/facet.html")
+                    .Instance
+            };
+        }
+
+        private static List<Question> GetListOfQuestions()
+        {
+            return new List<Question>
+            {
+                FacetQuestionBuilder.Build.WithFacetName("Dummy").WithFacetValues("A", "B", "C").Instance,
+                FacetQuestionBuilder.Build.WithFacetName("Dummy").WithFacetValues("C", "D", "E").Instance,
             };
         }
     }

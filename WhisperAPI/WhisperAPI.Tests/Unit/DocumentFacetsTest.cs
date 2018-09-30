@@ -35,7 +35,7 @@ namespace WhisperAPI.Tests.Unit
         {
             var questions = new List<Question>
             {
-                QuestionBuilder.Build.Instance
+                FacetQuestionBuilder.Build.Instance
             };
 
             this._httpClient = new HttpClient(this._httpMessageHandlerMock.Object);
