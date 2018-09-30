@@ -2,6 +2,7 @@
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using WhisperAPI.Models;
+using WhisperAPI.Models.MLAPI;
 using WhisperAPI.Models.Queries;
 using WhisperAPI.Services.Context;
 using WhisperAPI.Services.Questions;
@@ -40,6 +41,20 @@ namespace WhisperAPI.Controllers
             var suggestion = new Suggestion();
 
             var suggestedDocuments = this._suggestionsService.GetSuggestedDocuments(this.ConversationContext).ToList();
+
+            // TODO filter with those parameters
+            FilterDocumentsParameters filter = new FilterDocumentsParameters
+            {
+                Documents = suggestedDocuments.Select(d => d.Uri).ToList(),
+                MustHaveFacets = ConversationContext.AnsweredQuestions.OfType<FacetQuestion>().Select(a => new Facet
+                {
+                    Name = a.FacetName,
+                    Value = a.Answer
+                }).ToList(),
+            };
+
+            // TODO filter suggested documents
+
             suggestion.SuggestedDocuments = suggestedDocuments;
 
             this._suggestionsService.UpdateContextWithNewSuggestions(this.ConversationContext, suggestedDocuments);
