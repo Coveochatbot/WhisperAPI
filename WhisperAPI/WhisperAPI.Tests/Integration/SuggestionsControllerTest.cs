@@ -37,6 +37,7 @@ namespace WhisperAPI.Tests.Integration
         private Mock<HttpMessageHandler> _indexSearchHttpMessageHandleMock;
         private Mock<HttpMessageHandler> _nlpCallHttpMessageHandleMock;
         private Mock<HttpMessageHandler> _documentFacetsHttpMessageHandleMock;
+        private Mock<HttpMessageHandler> _filterDocumentsHttpMessageHandleMock;
 
         [SetUp]
         public void SetUp()
@@ -44,16 +45,19 @@ namespace WhisperAPI.Tests.Integration
             this._indexSearchHttpMessageHandleMock = new Mock<HttpMessageHandler>();
             this._nlpCallHttpMessageHandleMock = new Mock<HttpMessageHandler>();
             this._documentFacetsHttpMessageHandleMock = new Mock<HttpMessageHandler>();
+            this._filterDocumentsHttpMessageHandleMock = new Mock<HttpMessageHandler>();
 
             var indexSearchHttpClient = new HttpClient(this._indexSearchHttpMessageHandleMock.Object);
             var nlpCallHttpClient = new HttpClient(this._nlpCallHttpMessageHandleMock.Object);
             var documentFacetHttpClient = new HttpClient(this._documentFacetsHttpMessageHandleMock.Object);
+            var filterDocumentHttpClient = new HttpClient(this._filterDocumentsHttpMessageHandleMock.Object);
 
             var indexSearch = new IndexSearch(null, indexSearchHttpClient, "https://localhost:5000");
             var nlpCall = new NlpCall(nlpCallHttpClient, "https://localhost:5000");
             var documentFacets = new DocumentFacets(documentFacetHttpClient, "https://localhost:5000");
+            var filterDocuments = new FilterDocuments(filterDocumentHttpClient, "https://localhost:5000");
 
-            var suggestionsService = new SuggestionsService(indexSearch, nlpCall, documentFacets, this.GetIrrelevantIntents());
+            var suggestionsService = new SuggestionsService(indexSearch, nlpCall, documentFacets, filterDocuments, this.GetIrrelevantIntents());
 
             var contexts = new InMemoryContexts(new TimeSpan(1, 0, 0, 0));
             var questionsService = new QuestionsService();

@@ -24,6 +24,7 @@ namespace WhisperAPI.Tests.Unit
         private Mock<IIndexSearch> _indexSearchMock;
         private Mock<INlpCall> _nlpCallMock;
         private Mock<IDocumentFacets> _documentFacetsMock;
+        private Mock<IFilterDocuments> _filterDocuments;
         private ConversationContext _conversationContext;
 
         [SetUp]
@@ -32,8 +33,9 @@ namespace WhisperAPI.Tests.Unit
             this._indexSearchMock = new Mock<IIndexSearch>();
             this._nlpCallMock = new Mock<INlpCall>();
             this._documentFacetsMock = new Mock<IDocumentFacets>();
+            this._filterDocuments = new Mock<IFilterDocuments>();
 
-            this._suggestionsService = new SuggestionsService(this._indexSearchMock.Object, this._nlpCallMock.Object, this._documentFacetsMock.Object, this.GetIrrelevantIntents());
+            this._suggestionsService = new SuggestionsService(this._indexSearchMock.Object, this._nlpCallMock.Object, this._documentFacetsMock.Object, this._filterDocuments.Object, this.GetIrrelevantIntents());
             this._conversationContext = new ConversationContext(new Guid("a21d07d5-fd5a-42ab-ac2c-2ef6101e58d9"), DateTime.Now);
         }
 
@@ -132,7 +134,7 @@ namespace WhisperAPI.Tests.Unit
                 IntentBuilder.Build.WithName("I like C#").Instance
             };
 
-            this._suggestionsService = new SuggestionsService(this._indexSearchMock.Object, this._nlpCallMock.Object, this._documentFacetsMock.Object, intentsFromApi);
+            this._suggestionsService = new SuggestionsService(this._indexSearchMock.Object, this._nlpCallMock.Object, this._documentFacetsMock.Object, this._filterDocuments.Object, intentsFromApi);
 
             var nlpAnalysis = NlpAnalysisBuilder.Build.WithIntents(intentsFromNLP).Instance;
             this._nlpCallMock

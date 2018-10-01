@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using WhisperAPI.Models;
+using WhisperAPI.Models.MLAPI;
 using WhisperAPI.Models.NLPAPI;
 using WhisperAPI.Models.Queries;
 using WhisperAPI.Models.Search;
@@ -22,13 +23,21 @@ namespace WhisperAPI.Services.Suggestions
 
         private readonly IDocumentFacets _documentFacets;
 
+        private readonly IFilterDocuments _filterDocuments;
+
         private readonly List<string> _irrelevantIntents;
 
-        public SuggestionsService(IIndexSearch indexSearch, INlpCall nlpCall, IDocumentFacets documentFacets, List<string> irrelevantIntents)
+        public SuggestionsService(
+            IIndexSearch indexSearch,
+            INlpCall nlpCall,
+            IDocumentFacets documentFacets,
+            IFilterDocuments filterDocuments,
+            List<string> irrelevantIntents)
         {
             this._indexSearch = indexSearch;
             this._nlpCall = nlpCall;
             this._documentFacets = documentFacets;
+            this._filterDocuments = filterDocuments;
             this._irrelevantIntents = irrelevantIntents;
         }
 
@@ -51,6 +60,12 @@ namespace WhisperAPI.Services.Suggestions
             var questions = this._documentFacets.GetQuestions(suggestedDocuments.Select(x => x.Uri));
             this.AssociateKnownQuestionsWithId(conversationContext, questions.Cast<Question>().ToList());
             return FilterOutChosenQuestions(conversationContext, questions);
+        }
+
+        public List<string> FilterDocumentsByFacet(FilterDocumentsParameters parameters)
+        {
+            var documents = this._filterDocuments.FilterDocumentsByFacets(parameters);
+            return documents;
         }
 
         public void AssociateKnownQuestionsWithId(ConversationContext conversationContext, List<Question> questions)

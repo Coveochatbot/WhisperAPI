@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using WhisperAPI.Models;
+using WhisperAPI.Models.MLAPI;
 using WhisperAPI.Models.Queries;
 
 namespace WhisperAPI.Services.Suggestions
@@ -10,6 +11,8 @@ namespace WhisperAPI.Services.Suggestions
         IEnumerable<SuggestedDocument> GetSuggestedDocuments(ConversationContext conversationContext);
 
         IEnumerable<Question> GetQuestionsFromDocument(ConversationContext conversationContext, IEnumerable<SuggestedDocument> suggestedDocuments);
+
+        List<string> FilterDocumentsByFacet(FilterDocumentsParameters parameters);
 
         void UpdateContextWithNewQuery(ConversationContext conversationContext, SearchQuery searchQuery);
 

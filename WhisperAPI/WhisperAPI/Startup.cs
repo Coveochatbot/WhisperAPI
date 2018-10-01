@@ -78,6 +78,7 @@ namespace WhisperAPI
                     x.GetService<IIndexSearch>(),
                     x.GetService<INlpCall>(),
                     x.GetService<IDocumentFacets>(),
+                    x.GetService<IFilterDocuments>(),
                     applicationSettings.IrrelevantIntents));
 
             services.AddTransient<IQuestionsService>(x => new QuestionsService());
