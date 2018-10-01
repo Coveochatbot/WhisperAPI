@@ -56,7 +56,8 @@ namespace WhisperAPI.Controllers
                 };
 
                 var documentsFiltered = this._suggestionsService.FilterDocumentsByFacet(parameters);
-                suggestion.SuggestedDocuments = suggestedDocuments.Where(x => documentsFiltered.Any(y => y.Equals(x.Uri))).ToList();
+                // TODO: Test suggestedDocuments.Where(x => documentsFiltered.Any(y => y.Equals(x.Uri))).ToList(); when MLAPI is ready
+                suggestion.SuggestedDocuments = suggestedDocuments;
             }
             else
             {
