@@ -1,7 +1,7 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using WhisperAPI.Models;
+using WhisperAPI.Models.MLAPI;
 using WhisperAPI.Models.Queries;
 using WhisperAPI.Services.Context;
 using WhisperAPI.Services.Questions;
@@ -40,7 +40,29 @@ namespace WhisperAPI.Controllers
             var suggestion = new Suggestion();
 
             var suggestedDocuments = this._suggestionsService.GetSuggestedDocuments(this.ConversationContext).ToList();
-            suggestion.SuggestedDocuments = suggestedDocuments;
+
+            var mustHaveFacets = this.ConversationContext.AnsweredQuestions.OfType<FacetQuestion>().Select(a => new Facet
+            {
+                Name = a.FacetName,
+                Value = a.Answer
+            }).ToList();
+
+            if (mustHaveFacets.Any())
+            {
+                var parameters = new FilterDocumentsParameters
+                {
+                    Documents = suggestedDocuments.Select(d => d.Uri).ToList(),
+                    MustHaveFacets = mustHaveFacets
+                };
+
+                var documentsFiltered = this._suggestionsService.FilterDocumentsByFacet(parameters);
+                // TODO: Test suggestedDocuments.Where(x => documentsFiltered.Any(y => y.Equals(x.Uri))).ToList(); when MLAPI is ready
+                suggestion.SuggestedDocuments = suggestedDocuments;
+            }
+            else
+            {
+                suggestion.SuggestedDocuments = suggestedDocuments;
+            }
 
             this._suggestionsService.UpdateContextWithNewSuggestions(this.ConversationContext, suggestedDocuments);
             suggestedDocuments.ForEach(x => Log.Debug($"Id: {x.Id}, Title: {x.Title}, Uri: {x.Uri}, PrintableUri: {x.PrintableUri}, Summary: {x.Summary}"));
@@ -48,7 +70,7 @@ namespace WhisperAPI.Controllers
             if (suggestedDocuments.Any())
             {
                 var questions = this._suggestionsService.GetQuestionsFromDocument(this.ConversationContext, suggestedDocuments).ToList();
-                suggestion.Questions = questions.Select(q => QuestionToClient.FromQuestion(q)).ToList();
+                suggestion.Questions = questions.Select(QuestionToClient.FromQuestion).ToList();
 
                 this._suggestionsService.UpdateContextWithNewQuestions(this.ConversationContext, questions);
                 questions.ForEach(x => Log.Debug($"Id: {x.Id}, Text: {x.Text}"));
