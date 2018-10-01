@@ -41,18 +41,27 @@ namespace WhisperAPI.Controllers
 
             var suggestedDocuments = this._suggestionsService.GetSuggestedDocuments(this.ConversationContext).ToList();
 
-            var parameters = new FilterDocumentsParameters
+            var mustHaveFacets = this.ConversationContext.AnsweredQuestions.OfType<FacetQuestion>().Select(a => new Facet
             {
-                Documents = suggestedDocuments.Select(d => d.Uri).ToList(),
-                MustHaveFacets = this.ConversationContext.AnsweredQuestions.OfType<FacetQuestion>().Select(a => new Facet
-                {
-                    Name = a.FacetName,
-                    Value = a.Answer
-                }).ToList()
-            };
+                Name = a.FacetName,
+                Value = a.Answer
+            }).ToList();
 
-            var documentsFiltered = this._suggestionsService.FilterDocumentsByFacet(parameters);
-            suggestion.SuggestedDocuments = suggestedDocuments.Where(x => documentsFiltered.Any(y => y.Equals(x.Uri))).ToList();
+            if (mustHaveFacets.Any())
+            {
+                var parameters = new FilterDocumentsParameters
+                {
+                    Documents = suggestedDocuments.Select(d => d.Uri).ToList(),
+                    MustHaveFacets = mustHaveFacets
+                };
+
+                var documentsFiltered = this._suggestionsService.FilterDocumentsByFacet(parameters);
+                suggestion.SuggestedDocuments = suggestedDocuments.Where(x => documentsFiltered.Any(y => y.Equals(x.Uri))).ToList();
+            }
+            else
+            {
+                suggestion.SuggestedDocuments = suggestedDocuments;
+            }
 
             this._suggestionsService.UpdateContextWithNewSuggestions(this.ConversationContext, suggestedDocuments);
             suggestedDocuments.ForEach(x => Log.Debug($"Id: {x.Id}, Title: {x.Title}, Uri: {x.Uri}, PrintableUri: {x.PrintableUri}, Summary: {x.Summary}"));
