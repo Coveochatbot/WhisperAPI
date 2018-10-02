@@ -22,7 +22,7 @@ namespace WhisperAPI.Services.Questions
             bool detectedAskedQuestion = false;
             foreach (var clickedQuestion in context.ClickedQuestions)
             {
-                if (message.Query.Contains(clickedQuestion.Text))
+                if (clickedQuestion.Text.Contains(message.Query))
                 {
                     clickedQuestion.Status = QuestionStatus.AnswerPending;
                     detectedAskedQuestion = true;
