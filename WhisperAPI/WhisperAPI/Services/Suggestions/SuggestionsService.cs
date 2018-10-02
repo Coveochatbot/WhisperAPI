@@ -95,9 +95,11 @@ namespace WhisperAPI.Services.Suggestions
 
         public void UpdateContextWithNewQuestions(ConversationContext context, List<Question> questions)
         {
+            context.LastSuggestedQuestions.Clear();
             foreach (var question in questions)
             {
                 context.Questions.Add(question);
+                context.LastSuggestedQuestions.Add(question);
             }
         }
 

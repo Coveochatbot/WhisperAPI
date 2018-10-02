@@ -422,12 +422,13 @@ namespace WhisperAPI.Tests.Integration
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(queryChatkeyRefresh));
             var resultSuggestions = this._suggestionController.GetSuggestions(queryChatkeyRefresh);
 
-            var suggestedDocumentList = ((Suggestion)resultSuggestions.As<OkObjectResult>().Value).SuggestedDocuments as List<SuggestedDocument>;
+            var suggestion = (Suggestion)resultSuggestions.As<OkObjectResult>().Value;
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(queryChatkeyRefresh));
             var resultLastSuggestions = this._suggestionController.GetSuggestions(queryChatkeyRefresh);
 
-            var lastSuggestedDocument = ((Suggestion)resultLastSuggestions.As<OkObjectResult>().Value).SuggestedDocuments;
-            lastSuggestedDocument.Should().BeEquivalentTo(suggestedDocumentList);
+            var lastSuggestion = (Suggestion) resultLastSuggestions.As<OkObjectResult>().Value;
+            lastSuggestion.SuggestedDocuments.Should().BeEquivalentTo(suggestion.SuggestedDocuments);
+            lastSuggestion.Questions.Should().BeEquivalentTo(suggestion.Questions);
         }
 
         [Test]

@@ -85,10 +85,12 @@ namespace WhisperAPI.Controllers
             Log.Debug($"Query: {query}");
             var suggestion = new Suggestion()
             {
-                SuggestedDocuments = this.ConversationContext.LastSuggestedDocuments
+                SuggestedDocuments = this.ConversationContext.LastSuggestedDocuments,
+                Questions = this.ConversationContext.LastSuggestedQuestions.Select(q => QuestionToClient.FromQuestion(q)).ToList()
             };
-            suggestion.SuggestedDocuments.ForEach(x => Log.Debug($"Title: {x.Title}, Uri: {x.Uri}, PrintableUri: {x.PrintableUri}, Summary: {x.Summary}"));
 
+            suggestion.SuggestedDocuments.ForEach(x => Log.Debug($"Title: {x.Title}, Uri: {x.Uri}, PrintableUri: {x.PrintableUri}, Summary: {x.Summary}"));
+            suggestion.Questions.ForEach(x => Log.Debug($"Id: {x.Id}, Text: {x.Text}"));
             return this.Ok(suggestion);
         }
 
