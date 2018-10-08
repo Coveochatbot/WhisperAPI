@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -68,31 +69,9 @@ namespace WhisperAPI.Tests.Integration
         public void When_getting_suggestions_with_good_query_then_returns_suggestions_correctly()
         {
             var questions = GetQuestions();
-
-            this._nlpCallHttpMessageHandleMock.Protected()
-                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
-                .Returns(Task.FromResult(new HttpResponseMessage
-                {
-                    StatusCode = System.Net.HttpStatusCode.OK,
-                    Content = new StringContent(JsonConvert.SerializeObject(this.GetRelevantNlpAnalysis()))
-                }));
-
-            this._indexSearchHttpMessageHandleMock.Protected()
-                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
-                .Returns(Task.FromResult(new HttpResponseMessage
-                {
-                    StatusCode = System.Net.HttpStatusCode.OK,
-                    Content = this.GetSearchResultStringContent()
-                }));
-
-            this._documentFacetsHttpMessageHandleMock.Protected()
-                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
-                .Returns(Task.FromResult(new HttpResponseMessage
-                {
-                    StatusCode = System.Net.HttpStatusCode.OK,
-                    Content = new StringContent(JsonConvert.SerializeObject(questions))
-                }));
-
+            this.NlpCallHttpMessageHandleMock(HttpStatusCode.OK, new StringContent(JsonConvert.SerializeObject(this.GetRelevantNlpAnalysis())));
+            this.IndexSearchHttpMessageHandleMock(HttpStatusCode.OK, this.GetSearchResultStringContent());
+            this.DocumentFacetsHttpMessageHandleMock(HttpStatusCode.OK, new StringContent(JsonConvert.SerializeObject(questions)));
             var searchQuery = SearchQueryBuilder.Build.Instance;
 
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(searchQuery));
@@ -120,22 +99,8 @@ namespace WhisperAPI.Tests.Integration
         [Test]
         public void When_getting_suggestions_with_irrelevant_query_then_returns_empty_list()
         {
-            this._nlpCallHttpMessageHandleMock.Protected()
-                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
-                .Returns(Task.FromResult(new HttpResponseMessage
-                {
-                    StatusCode = System.Net.HttpStatusCode.OK,
-                    Content = new StringContent(JsonConvert.SerializeObject(this.GetIrrelevantNlpAnalysis()))
-                }));
-
-            this._documentFacetsHttpMessageHandleMock.Protected()
-                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
-                .Returns(Task.FromResult(new HttpResponseMessage
-                {
-                    StatusCode = System.Net.HttpStatusCode.OK,
-                    Content = new StringContent(JsonConvert.SerializeObject(new List<string>()))
-                }));
-
+            this.NlpCallHttpMessageHandleMock(HttpStatusCode.OK, new StringContent(JsonConvert.SerializeObject(this.GetIrrelevantNlpAnalysis())));
+            this.DocumentFacetsHttpMessageHandleMock(HttpStatusCode.OK, new StringContent(JsonConvert.SerializeObject(new List<string>())));
             var searchQuery = SearchQueryBuilder.Build.Instance;
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(searchQuery));
             var result = this._suggestionController.GetSuggestions(searchQuery);
@@ -146,52 +111,31 @@ namespace WhisperAPI.Tests.Integration
         }
 
         [Test]
-        [TestCase(System.Net.HttpStatusCode.NotFound)]
-        [TestCase(System.Net.HttpStatusCode.BadRequest)]
-        [TestCase(System.Net.HttpStatusCode.InternalServerError)]
+        [TestCase(HttpStatusCode.NotFound)]
+        [TestCase(HttpStatusCode.BadRequest)]
+        [TestCase(HttpStatusCode.InternalServerError)]
         public void When_getting_suggestions_but_nlp_returns_Error_then_throws_exception(System.Net.HttpStatusCode httpStatusCode)
         {
             var searchQuery = SearchQueryBuilder.Build
                 .WithQuery("Hello")
                 .Instance;
-
-            this._nlpCallHttpMessageHandleMock.Protected()
-                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
-                .Returns(Task.FromResult(new HttpResponseMessage
-                {
-                    StatusCode = httpStatusCode,
-                    Content = new StringContent(string.Empty)
-                }));
-
+            this.NlpCallHttpMessageHandleMock(httpStatusCode, new StringContent(string.Empty));
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(searchQuery));
             Assert.Throws<HttpRequestException>(() => this._suggestionController.GetSuggestions(searchQuery));
         }
 
         [Test]
-        [TestCase(System.Net.HttpStatusCode.NotFound)]
-        [TestCase(System.Net.HttpStatusCode.BadRequest)]
-        [TestCase(System.Net.HttpStatusCode.InternalServerError)]
+        [TestCase(HttpStatusCode.NotFound)]
+        [TestCase(HttpStatusCode.BadRequest)]
+        [TestCase(HttpStatusCode.InternalServerError)]
         public void When_getting_suggestions_but_coveo_returns_Error_then_throws_exception(System.Net.HttpStatusCode httpStatusCode)
         {
             var searchQuery = SearchQueryBuilder.Build
                 .WithQuery("I need help with CoveoSearch API")
                 .Instance;
 
-            this._nlpCallHttpMessageHandleMock.Protected()
-                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
-                .Returns(Task.FromResult(new HttpResponseMessage
-                {
-                    StatusCode = System.Net.HttpStatusCode.InternalServerError,
-                    Content = new StringContent(JsonConvert.SerializeObject(this.GetRelevantNlpAnalysis()))
-                }));
-
-            this._indexSearchHttpMessageHandleMock.Protected()
-                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
-                .Returns(Task.FromResult(new HttpResponseMessage
-                {
-                    StatusCode = httpStatusCode,
-                    Content = this.GetSearchResultStringContent()
-                }));
+            this.NlpCallHttpMessageHandleMock(HttpStatusCode.InternalServerError, new StringContent(JsonConvert.SerializeObject(this.GetRelevantNlpAnalysis())));
+            this.IndexSearchHttpMessageHandleMock(httpStatusCode, this.GetSearchResultStringContent());
 
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(searchQuery));
             Assert.Throws<HttpRequestException>(() => this._suggestionController.GetSuggestions(searchQuery));
@@ -204,14 +148,7 @@ namespace WhisperAPI.Tests.Integration
             var searchQuery = SearchQueryBuilder.Build
                 .WithQuery("Hello")
                 .Instance;
-
-            this._nlpCallHttpMessageHandleMock.Protected()
-                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
-                .Returns(Task.FromResult(new HttpResponseMessage
-                {
-                    StatusCode = System.Net.HttpStatusCode.OK,
-                    Content = new StringContent(JsonConvert.SerializeObject(this.GetIrrelevantNlpAnalysis()))
-                }));
+            this.NlpCallHttpMessageHandleMock(HttpStatusCode.OK, new StringContent(JsonConvert.SerializeObject(this.GetIrrelevantNlpAnalysis())));
 
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(searchQuery));
             var result = this._suggestionController.GetSuggestions(searchQuery);
@@ -228,30 +165,11 @@ namespace WhisperAPI.Tests.Integration
                 .Instance;
 
             var questions = GetQuestions();
+            this.NlpCallHttpMessageHandleMock(HttpStatusCode.OK, new StringContent(JsonConvert.SerializeObject(this.GetRelevantNlpAnalysis())));
 
-            this._nlpCallHttpMessageHandleMock.Protected()
-                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
-                .Returns(Task.FromResult(new HttpResponseMessage
-                {
-                    StatusCode = System.Net.HttpStatusCode.OK,
-                    Content = new StringContent(JsonConvert.SerializeObject(this.GetRelevantNlpAnalysis()))
-                }));
+            this.IndexSearchHttpMessageHandleMock(HttpStatusCode.OK, this.GetSearchResultStringContent());
 
-            this._indexSearchHttpMessageHandleMock.Protected()
-                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
-                .Returns(Task.FromResult(new HttpResponseMessage
-                {
-                    StatusCode = System.Net.HttpStatusCode.OK,
-                    Content = this.GetSearchResultStringContent()
-                }));
-
-            this._documentFacetsHttpMessageHandleMock.Protected()
-                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
-                .Returns(Task.FromResult(new HttpResponseMessage
-                {
-                    StatusCode = System.Net.HttpStatusCode.OK,
-                    Content = new StringContent(JsonConvert.SerializeObject(questions))
-                }));
+            this.DocumentFacetsHttpMessageHandleMock(HttpStatusCode.OK, new StringContent(JsonConvert.SerializeObject(questions)));
 
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(searchQuery));
             result = this._suggestionController.GetSuggestions(searchQuery);
@@ -270,13 +188,7 @@ namespace WhisperAPI.Tests.Integration
                 .WithChatKey(searchQuery.ChatKey)
                 .Instance;
 
-            this._nlpCallHttpMessageHandleMock.Protected()
-                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
-                .Returns(Task.FromResult(new HttpResponseMessage
-                {
-                    StatusCode = System.Net.HttpStatusCode.OK,
-                    Content = new StringContent(JsonConvert.SerializeObject(this.GetRelevantNlpAnalysis()))
-                }));
+            this.NlpCallHttpMessageHandleMock(HttpStatusCode.OK, new StringContent(JsonConvert.SerializeObject(this.GetRelevantNlpAnalysis())));
 
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(searchQuery));
             result = this._suggestionController.GetSuggestions(searchQuery);
@@ -298,13 +210,7 @@ namespace WhisperAPI.Tests.Integration
                 .WithQuery("Hello")
                 .Instance;
 
-            this._nlpCallHttpMessageHandleMock.Protected()
-                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
-                .Returns(Task.FromResult(new HttpResponseMessage
-                {
-                    StatusCode = System.Net.HttpStatusCode.OK,
-                    Content = new StringContent(JsonConvert.SerializeObject(this.GetIrrelevantNlpAnalysis()))
-                }));
+            this.NlpCallHttpMessageHandleMock(HttpStatusCode.OK, new StringContent(JsonConvert.SerializeObject(this.GetIrrelevantNlpAnalysis())));
 
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(searchQuery));
             var result = this._suggestionController.GetSuggestions(searchQuery);
@@ -322,29 +228,11 @@ namespace WhisperAPI.Tests.Integration
 
             var questions = GetQuestions();
 
-            this._nlpCallHttpMessageHandleMock.Protected()
-                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
-                .Returns(Task.FromResult(new HttpResponseMessage
-                {
-                    StatusCode = System.Net.HttpStatusCode.OK,
-                    Content = new StringContent(JsonConvert.SerializeObject(this.GetRelevantNlpAnalysis()))
-                }));
+            this.NlpCallHttpMessageHandleMock(HttpStatusCode.OK, new StringContent(JsonConvert.SerializeObject(this.GetRelevantNlpAnalysis())));
 
-            this._indexSearchHttpMessageHandleMock.Protected()
-                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
-                .Returns(Task.FromResult(new HttpResponseMessage
-                {
-                    StatusCode = System.Net.HttpStatusCode.OK,
-                    Content = this.GetSearchResultStringContent()
-                }));
+            this.IndexSearchHttpMessageHandleMock(HttpStatusCode.OK, this.GetSearchResultStringContent());
 
-            this._documentFacetsHttpMessageHandleMock.Protected()
-                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
-                .Returns(Task.FromResult(new HttpResponseMessage
-                {
-                    StatusCode = System.Net.HttpStatusCode.OK,
-                    Content = new StringContent(JsonConvert.SerializeObject(questions))
-                }));
+            this.DocumentFacetsHttpMessageHandleMock(HttpStatusCode.OK, new StringContent(JsonConvert.SerializeObject(questions)));
 
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(searchQuery));
             result = this._suggestionController.GetSuggestions(searchQuery);
@@ -364,29 +252,9 @@ namespace WhisperAPI.Tests.Integration
             var jsonSearchQuery = "{\"chatkey\": \"aecaa8db-abc8-4ac9-aa8d-87987da2dbb0\",\"Query\": \"Need help with CoveoSearch API\",\"Type\": 1,\"command\": \"sudo ls\"}";
             var questions = GetQuestions();
 
-            this._nlpCallHttpMessageHandleMock.Protected()
-                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
-                .Returns(Task.FromResult(new HttpResponseMessage
-                {
-                    StatusCode = System.Net.HttpStatusCode.OK,
-                    Content = new StringContent(JsonConvert.SerializeObject(this.GetRelevantNlpAnalysis()))
-                }));
-
-            this._indexSearchHttpMessageHandleMock.Protected()
-                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
-                .Returns(Task.FromResult(new HttpResponseMessage
-                {
-                    StatusCode = System.Net.HttpStatusCode.OK,
-                    Content = this.GetSearchResultStringContent()
-                }));
-
-            this._documentFacetsHttpMessageHandleMock.Protected()
-                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
-                .Returns(Task.FromResult(new HttpResponseMessage
-                {
-                    StatusCode = System.Net.HttpStatusCode.OK,
-                    Content = new StringContent(JsonConvert.SerializeObject(questions))
-                }));
+            this.NlpCallHttpMessageHandleMock(HttpStatusCode.OK, new StringContent(JsonConvert.SerializeObject(this.GetRelevantNlpAnalysis())));
+            this.IndexSearchHttpMessageHandleMock(HttpStatusCode.OK, this.GetSearchResultStringContent());
+            this.DocumentFacetsHttpMessageHandleMock(HttpStatusCode.OK, new StringContent(JsonConvert.SerializeObject(questions)));
 
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(JsonConvert.DeserializeObject<SearchQuery>(jsonSearchQuery)));
             var result = this._suggestionController.GetSuggestions(JsonConvert.DeserializeObject<SearchQuery>(jsonSearchQuery));
@@ -403,22 +271,9 @@ namespace WhisperAPI.Tests.Integration
             {
                 ChatKey = new Guid("aecaa8db-abc8-4ac9-aa8d-87987da2dbb0")
             };
-            this._nlpCallHttpMessageHandleMock.Protected()
-                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
-                .Returns(Task.FromResult(new HttpResponseMessage
-                {
-                    StatusCode = System.Net.HttpStatusCode.OK,
-                    Content = new StringContent(JsonConvert.SerializeObject(this.GetRelevantNlpAnalysis()))
-                }));
 
-            this._indexSearchHttpMessageHandleMock.Protected()
-                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
-                .Returns(Task.FromResult(new HttpResponseMessage
-                {
-                    StatusCode = System.Net.HttpStatusCode.OK,
-                    Content = this.GetSearchResultStringContent()
-                }));
-
+            this.NlpCallHttpMessageHandleMock(HttpStatusCode.OK, new StringContent(JsonConvert.SerializeObject(this.GetRelevantNlpAnalysis())));
+            this.IndexSearchHttpMessageHandleMock(HttpStatusCode.OK, this.GetSearchResultStringContent());
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(queryChatkeyRefresh));
             var resultSuggestions = this._suggestionController.GetSuggestions(queryChatkeyRefresh);
 
@@ -440,31 +295,9 @@ namespace WhisperAPI.Tests.Integration
                 .Instance;
 
             var questions = GetQuestions();
-
-            this._nlpCallHttpMessageHandleMock.Protected()
-                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
-                .Returns(Task.FromResult(new HttpResponseMessage
-                {
-                    StatusCode = System.Net.HttpStatusCode.OK,
-                    Content = new StringContent(JsonConvert.SerializeObject(this.GetRelevantNlpAnalysis()))
-                }));
-
-            this._indexSearchHttpMessageHandleMock.Protected()
-                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
-                .Returns(Task.FromResult(new HttpResponseMessage
-                {
-                    StatusCode = System.Net.HttpStatusCode.OK,
-                    Content = this.GetSearchResultStringContent()
-                }));
-
-            this._documentFacetsHttpMessageHandleMock.Protected()
-                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
-                .Returns(Task.FromResult(new HttpResponseMessage
-                {
-                    StatusCode = System.Net.HttpStatusCode.OK,
-                    Content = new StringContent(JsonConvert.SerializeObject(questions))
-                }));
-
+            this.NlpCallHttpMessageHandleMock(HttpStatusCode.OK, new StringContent(JsonConvert.SerializeObject(this.GetRelevantNlpAnalysis())));
+            this.IndexSearchHttpMessageHandleMock(HttpStatusCode.OK, this.GetSearchResultStringContent());
+            this.DocumentFacetsHttpMessageHandleMock(HttpStatusCode.OK, new StringContent(JsonConvert.SerializeObject(questions)));
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(searchQuery));
             var result = this._suggestionController.GetSuggestions(searchQuery);
 
@@ -538,6 +371,39 @@ namespace WhisperAPI.Tests.Integration
             };
         }
 
+        private void IndexSearchHttpMessageHandleMock(HttpStatusCode statusCode, HttpContent content)
+        {
+            this._indexSearchHttpMessageHandleMock.Protected()
+                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
+                .Returns(Task.FromResult(new HttpResponseMessage
+                {
+                    StatusCode = statusCode,
+                    Content = content
+                }));
+        }
+
+        private void NlpCallHttpMessageHandleMock(HttpStatusCode statusCode, HttpContent content)
+        {
+            this._nlpCallHttpMessageHandleMock.Protected()
+                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
+                .Returns(Task.FromResult(new HttpResponseMessage
+                {
+                    StatusCode = statusCode,
+                    Content = content
+                }));
+        }
+
+        private void DocumentFacetsHttpMessageHandleMock(HttpStatusCode statusCode, HttpContent content)
+        {
+            this._documentFacetsHttpMessageHandleMock.Protected()
+                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
+                .Returns(Task.FromResult(new HttpResponseMessage
+                {
+                    StatusCode = statusCode,
+                    Content = content
+                }));
+        }
+
         private ActionExecutingContext GetActionExecutingContext(Query query)
         {
             var actionContext = new ActionContext(
@@ -602,21 +468,6 @@ namespace WhisperAPI.Tests.Integration
             {
                 "Greetings"
             };
-        }
-
-        private Mock<ActionExecutingContext> CreateActionContextMock()
-        {
-            var actionContext = new ActionContext(
-                new Mock<HttpContext>().Object,
-                new Mock<RouteData>().Object,
-                new Mock<ActionDescriptor>().Object);
-
-            return new Mock<ActionExecutingContext>(
-                MockBehavior.Strict,
-                actionContext,
-                new List<IFilterMetadata>(),
-                new Dictionary<string, object>(),
-                this._suggestionController);
         }
     }
 }
