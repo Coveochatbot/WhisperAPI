@@ -5,20 +5,20 @@ using System.Text;
 using Newtonsoft.Json;
 using WhisperAPI.Models.NLPAPI;
 
-namespace WhisperAPI.Services
+namespace WhisperAPI.Services.NLPAPI
 {
     public class NlpCall : INlpCall
     {
         private static readonly log4net.ILog Log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        private readonly string _baseAdress;
+        private readonly string _baseAddress;
 
         private readonly HttpClient _httpClient;
 
-        public NlpCall(HttpClient httpClient, string baseAdress)
+        public NlpCall(HttpClient httpClient, string baseAddress)
         {
             this._httpClient = httpClient;
-            this._baseAdress = baseAdress;
+            this._baseAddress = baseAddress;
             this.InitHttpClient();
         }
 
@@ -37,7 +37,7 @@ namespace WhisperAPI.Services
 
         private void InitHttpClient()
         {
-            this._httpClient.BaseAddress = new Uri(this._baseAdress);
+            this._httpClient.BaseAddress = new Uri(this._baseAddress);
             this._httpClient.DefaultRequestHeaders.Accept.Clear();
             this._httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }

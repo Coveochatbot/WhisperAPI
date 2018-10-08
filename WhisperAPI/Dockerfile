@@ -10,7 +10,7 @@ COPY . ./
 RUN dotnet publish -c Release -o out WhisperAPI/WhisperAPI.csproj
 
 # Build runtime image
-FROM microsoft/dotnet:2.1-aspnetcore-runtime
+FROM microsoft/dotnet:2.1.4-aspnetcore-runtime
 WORKDIR /app
 COPY --from=build-env /app/WhisperAPI/out .
 EXPOSE 80

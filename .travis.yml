@@ -1,6 +1,6 @@
 language: csharp
 solution: WhisperAPI/WhisperAPI.sln
-dotnet: 2.1.300
+dotnet: 2.1.400
 
 script:
   - dotnet build ./WhisperAPI/WhisperAPI 

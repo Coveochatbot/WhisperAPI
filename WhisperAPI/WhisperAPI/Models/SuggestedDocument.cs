@@ -1,4 +1,7 @@
-﻿namespace WhisperAPI.Models
+using System;
+using WhisperAPI.Models.Search;
+
+namespace WhisperAPI.Models
 {
     public class SuggestedDocument
     {
@@ -8,12 +11,15 @@
 
         public SuggestedDocument(ISearchResultElement searchResultElement)
         {
+            this.Id = Guid.NewGuid();
             this.Title = searchResultElement.Title;
             this.Uri = searchResultElement.Uri;
             this.PrintableUri = searchResultElement.PrintableUri;
             this.Summary = searchResultElement.Summary;
             this.Excerpt = searchResultElement.Excerpt;
         }
+
+        public Guid Id { get; set; }
 
         public string Title { get; set; }
 
@@ -27,9 +33,21 @@
 
         public override bool Equals(object obj)
         {
-            if (ReferenceEquals(null, obj)) { return false; }
-            if (ReferenceEquals(this, obj)) { return true; }
-            if (obj.GetType() != this.GetType()) { return false; }
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != this.GetType())
+            {
+                return false;
+            }
+
             return this.Equals((SuggestedDocument)obj);
         }
 
