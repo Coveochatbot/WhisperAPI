@@ -47,12 +47,20 @@ namespace WhisperAPI.Tests.Unit
         [TestCase]
         public void When_receive_question_that_was_clicked_in_message_then_detect_question_and_set_to_pending_question()
         {
-            var clickedQuestion = FacetQuestionBuilder.Build.WithStatus(Models.QuestionStatus.Clicked).WithFacetName("Dummy").WithFacetValues("A", "B").Instance;
+            var clickedQuestion = FacetQuestionBuilder.Build.WithStatus(QuestionStatus.Clicked).WithFacetName("Dummy").WithFacetValues("A", "B").Instance;
             this._conversationContext.Questions.Add(clickedQuestion);
             var questionAsked = SearchQueryBuilder.Build.WithMessageType(MessageType.Agent).WithQuery(clickedQuestion.Text).Instance;
 
             Assert.IsTrue(this._questionsService.DetectQuestionAsked(this._conversationContext, questionAsked));
             Assert.IsTrue(clickedQuestion.Status == QuestionStatus.AnswerPending);
+        }
+
+        [TestCase]
+        public void When_receive_question_that_was_cancelled__set_to_rejected_question()
+        {
+            var questionToRejected = FacetQuestionBuilder.Build.WithStatus(QuestionStatus.Answered).WithFacetName("Dummy").WithFacetValues("A", "B").Instance;
+            this._conversationContext.Questions.Add(questionToRejected);
+            Assert.IsTrue(this._questionsService.RejectAnswer(this._conversationContext, questionToRejected.Id));
         }
     }
 }

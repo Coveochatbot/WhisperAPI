@@ -53,6 +53,26 @@ namespace WhisperAPI.Services.Questions
             return detectedAnswer;
         }
 
+        public void RejectAllAnswers(ConversationContext context)
+        {
+            foreach (var contextQuestion in context.Questions)
+            {
+                this.RejectAnswer(context, contextQuestion.Id);
+            }
+        }
+
+        public bool RejectAnswer(ConversationContext context, Guid questionId)
+        {
+            var question = context.Questions.FirstOrDefault(q => q.Id == questionId);
+            if (question != null)
+            {
+                question.Status = QuestionStatus.Rejected;
+                return true;
+            }
+
+            return false;
+        }
+
         private bool Answered(Question pendingQuestion, string messageText)
         {
             switch (pendingQuestion)
