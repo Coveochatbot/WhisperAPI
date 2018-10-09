@@ -55,6 +55,11 @@ namespace WhisperAPI.Services.Questions
 
         public void RejectAllAnswers(ConversationContext context)
         {
+            if (context.Questions == null)
+            {
+                return;
+            }
+
             foreach (var contextQuestion in context.Questions)
             {
                 this.RejectAnswer(context, contextQuestion.Id);
@@ -69,7 +74,6 @@ namespace WhisperAPI.Services.Questions
                 question.Status = QuestionStatus.Rejected;
                 return true;
             }
-
             return false;
         }
 

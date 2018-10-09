@@ -79,7 +79,6 @@ namespace WhisperAPI.Controllers
         [HttpDelete("Facets")]
         public IActionResult RemoveAllFacets([FromBody] Query query)
         {
-            // TODO Validate if it is reject
             this._questionsService.RejectAllAnswers(this.ConversationContext);
             var suggestions = this._suggestionsService.GetSuggestion(this.ConversationContext);
             Log.Debug($"Remove all facets");
