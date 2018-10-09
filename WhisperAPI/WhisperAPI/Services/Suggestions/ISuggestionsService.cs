@@ -8,6 +8,8 @@ namespace WhisperAPI.Services.Suggestions
 {
     public interface ISuggestionsService
     {
+        Suggestion GetSuggestion(ConversationContext conversationContext);
+
         IEnumerable<SuggestedDocument> GetSuggestedDocuments(ConversationContext conversationContext);
 
         IEnumerable<Question> GetQuestionsFromDocument(ConversationContext conversationContext, IEnumerable<SuggestedDocument> suggestedDocuments);

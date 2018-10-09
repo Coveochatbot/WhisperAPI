@@ -41,7 +41,7 @@ namespace WhisperAPI.Tests.Unit
 
         [Test]
         [TestCase]
-        public void When_receive_valid_searchresult_from_search_then_return_list_of_suggestedDocuments()
+        public void When_receive_valid_search_result_from_search_then_return_list_of_suggestedDocuments()
         {
             var intents = new List<Intent>
             {
@@ -63,7 +63,7 @@ namespace WhisperAPI.Tests.Unit
 
         [Test]
         [TestCase]
-        public void When_receive_empty_searchresult_from_search_then_return_empty_list_of_suggestedDocuments()
+        public void When_receive_empty_search_result_from_search_then_return_empty_list_of_suggestedDocuments()
         {
             var intents = new List<Intent>
             {

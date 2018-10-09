@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
@@ -80,8 +81,9 @@ namespace WhisperAPI.Tests.Unit
 
             SearchQuery query = this._invalidSearchQueryList[invalidQueryIndex];
 
-            this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(query));
-            this._suggestionController.GetSuggestions(query).Should().BeEquivalentTo(new BadRequestResult());
+            var actionContext = this.GetActionExecutingContext(query);
+            this._suggestionController.OnActionExecuting(actionContext);
+            actionContext.Result.Should().BeOfType<BadRequestObjectResult>();
         }
 
         [Test]
@@ -89,33 +91,31 @@ namespace WhisperAPI.Tests.Unit
         [TestCase(1)]
         public void When_receive_valid_searchQuery_then_return_Ok_request(int validQueryIndex)
         {
-            var documents = GetListOfDocuments();
-            var questions = GetListOfQuestions();
+            var suggestionFromService = new Suggestion
+            {
+                Questions = GetListOfQuestions().Select(QuestionToClient.FromQuestion).ToList(),
+                SuggestedDocuments = GetListOfDocuments()
+            };
 
             this._suggestionServiceMock = new Mock<ISuggestionsService>();
 
             this._suggestionServiceMock
-                .Setup(x => x.GetSuggestedDocuments(It.IsAny<ConversationContext>()))
-                .Returns(documents);
-
-            this._suggestionServiceMock
-                .Setup(x => x.GetQuestionsFromDocument(It.IsAny<ConversationContext>(), documents))
-                .Returns(questions);
+                .Setup(x => x.GetSuggestion(It.IsAny<ConversationContext>()))
+                .Returns(suggestionFromService);
 
             this._questionsServiceMock = new Mock<IQuestionsService>();
 
             this._suggestionController = new SuggestionsController(this._suggestionServiceMock.Object, this._questionsServiceMock.Object, this._contexts);
 
             var query = this._validSearchQueryList[validQueryIndex];
-
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(query));
+
             var result = this._suggestionController.GetSuggestions(query);
 
-            var questionsToClient = questions.Select(q => QuestionToClient.FromQuestion(q)).ToList();
-
             var suggestion = result.As<OkObjectResult>().Value as Suggestion;
-            suggestion.SuggestedDocuments.Should().BeEquivalentTo(documents);
-            suggestion.Questions.Should().BeEquivalentTo(questionsToClient);
+            suggestion.Should().NotBeNull();
+            suggestion?.SuggestedDocuments.Should().BeEquivalentTo(suggestionFromService.SuggestedDocuments);
+            suggestion?.Questions.Should().BeEquivalentTo(suggestionFromService.Questions);
         }
 
         [Test]
@@ -132,9 +132,9 @@ namespace WhisperAPI.Tests.Unit
 
             this._questionsServiceMock = new Mock<IQuestionsService>();
             this._suggestionController = new SuggestionsController(this._suggestionServiceMock.Object, this._questionsServiceMock.Object, this._contexts);
-
-            this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(query));
-            this._suggestionController.SelectSuggestion(query).Should().BeEquivalentTo(new BadRequestResult());
+            var actionContext = this.GetActionExecutingContext(query);
+            this._suggestionController.OnActionExecuting(actionContext);
+            actionContext.Result.Should().BeOfType<BadRequestObjectResult>();
         }
 
         [Test]
@@ -156,35 +156,38 @@ namespace WhisperAPI.Tests.Unit
             this._suggestionController.SelectSuggestion(this._validSelectQueryList[validQueryIndex]).Should().BeEquivalentTo(new OkResult());
         }
 
-        public ActionExecutingContext GetActionExecutingContext(Query query)
+        private ActionExecutingContext GetActionExecutingContext(Query query)
         {
             var actionContext = new ActionContext(
                 new Mock<HttpContext>().Object,
                 new Mock<RouteData>().Object,
                 new Mock<ActionDescriptor>().Object);
 
-            var actionExecutingContext = new Mock<ActionExecutingContext>(
-                MockBehavior.Strict,
+            var actionExecutingContext = new ActionExecutingContext(
                 actionContext,
                 new List<IFilterMetadata>(),
                 new Dictionary<string, object>(),
                 this._suggestionController);
+            actionExecutingContext.ActionArguments["query"] = query;
+            if (query != null)
+            {
+                var context = new ValidationContext(query, null, null);
+                var results = new List<ValidationResult>();
 
-            actionExecutingContext
-                .Setup(x => x.ActionArguments.Values)
-                .Returns(new[] { query });
+                if (!Validator.TryValidateObject(query, context, results, true))
+                {
+                    actionExecutingContext.ModelState.Clear();
+                    this._suggestionController.ModelState.Clear();
+                    foreach (ValidationResult result in results)
+                    {
+                        var key = result.MemberNames.FirstOrDefault() ?? string.Empty;
+                        actionExecutingContext.ModelState.AddModelError(key, result.ErrorMessage);
+                        this._suggestionController.ModelState.AddModelError(key, result.ErrorMessage);
+                    }
+                }
+            }
 
-            IActionResult result = new OkResult();
-
-            actionExecutingContext
-                .SetupSet(x => x.Result = It.IsAny<IActionResult>())
-                .Callback<IActionResult>(value => result = value);
-
-            actionExecutingContext
-                .SetupGet(x => x.Result)
-                .Returns(result);
-
-            return actionExecutingContext.Object;
+            return actionExecutingContext;
         }
 
         private static List<SuggestedDocument> GetListOfDocuments()
