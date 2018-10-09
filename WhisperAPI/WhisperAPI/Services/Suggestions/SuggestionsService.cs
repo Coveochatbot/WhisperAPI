@@ -41,6 +41,51 @@ namespace WhisperAPI.Services.Suggestions
             this._irrelevantIntents = irrelevantIntents;
         }
 
+        public Suggestion GetSuggestion(ConversationContext conversationContext)
+        {
+            var suggestion = new Suggestion();
+
+            var suggestedDocuments = this.GetSuggestedDocuments(conversationContext).ToList();
+
+            var mustHaveFacets = conversationContext.AnsweredQuestions.OfType<FacetQuestion>().Select(a => new Facet
+            {
+                Id = a.Id,
+                Name = a.FacetName,
+                Value = a.Answer
+            }).ToList();
+
+            if (mustHaveFacets.Any())
+            {
+                var parameters = new FilterDocumentsParameters
+                {
+                    Documents = suggestedDocuments.Select(d => d.Uri).ToList(),
+                    MustHaveFacets = mustHaveFacets
+                };
+
+                var documentsFiltered = this.FilterDocumentsByFacet(parameters);
+                suggestion.SuggestedDocuments = suggestedDocuments.Where(x => documentsFiltered.Any(y => y.Equals(x.Uri))).ToList();
+                suggestion.ActiveFacets = mustHaveFacets;
+            }
+            else
+            {
+                suggestion.SuggestedDocuments = suggestedDocuments;
+            }
+
+            this.UpdateContextWithNewSuggestions(conversationContext, suggestedDocuments);
+            suggestedDocuments.ForEach(x => Log.Debug($"Id: {x.Id}, Title: {x.Title}, Uri: {x.Uri}, PrintableUri: {x.PrintableUri}, Summary: {x.Summary}"));
+
+            if (suggestedDocuments.Any())
+            {
+                var questions = this.GetQuestionsFromDocument(conversationContext, suggestedDocuments).ToList();
+                suggestion.Questions = questions.Select(QuestionToClient.FromQuestion).ToList();
+
+                this.UpdateContextWithNewQuestions(conversationContext, questions);
+                questions.ForEach(x => Log.Debug($"Id: {x.Id}, Text: {x.Text}"));
+            }
+
+            return suggestion;
+        }
+
         public IEnumerable<SuggestedDocument> GetSuggestedDocuments(ConversationContext conversationContext)
         {
             var allRelevantQueries = string.Join(" ", conversationContext.SearchQueries.Where(x => x.Relevant).Select(m => m.Query));

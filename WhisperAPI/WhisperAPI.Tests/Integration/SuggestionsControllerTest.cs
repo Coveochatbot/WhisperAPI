@@ -1,10 +1,3 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -15,6 +8,14 @@ using Moq;
 using Moq.Protected;
 using Newtonsoft.Json;
 using NUnit.Framework;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
 using WhisperAPI.Controllers;
 using WhisperAPI.Models;
 using WhisperAPI.Models.NLPAPI;
@@ -26,7 +27,6 @@ using WhisperAPI.Services.Questions;
 using WhisperAPI.Services.Search;
 using WhisperAPI.Services.Suggestions;
 using WhisperAPI.Tests.Data.Builders;
-using BadRequestResult = Microsoft.AspNetCore.Mvc.BadRequestResult;
 
 namespace WhisperAPI.Tests.Integration
 {
@@ -89,11 +89,9 @@ namespace WhisperAPI.Tests.Integration
         public void When_getting_suggestions_with_null_query_then_returns_bad_request()
         {
             var searchQuery = SearchQueryBuilder.Build.WithQuery(null).Instance;
-
-            this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(searchQuery));
-            var suggestions = this._suggestionController.GetSuggestions(searchQuery);
-
-            suggestions.Should().BeEquivalentTo(new BadRequestResult());
+            var actionContext = this.GetActionExecutingContext(searchQuery);
+            this._suggestionController.OnActionExecuting(actionContext);
+            actionContext.Result.Should().BeOfType<BadRequestObjectResult>();
         }
 
         [Test]
@@ -284,10 +282,11 @@ namespace WhisperAPI.Tests.Integration
             var lastSuggestion = (Suggestion) resultLastSuggestions.As<OkObjectResult>().Value;
             lastSuggestion.SuggestedDocuments.Should().BeEquivalentTo(suggestion.SuggestedDocuments);
             lastSuggestion.Questions.Should().BeEquivalentTo(suggestion.Questions);
+            lastSuggestion.ActiveFacets.Should().BeEquivalentTo(suggestion.ActiveFacets);
         }
 
         [Test]
-        public void When_getting_suggestions_and_agent_click_on_question_and_agent_asks_question_to_custommer_then_question_is_filter_out()
+        public void When_getting_suggestions_and_agent_click_on_question_and_agent_asks_question_to_customer_then_question_is_filter_out_then_facet_is_clear()
         {
             // Customer says: I need help with CoveoSearch API
             var searchQuery = SearchQueryBuilder.Build
@@ -298,6 +297,8 @@ namespace WhisperAPI.Tests.Integration
             this.NlpCallHttpMessageHandleMock(HttpStatusCode.OK, new StringContent(JsonConvert.SerializeObject(this.GetRelevantNlpAnalysis())));
             this.IndexSearchHttpMessageHandleMock(HttpStatusCode.OK, this.GetSearchResultStringContent());
             this.DocumentFacetsHttpMessageHandleMock(HttpStatusCode.OK, new StringContent(JsonConvert.SerializeObject(questions)));
+            this.FilterDocumentHttpMessageHandleMock(HttpStatusCode.OK, new StringContent(JsonConvert.SerializeObject(GetSuggestedDocuments().Select(x => x.Id))));
+
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(searchQuery));
             var result = this._suggestionController.GetSuggestions(searchQuery);
 
@@ -321,6 +322,25 @@ namespace WhisperAPI.Tests.Integration
             suggestion.SuggestedDocuments.Should().BeEquivalentTo(GetSuggestedDocuments());
             suggestion.Questions.Count.Should().Be(1);
             suggestion.Questions.Single().Should().BeEquivalentTo(questionsToClient[1]);
+
+            // Client respond to the answer
+            var answerFromClient = (questions[0] as FacetQuestion)?.FacetValues.FirstOrDefault();
+            searchQuery.Type = SearchQuery.MessageType.Customer;
+            searchQuery.Query = answerFromClient;
+            result = this._suggestionController.GetSuggestions(searchQuery);
+            suggestion = result.As<OkObjectResult>().Value as Suggestion;
+
+            // The return list from facet is the same list than the complete list so it should filtered everything
+            suggestion.SuggestedDocuments.Should().BeEmpty();
+            suggestion.ActiveFacets.Should().HaveCount(1);
+            suggestion.ActiveFacets[0].Value = answerFromClient;
+
+            // Agent clear the facet
+            result = this._suggestionController.RemoveFacet(suggestion.ActiveFacets[0].Id, searchQuery);
+            suggestion = result.As<OkObjectResult>().Value as Suggestion;
+            suggestion.Should().NotBeNull();
+            suggestion?.ActiveFacets.Should().BeNull();
+            suggestion?.SuggestedDocuments.Should().BeEquivalentTo(GetSuggestedDocuments());
         }
 
         private static List<SuggestedDocument> GetSuggestedDocuments()
@@ -404,6 +424,17 @@ namespace WhisperAPI.Tests.Integration
                 }));
         }
 
+        private void FilterDocumentHttpMessageHandleMock(HttpStatusCode statusCode, HttpContent content)
+        {
+            this._filterDocumentsHttpMessageHandleMock.Protected()
+                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
+                .Returns(Task.FromResult(new HttpResponseMessage
+                {
+                    StatusCode = statusCode,
+                    Content = content
+                }));
+        }
+
         private ActionExecutingContext GetActionExecutingContext(Query query)
         {
             var actionContext = new ActionContext(
@@ -411,28 +442,31 @@ namespace WhisperAPI.Tests.Integration
                 new Mock<RouteData>().Object,
                 new Mock<ActionDescriptor>().Object);
 
-            var actionExecutingContext = new Mock<ActionExecutingContext>(
-                MockBehavior.Strict,
+            var actionExecutingContext = new ActionExecutingContext(
                 actionContext,
                 new List<IFilterMetadata>(),
                 new Dictionary<string, object>(),
                 this._suggestionController);
+            actionExecutingContext.ActionArguments["query"] = query;
+            if (query != null)
+            {
+                var context = new ValidationContext(query, null, null);
+                var results = new List<ValidationResult>();
 
-            actionExecutingContext
-                .Setup(x => x.ActionArguments.Values)
-                .Returns(new[] { query });
+                if (!Validator.TryValidateObject(query, context, results, true))
+                {
+                    actionExecutingContext.ModelState.Clear();
+                    this._suggestionController.ModelState.Clear();
+                    foreach (ValidationResult result in results)
+                    {
+                        string key = result.MemberNames.FirstOrDefault() ?? string.Empty;
+                        actionExecutingContext.ModelState.AddModelError(key, result.ErrorMessage);
+                        this._suggestionController.ModelState.AddModelError(key, result.ErrorMessage);
+                    }
+                }
+            }
 
-            IActionResult result = new OkResult();
-
-            actionExecutingContext
-                .SetupSet(x => x.Result = It.IsAny<IActionResult>())
-                .Callback<IActionResult>(value => result = value);
-
-            actionExecutingContext
-                .SetupGet(x => x.Result)
-                .Returns(result);
-
-            return actionExecutingContext.Object;
+            return actionExecutingContext;
         }
 
         private NlpAnalysis GetRelevantNlpAnalysis()
