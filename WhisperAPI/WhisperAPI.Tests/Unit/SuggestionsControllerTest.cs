@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
@@ -132,10 +133,11 @@ namespace WhisperAPI.Tests.Unit
 
             this._questionsServiceMock = new Mock<IQuestionsService>();
             this._suggestionController = new SuggestionsController(this._suggestionServiceMock.Object, this._questionsServiceMock.Object, this._contexts);
-
-            this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(query));
-            this._suggestionController.SelectSuggestion(query).Should().BeEquivalentTo(new BadRequestResult());
+            var actionContext = this.GetActionExecutingContext(query);
+            this._suggestionController.OnActionExecuting(actionContext);
+            actionContext.Result.Should().BeOfType<BadRequestObjectResult>();
         }
+
 
         [Test]
         [TestCase(0)]
@@ -163,28 +165,31 @@ namespace WhisperAPI.Tests.Unit
                 new Mock<RouteData>().Object,
                 new Mock<ActionDescriptor>().Object);
 
-            var actionExecutingContext = new Mock<ActionExecutingContext>(
-                MockBehavior.Strict,
+            var actionExecutingContext = new ActionExecutingContext(
                 actionContext,
                 new List<IFilterMetadata>(),
                 new Dictionary<string, object>(),
                 this._suggestionController);
+            actionExecutingContext.ActionArguments["query"] = query;
+            if (query != null)
+            {
+                var context = new ValidationContext(query, null, null);
+                var results = new List<ValidationResult>();
 
-            actionExecutingContext
-                .Setup(x => x.ActionArguments.Values)
-                .Returns(new[] { query });
+                if (!Validator.TryValidateObject(query, context, results, true))
+                {
+                    actionExecutingContext.ModelState.Clear();
+                    this._suggestionController.ModelState.Clear();
+                    foreach (ValidationResult result in results)
+                    {
+                        var key = result.MemberNames.FirstOrDefault() ?? string.Empty;
+                        actionExecutingContext.ModelState.AddModelError(key, result.ErrorMessage);
+                        this._suggestionController.ModelState.AddModelError(key, result.ErrorMessage);
+                    }
+                }
+            }
 
-            IActionResult result = new OkResult();
-
-            actionExecutingContext
-                .SetupSet(x => x.Result = It.IsAny<IActionResult>())
-                .Callback<IActionResult>(value => result = value);
-
-            actionExecutingContext
-                .SetupGet(x => x.Result)
-                .Returns(result);
-
-            return actionExecutingContext.Object;
+            return actionExecutingContext;
         }
 
         private static List<SuggestedDocument> GetListOfDocuments()
