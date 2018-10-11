@@ -33,7 +33,7 @@ namespace WhisperAPI.Tests.Unit
             Assert.IsFalse(this._questionsService.DetectAnswer(null, agentQuery));
         }
 
-        [TestCase]
+        [Test]
         public void When_receive_custommer_message_with_answer_to_pending_question_then_answer_detected()
         {
             var pendingQuestion = FacetQuestionBuilder.Build.WithStatus(Models.QuestionStatus.AnswerPending).WithFacetName("Dummy").WithFacetValues("A", "B").Instance;
@@ -44,15 +44,30 @@ namespace WhisperAPI.Tests.Unit
             Assert.AreEqual("A", ((FacetQuestion)this._conversationContext.AnsweredQuestions.Single()).Answer);
         }
 
-        [TestCase]
-        public void When_receive_question_that_was_clicked_in_message_then_detect_question_and_set_to_pending_question()
+        [TestCase(true, "My question is: Is year 2018 ?", "Year", new string[] { "2018", "2017" })]
+        [TestCase(true, "My question is: Is it Asparagus or Brocoli ?", "Dummy", new string[] { "Asparagus", "Brocoli" })]
+        [TestCase(true, "My question is: Is it Asparagus or Brocoli ?", "Dummy", new string[] { "asparagus", "brocoli" })]
+        [TestCase(true, "My question is: Is Dummy Asparagus or Brocoli ?", "Dummy", new string[] { "Asparagus", "Cantelope" })]
+        [TestCase(false, "My question is: Is it A or B ?", "Dummy", new string[] { "C", "D" })]
+        [TestCase(false, "My question is: Is Dummy Asparagus or Brocoli ?", "Dummy", new string[] { "Cantelope", "Databurger" })]
+        [TestCase(false, "My question is: Is it A or B ?", "Dummy", new string[] { "A", "C" })]
+        [TestCase(false, "My cat is stuck in a tree.", "Dummy", new string[] { "Asparagus", "Cantelope" })]
+        public void When_receive_question_that_was_clicked_in_message_then_detect_question_and_set_to_pending_question(bool shouldDetect, string agentMessage, string facetName, string[] facetValues)
         {
-            var clickedQuestion = FacetQuestionBuilder.Build.WithStatus(QuestionStatus.Clicked).WithFacetName("Dummy").WithFacetValues("A", "B").Instance;
-            this._conversationContext.Questions.Add(clickedQuestion);
-            var questionAsked = SearchQueryBuilder.Build.WithMessageType(MessageType.Agent).WithQuery(clickedQuestion.Text).Instance;
+            var clickedQuestion = FacetQuestionBuilder.Build
+                .WithStatus(QuestionStatus.Clicked)
+                .WithFacetName(facetName)
+                .WithFacetValues(facetValues)
+                .Instance;
 
-            Assert.IsTrue(this._questionsService.DetectQuestionAsked(this._conversationContext, questionAsked));
-            Assert.IsTrue(clickedQuestion.Status == QuestionStatus.AnswerPending);
+            this._conversationContext.Questions.Add(clickedQuestion);
+            var questionAsked = SearchQueryBuilder.Build
+                .WithMessageType(MessageType.Agent)
+                .WithQuery(agentMessage)
+                .Instance;
+
+            Assert.AreEqual(shouldDetect, this._questionsService.DetectQuestionAsked(this._conversationContext, questionAsked));
+            Assert.AreEqual(shouldDetect, clickedQuestion.Status == QuestionStatus.AnswerPending);
         }
 
         [TestCase]
@@ -61,6 +76,7 @@ namespace WhisperAPI.Tests.Unit
             var questionToRejected = FacetQuestionBuilder.Build.WithStatus(QuestionStatus.Answered).WithFacetName("Dummy").WithFacetValues("A", "B").Instance;
             this._conversationContext.Questions.Add(questionToRejected);
             Assert.IsTrue(this._questionsService.RejectAnswer(this._conversationContext, questionToRejected.Id));
+            Assert.AreEqual(QuestionStatus.Rejected, questionToRejected.Status);
         }
     }
 }

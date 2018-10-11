@@ -1,3 +1,11 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -8,14 +16,6 @@ using Moq;
 using Moq.Protected;
 using Newtonsoft.Json;
 using NUnit.Framework;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
 using WhisperAPI.Controllers;
 using WhisperAPI.Models;
 using WhisperAPI.Models.NLPAPI;
@@ -279,7 +279,7 @@ namespace WhisperAPI.Tests.Integration
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(queryChatkeyRefresh));
             var resultLastSuggestions = this._suggestionController.GetSuggestions(queryChatkeyRefresh);
 
-            var lastSuggestion = (Suggestion) resultLastSuggestions.As<OkObjectResult>().Value;
+            var lastSuggestion = (Suggestion)resultLastSuggestions.As<OkObjectResult>().Value;
             lastSuggestion.SuggestedDocuments.Should().BeEquivalentTo(suggestion.SuggestedDocuments);
             lastSuggestion.Questions.Should().BeEquivalentTo(suggestion.Questions);
             lastSuggestion.ActiveFacets.Should().BeEquivalentTo(suggestion.ActiveFacets);

@@ -18,11 +18,10 @@ namespace WhisperAPI.Services.Questions
                 return false;
             }
 
-
             bool detectedAskedQuestion = false;
             foreach (var clickedQuestion in context.ClickedQuestions)
             {
-                if (clickedQuestion.Text.Contains(message.Query))
+                if (this.DidAgentAskQuestion(message.Query, clickedQuestion))
                 {
                     clickedQuestion.Status = QuestionStatus.AnswerPending;
                     detectedAskedQuestion = true;
@@ -74,7 +73,13 @@ namespace WhisperAPI.Services.Questions
                 question.Status = QuestionStatus.Rejected;
                 return true;
             }
+
             return false;
+        }
+
+        private static string StringWithoutSpaceAndOnlyWithAlphanumericCharacters(string s)
+        {
+            return new string(s.Where(c => char.IsLetterOrDigit(c)).ToArray());
         }
 
         private bool Answered(Question pendingQuestion, string messageText)
@@ -109,6 +114,39 @@ namespace WhisperAPI.Services.Questions
         {
             question.Status = QuestionStatus.Answered;
             question.Answer = question.FacetValues.FirstOrDefault(facet => messageText.Contains(facet));
+        }
+
+        private bool DidAgentAskQuestion(string agentMessage, Question clickedQuestion)
+        {
+            switch (clickedQuestion)
+            {
+                case FacetQuestion clickedFacetQuestion:
+                    return this.DidAgentAskQuestion(agentMessage, clickedFacetQuestion);
+            }
+
+            throw new NotSupportedException("Question type not supported");
+        }
+
+        private bool DidAgentAskQuestion(string agentMessage, FacetQuestion clickedFacetQuestion)
+        {
+            var simplifiedAgentMessage = StringWithoutSpaceAndOnlyWithAlphanumericCharacters(agentMessage);
+
+            int matchesFound = 0;
+
+            if (simplifiedAgentMessage.Contains(StringWithoutSpaceAndOnlyWithAlphanumericCharacters(clickedFacetQuestion.FacetName), StringComparison.InvariantCultureIgnoreCase))
+            {
+                matchesFound++;
+            }
+
+            foreach (var facetValue in clickedFacetQuestion.FacetValues)
+            {
+                if (simplifiedAgentMessage.Contains(StringWithoutSpaceAndOnlyWithAlphanumericCharacters(facetValue), StringComparison.InvariantCultureIgnoreCase))
+                {
+                    matchesFound++;
+                }
+            }
+
+            return matchesFound >= 2;
         }
     }
 }
