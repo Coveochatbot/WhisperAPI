@@ -24,8 +24,8 @@ namespace WhisperAPI.Tests.Data.Builders
         {
             FacetName = this._facetName,
             FacetValues = this._facetValues,
-            Answer = _answer,
-            Status = _status,
+            Answer = this._answer,
+            Status = this._status,
             Id = this._id,
         };
 
