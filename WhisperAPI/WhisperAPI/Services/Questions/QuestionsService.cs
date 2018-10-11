@@ -59,7 +59,7 @@ namespace WhisperAPI.Services.Questions
                 return;
             }
 
-            foreach (var contextQuestion in context.Questions)
+            foreach (var contextQuestion in context.AnsweredQuestions)
             {
                 this.RejectAnswer(context, contextQuestion.Id);
             }
