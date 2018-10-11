@@ -33,7 +33,13 @@ namespace WhisperAPI.Controllers
         {
             this._suggestionsService.UpdateContextWithNewQuery(this.ConversationContext, searchQuery);
             this._questionsService.DetectAnswer(this.ConversationContext, searchQuery);
-            this._questionsService.DetectQuestionAsked(this.ConversationContext, searchQuery);
+            bool questionAskedDetected = this._questionsService.DetectQuestionAsked(this.ConversationContext, searchQuery);
+
+            if (questionAskedDetected)
+            {
+                searchQuery.Relevant = false;
+            }
+
             var suggestion = this._suggestionsService.GetSuggestion(this.ConversationContext);
             return this.Ok(suggestion);
         }
