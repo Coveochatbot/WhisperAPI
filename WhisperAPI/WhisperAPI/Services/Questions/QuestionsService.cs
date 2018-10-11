@@ -95,7 +95,8 @@ namespace WhisperAPI.Services.Questions
 
         private bool Answered(FacetQuestion pendingQuestion, string messageText)
         {
-            return pendingQuestion.FacetValues.Any(facet => messageText.Contains(facet));
+            var simplifiedMessageText = StringWithoutSpaceAndOnlyWithAlphanumericCharacters(messageText);
+            return pendingQuestion.FacetValues.Any(facet => simplifiedMessageText.Contains(StringWithoutSpaceAndOnlyWithAlphanumericCharacters(facet), StringComparison.InvariantCultureIgnoreCase));
         }
 
         private void UpdateQuestionWithAnswer(Question question, string messageText)
@@ -112,8 +113,9 @@ namespace WhisperAPI.Services.Questions
 
         private void UpdateQuestionWithAnswer(FacetQuestion question, string messageText)
         {
+            var simplifiedMessageText = StringWithoutSpaceAndOnlyWithAlphanumericCharacters(messageText);
             question.Status = QuestionStatus.Answered;
-            question.Answer = question.FacetValues.FirstOrDefault(facet => messageText.Contains(facet));
+            question.Answer = question.FacetValues.FirstOrDefault(facet => simplifiedMessageText.Contains(StringWithoutSpaceAndOnlyWithAlphanumericCharacters(facet), StringComparison.InvariantCultureIgnoreCase));
         }
 
         private bool DidAgentAskQuestion(string agentMessage, Question clickedQuestion)
