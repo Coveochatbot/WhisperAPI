@@ -1,4 +1,4 @@
-﻿namespace WhisperAPI.Models
+﻿namespace WhisperAPI.Models.Search
 {
     public interface ISearchResultElement
     {
@@ -11,5 +11,7 @@
         string Summary { get; set; }
 
         int Score { get; set; }
+
+        string Excerpt { get; set; }
     }
 }

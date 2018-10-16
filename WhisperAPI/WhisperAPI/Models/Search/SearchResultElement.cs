@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace WhisperAPI.Models
+namespace WhisperAPI.Models.Search
 {
     public class SearchResultElement : ISearchResultElement
     {
@@ -18,5 +18,8 @@ namespace WhisperAPI.Models
 
         [JsonProperty("score")]
         public int Score { get; set; }
+
+        [JsonProperty("excerpt")]
+        public string Excerpt { get; set; }
     }
 }

@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using FluentAssertions;
-using Microsoft.EntityFrameworkCore;
 using NUnit.Framework;
 using WhisperAPI.Models;
-using WhisperAPI.Services;
+using WhisperAPI.Models.Queries;
+using WhisperAPI.Services.Context;
 
 namespace WhisperAPI.Tests.Unit
 {
@@ -85,7 +85,6 @@ namespace WhisperAPI.Tests.Unit
         [TestCase("0f8fad5b-d9cb-469f-a165-708677289501")]
         public void When_adding_received_message_to_context_messages_concats_and_persists(string chatkey)
         {
-
             ConversationContext conversationcontext = this._contexts[new Guid(chatkey)];
             conversationcontext.SearchQueries.Add(this.GetSearchQuery("rest api", chatkey));
 

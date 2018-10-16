@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Newtonsoft.Json;
 using WhisperAPI.Models;
-using WhisperAPI.Services;
+using WhisperAPI.Models.Queries;
+using WhisperAPI.Services.Context;
 
 namespace WhisperAPI.Controllers
 {
@@ -21,20 +23,19 @@ namespace WhisperAPI.Controllers
 
         public override void OnActionExecuting(ActionExecutingContext actionExecutingContext)
         {
-            var searchQuery = (SearchQuery)actionExecutingContext.ActionArguments["searchQuery"];
+            Query query = actionExecutingContext.ActionArguments.Values.OfType<Query>().FirstOrDefault();
 
             log4net.ThreadContext.Properties["requestId"] = Guid.NewGuid();
-            if (!this.ModelState.IsValid)
+            if (!this.ModelState.IsValid || query == null)
             {
                 actionExecutingContext.Result = this.BadRequest(this.ModelState);
-                Log.Error($"Search query:\r\n{JsonConvert.SerializeObject(searchQuery, Formatting.Indented)}");
+                Log.Error($"Search query:\r\n{JsonConvert.SerializeObject(query, Formatting.Indented)}");
                 return;
             }
 
-            Log.Debug($"Search query:\r\n {JsonConvert.SerializeObject(searchQuery, Formatting.Indented)}");
-            Guid chatKey = searchQuery.ChatKey.Value;
+            Log.Debug($"Search query:\r\n {JsonConvert.SerializeObject(query, Formatting.Indented)}");
+            Guid chatKey = query.ChatKey.Value;
             this.ConversationContext = this._contexts[chatKey];
-
             base.OnActionExecuting(actionExecutingContext);
         }
     }

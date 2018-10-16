@@ -1,4 +1,4 @@
-FROM microsoft/aspnetcore-build:2.0 AS build-env
+FROM microsoft/dotnet:2.1-sdk AS build-env
 WORKDIR /app
 
 # Copy csproj and restore as distinct layers
@@ -10,7 +10,7 @@ COPY . ./
 RUN dotnet publish -c Release -o out WhisperAPI/WhisperAPI.csproj
 
 # Build runtime image
-FROM microsoft/aspnetcore:2.0
+FROM microsoft/dotnet:2.1.4-aspnetcore-runtime
 WORKDIR /app
 COPY --from=build-env /app/WhisperAPI/out .
 EXPOSE 80

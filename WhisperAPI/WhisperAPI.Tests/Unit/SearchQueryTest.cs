@@ -4,7 +4,7 @@ using System.Linq;
 using FluentAssertions;
 using Newtonsoft.Json;
 using NUnit.Framework;
-using WhisperAPI.Models;
+using WhisperAPI.Models.Queries;
 using ValidationContext = System.ComponentModel.DataAnnotations.ValidationContext;
 
 namespace WhisperAPI.Tests.Unit

@@ -8,7 +8,7 @@ using Moq.Protected;
 using Newtonsoft.Json;
 using NUnit.Framework;
 using WhisperAPI.Models.NLPAPI;
-using WhisperAPI.Services;
+using WhisperAPI.Services.NLPAPI;
 using WhisperAPI.Tests.Data.Builders;
 
 namespace WhisperAPI.Tests.Unit
@@ -33,14 +33,14 @@ namespace WhisperAPI.Tests.Unit
         {
             var intents = new List<Intent>
             {
-                new IntentBuilder().WithName("Need Help").Build()
+                IntentBuilder.Build.WithName("Need Help").Instance
             };
 
-            var nlpAnalysis = new NlpAnalysisBuilder().WithIntents(intents).Build();
-            const string baseAdress = "http://localhost:5000";
+            var nlpAnalysis = NlpAnalysisBuilder.Build.WithIntents(intents).Instance;
+            const string baseAddress = "http://localhost:5000";
 
             this._httpClient = new HttpClient(this._httpMessageHandlerMock.Object);
-            this._nlpCall = new NlpCall(this._httpClient, baseAdress);
+            this._nlpCall = new NlpCall(this._httpClient, baseAddress);
 
             this._httpMessageHandlerMock.Protected()
                 .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
@@ -60,10 +60,10 @@ namespace WhisperAPI.Tests.Unit
         [TestCase("Test")]
         public void When_receive_not_found_response_from_post_then_throws_exception(string sentence)
         {
-            const string baseAdress = "http://localhost:5000";
+            const string baseAddress = "http://localhost:5000";
 
             this._httpClient = new HttpClient(this._httpMessageHandlerMock.Object);
-            this._nlpCall = new NlpCall(this._httpClient, baseAdress);
+            this._nlpCall = new NlpCall(this._httpClient, baseAddress);
 
             this._httpMessageHandlerMock.Protected()
                 .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
@@ -80,10 +80,10 @@ namespace WhisperAPI.Tests.Unit
         [TestCase("Test")]
         public void When_receive_InternalServerError_response_from_post_then_throws_exception(string sentence)
         {
-            const string baseAdress = "http://localhost:5000";
+            const string baseAddress = "http://localhost:5000";
 
             this._httpClient = new HttpClient(this._httpMessageHandlerMock.Object);
-            this._nlpCall = new NlpCall(this._httpClient, baseAdress);
+            this._nlpCall = new NlpCall(this._httpClient, baseAddress);
 
             this._httpMessageHandlerMock.Protected()
                 .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
@@ -100,10 +100,10 @@ namespace WhisperAPI.Tests.Unit
         [TestCase("Test")]
         public void When_receive_ok_response_with_empty_content_from_post_then_returns_null(string sentence)
         {
-            const string baseAdress = "http://localhost:5000";
+            const string baseAddress = "http://localhost:5000";
 
             this._httpClient = new HttpClient(this._httpMessageHandlerMock.Object);
-            this._nlpCall = new NlpCall(this._httpClient, baseAdress);
+            this._nlpCall = new NlpCall(this._httpClient, baseAddress);
 
             this._httpMessageHandlerMock.Protected()
                 .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
