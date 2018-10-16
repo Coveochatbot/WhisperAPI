@@ -95,7 +95,7 @@ namespace WhisperAPI.Services.Suggestions
                 return new List<SuggestedDocument>();
             }
 
-            var coveoIndexDocuments = this.SearchCoveoIndex(allRelevantQueries);
+            var coveoIndexDocuments = this.SearchCoveoIndex(allRelevantQueries, conversationContext.SuggestedDocuments.ToList());
 
             return this.FilterOutChosenSuggestions(coveoIndexDocuments, conversationContext.SearchQueries);
         }
@@ -198,7 +198,7 @@ namespace WhisperAPI.Services.Suggestions
             return questions.Where(x => !questionsText.Any(y => y.Contains(x.Text)));
         }
 
-        private IEnumerable<SuggestedDocument> SearchCoveoIndex(string query)
+        private IEnumerable<SuggestedDocument> SearchCoveoIndex(string query, List<SuggestedDocument> suggestedDocuments)
         {
             ISearchResult searchResult = this._indexSearch.Search(query);
             var documents = new List<SuggestedDocument>();
@@ -219,7 +219,8 @@ namespace WhisperAPI.Services.Suggestions
             {
                 if (this.IsElementValid(result))
                 {
-                    documents.Add(new SuggestedDocument(result));
+                    SuggestedDocument suggestedDocument = suggestedDocuments.Find(x => x.Uri == result.Uri) ?? new SuggestedDocument(result);
+                    documents.Add(suggestedDocument);
                 }
             }
 
