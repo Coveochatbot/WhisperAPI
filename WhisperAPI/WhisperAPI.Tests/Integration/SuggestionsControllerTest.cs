@@ -314,8 +314,10 @@ namespace WhisperAPI.Tests.Integration
             this._suggestionController.SelectSuggestion(selectQuery);
 
             // Agent asks the question he clicked to the custommer
-            searchQuery.Type = SearchQuery.MessageType.Agent;
-            searchQuery.Query = questions[0].Text;
+            searchQuery = SearchQueryBuilder.Build
+                .WithMessageType(SearchQuery.MessageType.Agent)
+            .WithQuery(questions[0].Text)
+            .Instance;
             result = this._suggestionController.GetSuggestions(searchQuery);
             suggestion = result.As<OkObjectResult>().Value as Suggestion;
 
