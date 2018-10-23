@@ -62,14 +62,12 @@ namespace WhisperAPI.Services.Suggestions
                     MustHaveFacets = mustHaveFacets
                 };
 
-                var documentsFiltered = this.FilterDocumentsByFacet(parameters);
-                suggestion.SuggestedDocuments = suggestedDocuments.Where(x => documentsFiltered.Any(y => y.Equals(x.Uri))).ToList();
+                var documentsFilteredHashSet = new HashSet<string>(this.FilterDocumentsByFacet(parameters));
+                suggestedDocuments = suggestedDocuments.Where(d => documentsFilteredHashSet.Contains(d.Uri)).ToList();
                 suggestion.ActiveFacets = mustHaveFacets;
             }
-            else
-            {
-                suggestion.SuggestedDocuments = suggestedDocuments;
-            }
+
+            suggestion.SuggestedDocuments = suggestedDocuments;
 
             this.UpdateContextWithNewSuggestions(conversationContext, suggestedDocuments);
             suggestedDocuments.ForEach(x => Log.Debug($"Id: {x.Id}, Title: {x.Title}, Uri: {x.Uri}, PrintableUri: {x.PrintableUri}, Summary: {x.Summary}"));
