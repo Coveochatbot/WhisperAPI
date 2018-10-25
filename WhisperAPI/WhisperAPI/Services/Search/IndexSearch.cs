@@ -12,11 +12,13 @@ namespace WhisperAPI.Services.Search
 
         private readonly string _searchEndPoint = "rest/search/v2";
         private readonly string _apiKey;
+        private readonly int _numberOfResults;
         private readonly HttpClient _httpClient;
 
-        public IndexSearch(string apiKey, HttpClient client, string searchBaseAddress)
+        public IndexSearch(string apiKey, int numberOfResults, HttpClient client, string searchBaseAddress)
         {
             this._apiKey = apiKey;
+            this._numberOfResults = numberOfResults;
             this._httpClient = client;
             this.InitHttpClient(searchBaseAddress);
         }
@@ -39,7 +41,7 @@ namespace WhisperAPI.Services.Search
             var searchParameters = new SearchParameters
             {
                 Lq = query,
-                NumberOfResults = 50
+                NumberOfResults = this._numberOfResults
             };
 
             var json = JsonConvert.SerializeObject(searchParameters);

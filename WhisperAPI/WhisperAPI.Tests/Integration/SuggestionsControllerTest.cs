@@ -34,6 +34,7 @@ namespace WhisperAPI.Tests.Integration
     public class SuggestionsControllerTest
     {
         private SuggestionsController _suggestionController;
+        private int _numberOfResults = 1000;
 
         private Mock<HttpMessageHandler> _indexSearchHttpMessageHandleMock;
         private Mock<HttpMessageHandler> _nlpCallHttpMessageHandleMock;
@@ -53,7 +54,7 @@ namespace WhisperAPI.Tests.Integration
             var documentFacetHttpClient = new HttpClient(this._documentFacetsHttpMessageHandleMock.Object);
             var filterDocumentHttpClient = new HttpClient(this._filterDocumentsHttpMessageHandleMock.Object);
 
-            var indexSearch = new IndexSearch(null, indexSearchHttpClient, "https://localhost:5000");
+            var indexSearch = new IndexSearch(null, this._numberOfResults, indexSearchHttpClient, "https://localhost:5000");
             var nlpCall = new NlpCall(nlpCallHttpClient, "https://localhost:5000");
             var documentFacets = new DocumentFacets(documentFacetHttpClient, "https://localhost:5000");
             var filterDocuments = new FilterDocuments(filterDocumentHttpClient, "https://localhost:5000");
