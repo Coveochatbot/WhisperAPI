@@ -101,6 +101,7 @@ namespace WhisperAPI
             services.AddTransient<IIndexSearch>(
                 x => new IndexSearch(
                     applicationSettings.ApiKey,
+                    applicationSettings.NumberOfResults,
                     x.GetService<HttpClient>(),
                     applicationSettings.SearchBaseAddress));
 
