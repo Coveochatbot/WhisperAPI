@@ -248,7 +248,7 @@ namespace WhisperAPI.Tests.Integration
         [Test]
         public void When_getting_suggestions_with_more_attribute_then_required_then_returns_correctly()
         {
-            var jsonSearchQuery = "{\"chatkey\": \"aecaa8db-abc8-4ac9-aa8d-87987da2dbb0\",\"Query\": \"Need help with CoveoSearch API\",\"Type\": 1,\"command\": \"sudo ls\"}";
+            var jsonSearchQuery = "{\"chatkey\": \"aecaa8db-abc8-4ac9-aa8d-87987da2dbb0\",\"Query\": \"Need help with CoveoSearch API\",\"Type\": 1,\"command\": \"sudo ls\",\"maxDocuments\": \"10\",\"maxQuestions\": \"10\" }";
             var questions = GetQuestions();
 
             this.NlpCallHttpMessageHandleMock(HttpStatusCode.OK, new StringContent(JsonConvert.SerializeObject(this.GetRelevantNlpAnalysis())));
