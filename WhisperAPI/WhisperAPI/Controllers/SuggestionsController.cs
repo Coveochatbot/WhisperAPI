@@ -57,8 +57,8 @@ namespace WhisperAPI.Controllers
 
             var suggestion = new Suggestion()
             {
-                SuggestedDocuments = this.ConversationContext.LastSuggestedDocuments,
-                Questions = this.ConversationContext.LastSuggestedQuestions.Select(QuestionToClient.FromQuestion).ToList(),
+                SuggestedDocuments = this.ConversationContext.LastSuggestedDocuments.Take(query.MaxDocuments).ToList(),
+                Questions = this.ConversationContext.LastSuggestedQuestions.Select(QuestionToClient.FromQuestion).Take(query.MaxDocuments).ToList(),
                 ActiveFacets = mustHaveFacets
             };
 
