@@ -50,6 +50,7 @@ namespace WhisperAPI.Controllers
             var suggestion = this._suggestionsService.GetLastSuggestion(this.ConversationContext, query);
 
             LogSuggestion(suggestion);
+
             return this.Ok(suggestion);
         }
 
