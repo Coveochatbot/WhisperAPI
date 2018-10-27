@@ -101,7 +101,11 @@ namespace WhisperAPI.Tests.Unit
             var query = this._validSearchQueryList[validQueryIndex];
 
             this._suggestionServiceMock
+<<<<<<< HEAD
                 .Setup(x => x.GetNewSuggestion(It.IsAny<ConversationContext>(), query))
+=======
+                .Setup(x => x.GetSuggestion(It.IsAny<ConversationContext>(), query))
+>>>>>>> Functionality added, need to comply to old test + make new ones
                 .Returns(suggestionFromService);
 
             this._questionsServiceMock = new Mock<IQuestionsService>();

@@ -8,7 +8,11 @@ namespace WhisperAPI.Services.Suggestions
 {
     public interface ISuggestionsService
     {
+<<<<<<< HEAD
         Suggestion GetNewSuggestion(ConversationContext conversationContext, Query query);
+=======
+        Suggestion GetSuggestion(ConversationContext conversationContext, Query query);
+>>>>>>> Functionality added, need to comply to old test + make new ones
 
         Suggestion GetLastSuggestion(ConversationContext conversationContext, Query query);
 

@@ -41,10 +41,48 @@ namespace WhisperAPI.Services.Suggestions
             this._irrelevantIntents = irrelevantIntents;
         }
 
+<<<<<<< HEAD
         public Suggestion GetNewSuggestion(ConversationContext conversationContext, Query query)
         {
             var suggestedDocuments = this.GetDocumentsFromCoveo(conversationContext).ToList();
             return this.GetSuggestion(conversationContext, suggestedDocuments, query);
+=======
+        public Suggestion GetSuggestion(ConversationContext conversationContext, Query query)
+        {
+            var suggestion = new Suggestion();
+
+            var suggestedDocuments = this.GetSuggestedDocuments(conversationContext).ToList();
+            conversationContext.LastNotFilteredSuggestedDocuments = suggestedDocuments;
+
+            var mustHaveFacets = conversationContext.AnsweredQuestions.OfType<FacetQuestion>().Select(a => new Facet
+            {
+                Id = a.Id,
+                Name = a.FacetName,
+                Value = a.Answer
+            }).ToList();
+
+            if (mustHaveFacets.Any())
+            {
+                suggestedDocuments = this.FilterDocumentsByFacet(conversationContext, mustHaveFacets);
+                suggestion.ActiveFacets = mustHaveFacets;
+            }
+
+            suggestion.SuggestedDocuments = suggestedDocuments.Take(query.MaxDocuments).ToList();
+
+            this.UpdateContextWithNewSuggestions(conversationContext, suggestedDocuments);
+            suggestedDocuments.ForEach(x => Log.Debug($"Id: {x.Id}, Title: {x.Title}, Uri: {x.Uri}, PrintableUri: {x.PrintableUri}, Summary: {x.Summary}"));
+
+            if (suggestedDocuments.Any())
+            {
+                var questions = this.GetQuestionsFromDocument(conversationContext, suggestedDocuments).ToList();
+                suggestion.Questions = questions.Select(QuestionToClient.FromQuestion).Take(query.MaxQuestions).ToList();
+
+                this.UpdateContextWithNewQuestions(conversationContext, questions);
+                questions.ForEach(x => Log.Debug($"Id: {x.Id}, Text: {x.Text}"));
+            }
+
+            return suggestion;
+>>>>>>> Functionality added, need to comply to old test + make new ones
         }
 
         public Suggestion GetLastSuggestion(ConversationContext conversationContext, Query query)
