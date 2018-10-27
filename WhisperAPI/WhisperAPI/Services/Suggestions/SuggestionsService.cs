@@ -84,6 +84,25 @@ namespace WhisperAPI.Services.Suggestions
             return suggestion;
         }
 
+        public Suggestion GetLastSuggestions(ConversationContext conversationContext)
+        {
+            var mustHaveFacets = conversationContext.AnsweredQuestions.OfType<FacetQuestion>().Select(a => new Facet
+            {
+                Id = a.Id,
+                Name = a.FacetName,
+                Value = a.Answer
+            }).ToList();
+
+            var suggestion = new Suggestion
+            {
+                SuggestedDocuments = conversationContext.LastSuggestedDocuments,
+                Questions = conversationContext.LastSuggestedQuestions.Select(QuestionToClient.FromQuestion).ToList(),
+                ActiveFacets = mustHaveFacets
+            };
+
+            return suggestion;
+        }
+
         public IEnumerable<SuggestedDocument> GetSuggestedDocuments(ConversationContext conversationContext)
         {
             var allRelevantQueries = string.Join(" ", conversationContext.SearchQueries.Where(x => x.Relevant).Select(m => m.Query));
