@@ -41,7 +41,7 @@ namespace WhisperAPI.Services.Suggestions
             this._irrelevantIntents = irrelevantIntents;
         }
 
-        public Suggestion GetSuggestion(ConversationContext conversationContext)
+        public Suggestion GetSuggestion(ConversationContext conversationContext, Query query)
         {
             var suggestion = new Suggestion();
 
@@ -67,7 +67,7 @@ namespace WhisperAPI.Services.Suggestions
                 suggestion.ActiveFacets = mustHaveFacets;
             }
 
-            suggestion.SuggestedDocuments = suggestedDocuments;
+            suggestion.SuggestedDocuments = suggestedDocuments.Take(query.MaxDocuments).ToList();
 
             this.UpdateContextWithNewSuggestions(conversationContext, suggestedDocuments);
             suggestedDocuments.ForEach(x => Log.Debug($"Id: {x.Id}, Title: {x.Title}, Uri: {x.Uri}, PrintableUri: {x.PrintableUri}, Summary: {x.Summary}"));
@@ -75,7 +75,7 @@ namespace WhisperAPI.Services.Suggestions
             if (suggestedDocuments.Any())
             {
                 var questions = this.GetQuestionsFromDocument(conversationContext, suggestedDocuments).ToList();
-                suggestion.Questions = questions.Select(QuestionToClient.FromQuestion).ToList();
+                suggestion.Questions = questions.Select(QuestionToClient.FromQuestion).Take(query.MaxQuestions).ToList();
 
                 this.UpdateContextWithNewQuestions(conversationContext, questions);
                 questions.ForEach(x => Log.Debug($"Id: {x.Id}, Text: {x.Text}"));

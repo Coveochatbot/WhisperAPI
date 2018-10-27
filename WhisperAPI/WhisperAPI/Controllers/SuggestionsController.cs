@@ -40,7 +40,7 @@ namespace WhisperAPI.Controllers
                 searchQuery.Relevant = false;
             }
 
-            var suggestion = this._suggestionsService.GetSuggestion(this.ConversationContext);
+            var suggestion = this._suggestionsService.GetSuggestion(this.ConversationContext, searchQuery);
             return this.Ok(suggestion);
         }
 
@@ -86,7 +86,7 @@ namespace WhisperAPI.Controllers
         public IActionResult RemoveAllFacets([FromBody] Query query)
         {
             this._questionsService.RejectAllAnswers(this.ConversationContext);
-            var suggestions = this._suggestionsService.GetSuggestion(this.ConversationContext);
+            var suggestions = this._suggestionsService.GetSuggestion(this.ConversationContext, query);
             Log.Debug($"Remove all facets");
             return this.Ok(suggestions);
         }
@@ -99,7 +99,7 @@ namespace WhisperAPI.Controllers
                 return this.BadRequest($"Question with id {id} doesn't exist.");
             }
 
-            var suggestions = this._suggestionsService.GetSuggestion(this.ConversationContext);
+            var suggestions = this._suggestionsService.GetSuggestion(this.ConversationContext, query);
             Log.Debug($"Remove facet with id {id}");
             return this.Ok(suggestions);
         }

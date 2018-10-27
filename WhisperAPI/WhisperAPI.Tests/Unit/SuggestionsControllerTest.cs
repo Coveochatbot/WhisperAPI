@@ -98,16 +98,16 @@ namespace WhisperAPI.Tests.Unit
             };
 
             this._suggestionServiceMock = new Mock<ISuggestionsService>();
+            var query = this._validSearchQueryList[validQueryIndex];
 
             this._suggestionServiceMock
-                .Setup(x => x.GetSuggestion(It.IsAny<ConversationContext>()))
+                .Setup(x => x.GetSuggestion(It.IsAny<ConversationContext>(), query))
                 .Returns(suggestionFromService);
 
             this._questionsServiceMock = new Mock<IQuestionsService>();
 
             this._suggestionController = new SuggestionsController(this._suggestionServiceMock.Object, this._questionsServiceMock.Object, this._contexts);
 
-            var query = this._validSearchQueryList[validQueryIndex];
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(query));
 
             var result = this._suggestionController.GetSuggestions(query);
