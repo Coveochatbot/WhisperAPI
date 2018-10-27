@@ -41,15 +41,15 @@ namespace WhisperAPI.Services.Suggestions
             this._irrelevantIntents = irrelevantIntents;
         }
 
-        public Suggestion GetNewSuggestion(ConversationContext conversationContext)
+        public Suggestion GetNewSuggestion(ConversationContext conversationContext, Query query)
         {
             var suggestedDocuments = this.GetDocumentsFromCoveo(conversationContext).ToList();
-            return this.GetSuggestion(conversationContext, suggestedDocuments);
+            return this.GetSuggestion(conversationContext, suggestedDocuments, query);
         }
 
-        public Suggestion GetLastSuggestion(ConversationContext conversationContext)
+        public Suggestion GetLastSuggestion(ConversationContext conversationContext, Query query)
         {
-            return this.GetSuggestion(conversationContext, conversationContext.LastNotFilteredSuggestedDocuments);
+            return this.GetSuggestion(conversationContext, conversationContext.LastNotFilteredSuggestedDocuments, query);
         }
 
         public IEnumerable<SuggestedDocument> GetSuggestedDocuments(ConversationContext conversationContext)
@@ -164,21 +164,21 @@ namespace WhisperAPI.Services.Suggestions
             return conversationContext.LastNotFilteredSuggestedDocuments = this.GetSuggestedDocuments(conversationContext).ToList();
         }
 
-        private Suggestion GetSuggestion(ConversationContext conversationContext, List<SuggestedDocument> suggestedDocuments)
+        private Suggestion GetSuggestion(ConversationContext conversationContext, List<SuggestedDocument> suggestedDocuments, Query query)
         {
             var suggestion = new Suggestion();
             suggestion.ActiveFacets = GetActiveFacets(conversationContext).ToList();
 
             if (suggestion.ActiveFacets.Any())
             {
-                suggestedDocuments = this.FilterDocuments(conversationContext, suggestedDocuments, suggestion.ActiveFacets).ToList();
+                suggestedDocuments = this.FilterDocuments(conversationContext, suggestedDocuments, suggestion.ActiveFacets).Take(query.MaxDocuments).ToList();
             }
 
             suggestion.SuggestedDocuments = suggestedDocuments;
 
             if (suggestion.SuggestedDocuments.Any())
             {
-                suggestion.Questions = this.GenerateQuestions(conversationContext, suggestion.SuggestedDocuments).ToList();
+                suggestion.Questions = this.GenerateQuestions(conversationContext, suggestion.SuggestedDocuments).Take(query.MaxQuestions).ToList();
             }
 
             return suggestion;

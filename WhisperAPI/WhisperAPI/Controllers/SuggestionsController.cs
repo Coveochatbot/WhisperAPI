@@ -36,7 +36,7 @@ namespace WhisperAPI.Controllers
                 searchQuery.Relevant = false;
             }
 
-            var suggestion = this._suggestionsService.GetNewSuggestion(this.ConversationContext);
+            var suggestion = this._suggestionsService.GetNewSuggestion(this.ConversationContext, searchQuery);
 
             LogSuggestion(suggestion);
             return this.Ok(suggestion);
@@ -47,7 +47,7 @@ namespace WhisperAPI.Controllers
         {
             Log.Debug($"Query: {query}");
 
-            var suggestion = this._suggestionsService.GetLastSuggestion(this.ConversationContext);
+            var suggestion = this._suggestionsService.GetLastSuggestion(this.ConversationContext, query);
 
             LogSuggestion(suggestion);
             return this.Ok(suggestion);
