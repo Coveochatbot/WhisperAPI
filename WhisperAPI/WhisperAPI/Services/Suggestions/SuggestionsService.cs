@@ -46,6 +46,7 @@ namespace WhisperAPI.Services.Suggestions
             var suggestion = new Suggestion();
 
             var suggestedDocuments = this.GetSuggestedDocuments(conversationContext).ToList();
+            conversationContext.LastNotFilteredSuggestedDocuments = suggestedDocuments;
 
             var mustHaveFacets = conversationContext.AnsweredQuestions.OfType<FacetQuestion>().Select(a => new Facet
             {
@@ -56,14 +57,7 @@ namespace WhisperAPI.Services.Suggestions
 
             if (mustHaveFacets.Any())
             {
-                var parameters = new FilterDocumentsParameters
-                {
-                    Documents = suggestedDocuments.Select(d => d.Uri).ToList(),
-                    MustHaveFacets = mustHaveFacets
-                };
-
-                var documentsFilteredHashSet = new HashSet<string>(this.FilterDocumentsByFacet(parameters));
-                suggestedDocuments = suggestedDocuments.Where(d => documentsFilteredHashSet.Contains(d.Uri)).ToList();
+                suggestedDocuments = this.FilterDocumentsByFacet(conversationContext, mustHaveFacets);
                 suggestion.ActiveFacets = mustHaveFacets;
             }
 
@@ -80,6 +74,25 @@ namespace WhisperAPI.Services.Suggestions
                 this.UpdateContextWithNewQuestions(conversationContext, questions);
                 questions.ForEach(x => Log.Debug($"Id: {x.Id}, Text: {x.Text}"));
             }
+
+            return suggestion;
+        }
+
+        public Suggestion GetLastSuggestions(ConversationContext conversationContext)
+        {
+            var mustHaveFacets = conversationContext.AnsweredQuestions.OfType<FacetQuestion>().Select(a => new Facet
+            {
+                Id = a.Id,
+                Name = a.FacetName,
+                Value = a.Answer
+            }).ToList();
+
+            var suggestion = new Suggestion
+            {
+                SuggestedDocuments = conversationContext.LastSuggestedDocuments,
+                Questions = conversationContext.LastSuggestedQuestions.Select(QuestionToClient.FromQuestion).ToList(),
+                ActiveFacets = mustHaveFacets
+            };
 
             return suggestion;
         }
@@ -105,10 +118,16 @@ namespace WhisperAPI.Services.Suggestions
             return FilterOutChosenQuestions(conversationContext, questions);
         }
 
-        public List<string> FilterDocumentsByFacet(FilterDocumentsParameters parameters)
+        public List<SuggestedDocument> FilterDocumentsByFacet(ConversationContext conversationContext, List<Facet> mustHaveFacets)
         {
-            var documents = this._filterDocuments.FilterDocumentsByFacets(parameters);
-            return documents;
+            var parameters = new FilterDocumentsParameters
+            {
+                Documents = conversationContext.LastNotFilteredSuggestedDocuments.Select(d => d.Uri).ToList(),
+                MustHaveFacets = mustHaveFacets
+            };
+
+            var filteredDocuments = this._filterDocuments.FilterDocumentsByFacets(parameters);
+            return conversationContext.LastNotFilteredSuggestedDocuments.Where(d => filteredDocuments.Contains(d.Uri)).ToList();
         }
 
         public void AssociateKnownQuestionsWithId(ConversationContext conversationContext, List<Question> questions)

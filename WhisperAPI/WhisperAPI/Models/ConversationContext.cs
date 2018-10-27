@@ -19,6 +19,7 @@ namespace WhisperAPI.Models
             this.SearchQueries = new List<SearchQuery>();
             this.SuggestedDocuments = new HashSet<SuggestedDocument>();
             this.LastSuggestedDocuments = new List<SuggestedDocument>();
+            this.LastNotFilteredSuggestedDocuments = new List<SuggestedDocument>();
             this.LastSuggestedQuestions = new List<Question>();
             this.Questions = new HashSet<Question>();
             this.SelectedSuggestedDocuments = new HashSet<SuggestedDocument>();
@@ -43,6 +44,8 @@ namespace WhisperAPI.Models
         public IReadOnlyList<Question> AnsweredQuestions => this.Questions.Where(q => q.Status == QuestionStatus.Answered).ToList();
 
         public List<SuggestedDocument> LastSuggestedDocuments { get; set; }
+
+        public List<SuggestedDocument> LastNotFilteredSuggestedDocuments { get; set; }
 
         public List<Question> LastSuggestedQuestions { get; set; }
     }

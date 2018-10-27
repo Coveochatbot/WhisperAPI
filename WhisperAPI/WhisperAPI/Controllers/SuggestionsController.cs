@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using WhisperAPI.Models;
@@ -41,6 +39,8 @@ namespace WhisperAPI.Controllers
             }
 
             var suggestion = this._suggestionsService.GetSuggestion(this.ConversationContext);
+
+            LogSuggestion(suggestion);
             return this.Ok(suggestion);
         }
 
@@ -48,37 +48,22 @@ namespace WhisperAPI.Controllers
         public IActionResult GetSuggestions(Query query)
         {
             Log.Debug($"Query: {query}");
-            var mustHaveFacets = this.ConversationContext.AnsweredQuestions.OfType<FacetQuestion>().Select(a => new Facet
-            {
-                Id = a.Id,
-                Name = a.FacetName,
-                Value = a.Answer
-            }).ToList();
+            var suggestion = this._suggestionsService.GetLastSuggestions(this.ConversationContext);
 
-            var suggestion = new Suggestion()
-            {
-                SuggestedDocuments = this.ConversationContext.LastSuggestedDocuments,
-                Questions = this.ConversationContext.LastSuggestedQuestions.Select(QuestionToClient.FromQuestion).ToList(),
-                ActiveFacets = mustHaveFacets
-            };
-
-            suggestion.SuggestedDocuments.ForEach(x => Log.Debug($"Title: {x.Title}, Uri: {x.Uri}, PrintableUri: {x.PrintableUri}, Summary: {x.Summary}"));
-            suggestion.Questions.ForEach(x => Log.Debug($"Id: {x.Id}, Text: {x.Text}"));
-            suggestion.ActiveFacets.ForEach(x => Log.Debug($"Id: {x.Id}, Name: {x.Name}, Value: {x.Value}"));
+            LogSuggestion(suggestion);
             return this.Ok(suggestion);
         }
 
         [HttpPost("Select")]
         public IActionResult SelectSuggestion([FromBody] SelectQuery selectQuery)
         {
-            bool isContextUpdated = this._suggestionsService.UpdateContextWithSelectedSuggestion(this.ConversationContext, selectQuery.Id.GetValueOrDefault());
+            var isContextUpdated = this._suggestionsService.UpdateContextWithSelectedSuggestion(this.ConversationContext, selectQuery.Id.GetValueOrDefault());
             if (!isContextUpdated)
             {
-                return this.BadRequest();
+                return this.BadRequest($"Could not find any suggestion with id: {selectQuery.Id}");
             }
 
             Log.Debug($"Select suggestion with id {selectQuery.Id}");
-
             return this.Ok();
         }
 
@@ -86,22 +71,39 @@ namespace WhisperAPI.Controllers
         public IActionResult RemoveAllFacets([FromBody] Query query)
         {
             this._questionsService.RejectAllAnswers(this.ConversationContext);
-            var suggestions = this._suggestionsService.GetSuggestion(this.ConversationContext);
-            Log.Debug($"Remove all facets");
-            return this.Ok(suggestions);
+
+            this.ConversationContext.LastSuggestedDocuments = this.ConversationContext.LastNotFilteredSuggestedDocuments;
+
+            Log.Debug("Removed all facets");
+            return this.NoContent();
         }
 
         [HttpDelete("Facets/{id}")]
-        public IActionResult RemoveFacet([FromRoute][Required] Guid? id, [FromBody] Query query)
+        public IActionResult RemoveFacet([FromRoute] Guid id, [FromBody] Query query)
         {
-            if (!this._questionsService.RejectAnswer(this.ConversationContext, id.GetValueOrDefault()))
+            if (!this._questionsService.RejectAnswer(this.ConversationContext, id))
             {
                 return this.BadRequest($"Question with id {id} doesn't exist.");
             }
 
-            var suggestions = this._suggestionsService.GetSuggestion(this.ConversationContext);
-            Log.Debug($"Remove facet with id {id}");
-            return this.Ok(suggestions);
+            var mustHaveFacets = this.ConversationContext.AnsweredQuestions.OfType<FacetQuestion>().Select(a => new Facet
+            {
+                Id = a.Id,
+                Name = a.FacetName,
+                Value = a.Answer
+            }).ToList();
+
+            this.ConversationContext.LastSuggestedDocuments = mustHaveFacets.Any() ? this._suggestionsService.FilterDocumentsByFacet(this.ConversationContext, mustHaveFacets) : this.ConversationContext.LastNotFilteredSuggestedDocuments;
+
+            Log.Debug($"Removed facet with id {id}");
+            return this.NoContent();
+        }
+
+        private static void LogSuggestion(Suggestion suggestion)
+        {
+            suggestion.SuggestedDocuments?.ForEach(x => Log.Debug($"Title: {x.Title}, Uri: {x.Uri}, PrintableUri: {x.PrintableUri}, Summary: {x.Summary}"));
+            suggestion.Questions?.ForEach(x => Log.Debug($"Id: {x.Id}, Text: {x.Text}"));
+            suggestion.ActiveFacets?.ForEach(x => Log.Debug($"Id: {x.Id}, Name: {x.Name}, Value: {x.Value}"));
         }
     }
 }

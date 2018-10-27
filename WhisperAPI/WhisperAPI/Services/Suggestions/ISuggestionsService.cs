@@ -10,11 +10,13 @@ namespace WhisperAPI.Services.Suggestions
     {
         Suggestion GetSuggestion(ConversationContext conversationContext);
 
+        Suggestion GetLastSuggestions(ConversationContext conversationContext);
+
         IEnumerable<SuggestedDocument> GetSuggestedDocuments(ConversationContext conversationContext);
 
         IEnumerable<Question> GetQuestionsFromDocument(ConversationContext conversationContext, IEnumerable<SuggestedDocument> suggestedDocuments);
 
-        List<string> FilterDocumentsByFacet(FilterDocumentsParameters parameters);
+        List<SuggestedDocument> FilterDocumentsByFacet(ConversationContext conversationContext, List<Facet> mustHaveFacets);
 
         void UpdateContextWithNewQuery(ConversationContext conversationContext, SearchQuery searchQuery);
 

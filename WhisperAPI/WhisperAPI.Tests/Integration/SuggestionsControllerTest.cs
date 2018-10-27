@@ -339,11 +339,16 @@ namespace WhisperAPI.Tests.Integration
             suggestion.ActiveFacets[0].Value = answerFromClient;
 
             // Agent clear the facet
-            result = this._suggestionController.RemoveFacet(suggestion.ActiveFacets[0].Id, searchQuery);
+            result = this._suggestionController.RemoveFacet(suggestion.ActiveFacets[0].Id.Value, searchQuery);
+            result.Should().BeOfType<NoContentResult>();
+
+            // Get the suggestion after clear
+            var query = QueryBuilder.Build.WithChatKey(searchQuery.ChatKey).Instance;
+            result = this._suggestionController.GetSuggestions(query);
             suggestion = result.As<OkObjectResult>().Value as Suggestion;
             suggestion.Should().NotBeNull();
-            suggestion?.ActiveFacets.Should().BeNull();
-            suggestion?.SuggestedDocuments.Should().BeEquivalentTo(GetSuggestedDocuments());
+            suggestion.ActiveFacets.Should().HaveCount(0);
+            suggestion.SuggestedDocuments.Should().BeEquivalentTo(GetSuggestedDocuments());
         }
 
         private static List<SuggestedDocument> GetSuggestedDocuments()
