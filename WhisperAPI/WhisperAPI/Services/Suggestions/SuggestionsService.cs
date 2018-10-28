@@ -45,7 +45,6 @@ namespace WhisperAPI.Services.Suggestions
         {
             var suggestedDocuments = this.GetDocumentsFromCoveo(conversationContext).ToList();
             return this.GetSuggestion(conversationContext, suggestedDocuments, query);
-
         }
 
         public Suggestion GetLastSuggestion(ConversationContext conversationContext, Query query)

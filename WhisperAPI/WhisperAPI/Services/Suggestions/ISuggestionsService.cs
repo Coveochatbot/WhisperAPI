@@ -8,9 +8,13 @@ namespace WhisperAPI.Services.Suggestions
 {
     public interface ISuggestionsService
     {
+<<<<<<< HEAD
         Suggestion GetNewSuggestion(ConversationContext conversationContext, Query query);
 
         Suggestion GetLastSuggestion(ConversationContext conversationContext, Query query);
+=======
+        Suggestion GetSuggestion(ConversationContext conversationContext, Query query);
+>>>>>>> 5c832620657361ca3667d25bc90117f52030772f
 
         IEnumerable<SuggestedDocument> GetSuggestedDocuments(ConversationContext conversationContext);
 
