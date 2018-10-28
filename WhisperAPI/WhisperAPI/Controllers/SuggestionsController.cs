@@ -82,20 +82,6 @@ namespace WhisperAPI.Controllers
             {
                 return this.BadRequest($"Question with id {id} doesn't exist.");
             }
-<<<<<<< HEAD
-=======
-            
-            var mustHaveFacets = this.ConversationContext.AnsweredQuestions.OfType<FacetQuestion>().Select(a => new Facet
-            {
-                Id = a.Id,
-                Name = a.FacetName,
-                Value = a.Answer
-            }).ToList();
-
-            this.ConversationContext.LastSuggestedDocuments = mustHaveFacets.Any() ?
-                this._suggestionsService.FilterDocumentsByFacet(this.ConversationContext, mustHaveFacets) :
-                this.ConversationContext.LastNotFilteredSuggestedDocuments;
->>>>>>> Functionality added, need to comply to old test + make new ones
 
             Log.Debug($"Removed facet with id {id}");
             return this.NoContent();
