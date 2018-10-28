@@ -9,13 +9,5 @@ namespace WhisperAPI.Models.Queries
         [Required(AllowEmptyStrings = false, ErrorMessage = "ChatKey is required")]
         [JsonProperty("chatkey")]
         public Guid? ChatKey { get; set; }
-
-        [Required(ErrorMessage = "MaxDocuments is required")]
-        [JsonProperty("maxDocuments")]
-        public int MaxDocuments { get; set; }
-
-        [Required(ErrorMessage = "maxQuestions is required")]
-        [JsonProperty("maxQuestions")]
-        public int MaxQuestions { get; set; }
     }
 }

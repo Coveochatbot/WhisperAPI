@@ -266,10 +266,9 @@ namespace WhisperAPI.Tests.Integration
         [Test]
         public void When_getting_suggestions_then_refresh_result_are_the_same()
         {
-            var queryChatkeyRefresh = new Query
-            {
-                ChatKey = new Guid("aecaa8db-abc8-4ac9-aa8d-87987da2dbb0")
-            };
+            var queryChatkeyRefresh = SuggestionQueryBuilder.Build
+                .WithChatKey(new Guid("aecaa8db-abc8-4ac9-aa8d-87987da2dbb0"))
+                .Instance;
 
             this.NlpCallHttpMessageHandleMock(HttpStatusCode.OK, new StringContent(JsonConvert.SerializeObject(this.GetRelevantNlpAnalysis())));
             this.IndexSearchHttpMessageHandleMock(HttpStatusCode.OK, this.GetSearchResultStringContent());
@@ -343,7 +342,7 @@ namespace WhisperAPI.Tests.Integration
             result.Should().BeOfType<NoContentResult>();
 
             // Get the suggestion after clear
-            var query = QueryBuilder.Build.WithChatKey(searchQuery.ChatKey).Instance;
+            var query = SuggestionQueryBuilder.Build.WithChatKey(searchQuery.ChatKey).Instance;
             result = this._suggestionController.GetSuggestions(query);
             suggestion = result.As<OkObjectResult>().Value as Suggestion;
             suggestion.Should().NotBeNull();

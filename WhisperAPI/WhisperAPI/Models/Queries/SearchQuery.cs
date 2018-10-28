@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 
 namespace WhisperAPI.Models.Queries
 {
-    public class SearchQuery : Query
+    public class SearchQuery : SuggestionQuery
     {
         public enum MessageType
         {

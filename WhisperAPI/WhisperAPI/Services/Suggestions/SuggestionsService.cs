@@ -41,13 +41,13 @@ namespace WhisperAPI.Services.Suggestions
             this._irrelevantIntents = irrelevantIntents;
         }
 
-        public Suggestion GetNewSuggestion(ConversationContext conversationContext, Query query)
+        public Suggestion GetNewSuggestion(ConversationContext conversationContext, SuggestionQuery query)
         {
             var suggestedDocuments = this.GetDocumentsFromCoveo(conversationContext).ToList();
             return this.GetSuggestion(conversationContext, suggestedDocuments, query);
         }
 
-        public Suggestion GetLastSuggestion(ConversationContext conversationContext, Query query)
+        public Suggestion GetLastSuggestion(ConversationContext conversationContext, SuggestionQuery query)
         {
             return this.GetSuggestion(conversationContext, conversationContext.LastNotFilteredSuggestedDocuments, query);
         }
@@ -159,33 +159,6 @@ namespace WhisperAPI.Services.Suggestions
             return coveoIndexDocuments.Where(x => !queries.Any(y => y.Contains(x.Uri)));
         }
 
-        private IEnumerable<SuggestedDocument> GetDocumentsFromCoveo(ConversationContext conversationContext)
-        {
-            return conversationContext.LastNotFilteredSuggestedDocuments = this.GetSuggestedDocuments(conversationContext).ToList();
-        }
-
-        private Suggestion GetSuggestion(ConversationContext conversationContext, List<SuggestedDocument> suggestedDocuments, Query query)
-        {
-            var suggestion = new Suggestion
-            {
-                ActiveFacets = GetActiveFacets(conversationContext).ToList()
-            };
-
-            if (suggestion.ActiveFacets.Any())
-            {
-                suggestedDocuments = this.FilterDocuments(conversationContext, suggestedDocuments, suggestion.ActiveFacets).Take(query.MaxDocuments).ToList();
-            }
-
-            suggestion.SuggestedDocuments = suggestedDocuments;
-
-            if (suggestion.SuggestedDocuments.Any())
-            {
-                suggestion.Questions = this.GenerateQuestions(conversationContext, suggestion.SuggestedDocuments).Take(query.MaxQuestions).ToList();
-            }
-
-            return suggestion;
-        }
-
         private static IEnumerable<Question> FilterOutChosenQuestions(
             ConversationContext conversationContext,
             IEnumerable<Question> questions)
@@ -205,6 +178,33 @@ namespace WhisperAPI.Services.Suggestions
                 Name = a.FacetName,
                 Value = a.Answer
             }).ToList();
+        }
+
+        private IEnumerable<SuggestedDocument> GetDocumentsFromCoveo(ConversationContext conversationContext)
+        {
+            return conversationContext.LastNotFilteredSuggestedDocuments = this.GetSuggestedDocuments(conversationContext).ToList();
+        }
+
+        private Suggestion GetSuggestion(ConversationContext conversationContext, List<SuggestedDocument> suggestedDocuments, SuggestionQuery suggestionQuery)
+        {
+            var suggestion = new Suggestion
+            {
+                ActiveFacets = GetActiveFacets(conversationContext).ToList()
+            };
+
+            if (suggestion.ActiveFacets.Any())
+            {
+                suggestedDocuments = this.FilterDocuments(conversationContext, suggestedDocuments, suggestion.ActiveFacets).Take(suggestionQuery.MaxDocuments).ToList();
+            }
+
+            suggestion.SuggestedDocuments = suggestedDocuments;
+
+            if (suggestion.SuggestedDocuments.Any())
+            {
+                suggestion.Questions = this.GenerateQuestions(conversationContext, suggestion.SuggestedDocuments).Take(suggestionQuery.MaxQuestions).ToList();
+            }
+
+            return suggestion;
         }
 
         private IEnumerable<SuggestedDocument> FilterDocuments(ConversationContext conversationContext, List<SuggestedDocument> suggestedDocuments, List<Facet> mustHaveFacets)

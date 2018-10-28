@@ -43,11 +43,11 @@ namespace WhisperAPI.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetSuggestions(Query query)
+        public IActionResult GetSuggestions(SuggestionQuery suggestionQuery)
         {
-            Log.Debug($"Query: {query}");
+            Log.Debug($"SuggestionQuery: {suggestionQuery}");
 
-            var suggestion = this._suggestionsService.GetLastSuggestion(this.ConversationContext, query);
+            var suggestion = this._suggestionsService.GetLastSuggestion(this.ConversationContext, suggestionQuery);
 
             LogSuggestion(suggestion);
 
