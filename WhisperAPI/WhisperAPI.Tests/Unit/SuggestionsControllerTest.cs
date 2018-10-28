@@ -100,7 +100,7 @@ namespace WhisperAPI.Tests.Unit
             this._suggestionServiceMock = new Mock<ISuggestionsService>();
 
             this._suggestionServiceMock
-                .Setup(x => x.GetSuggestion(It.IsAny<ConversationContext>()))
+                .Setup(x => x.GetNewSuggestion(It.IsAny<ConversationContext>()))
                 .Returns(suggestionFromService);
 
             this._questionsServiceMock = new Mock<IQuestionsService>();

@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using WhisperAPI.Models;
-using WhisperAPI.Models.MLAPI;
 using WhisperAPI.Models.Queries;
 using WhisperAPI.Services.Context;
 using WhisperAPI.Services.Questions;
@@ -38,7 +36,7 @@ namespace WhisperAPI.Controllers
                 searchQuery.Relevant = false;
             }
 
-            var suggestion = this._suggestionsService.GetSuggestion(this.ConversationContext);
+            var suggestion = this._suggestionsService.GetNewSuggestion(this.ConversationContext);
 
             LogSuggestion(suggestion);
             return this.Ok(suggestion);
@@ -48,7 +46,7 @@ namespace WhisperAPI.Controllers
         public IActionResult GetSuggestions(Query query)
         {
             Log.Debug($"Query: {query}");
-            var suggestion = this._suggestionsService.GetLastSuggestions(this.ConversationContext);
+            var suggestion = this._suggestionsService.GetLastSuggestion(this.ConversationContext);
 
             LogSuggestion(suggestion);
             return this.Ok(suggestion);
@@ -72,8 +70,6 @@ namespace WhisperAPI.Controllers
         {
             this._questionsService.RejectAllAnswers(this.ConversationContext);
 
-            this.ConversationContext.LastSuggestedDocuments = this.ConversationContext.LastNotFilteredSuggestedDocuments;
-
             Log.Debug("Removed all facets");
             return this.NoContent();
         }
@@ -85,15 +81,6 @@ namespace WhisperAPI.Controllers
             {
                 return this.BadRequest($"Question with id {id} doesn't exist.");
             }
-
-            var mustHaveFacets = this.ConversationContext.AnsweredQuestions.OfType<FacetQuestion>().Select(a => new Facet
-            {
-                Id = a.Id,
-                Name = a.FacetName,
-                Value = a.Answer
-            }).ToList();
-
-            this.ConversationContext.LastSuggestedDocuments = mustHaveFacets.Any() ? this._suggestionsService.FilterDocumentsByFacet(this.ConversationContext, mustHaveFacets) : this.ConversationContext.LastNotFilteredSuggestedDocuments;
 
             Log.Debug($"Removed facet with id {id}");
             return this.NoContent();

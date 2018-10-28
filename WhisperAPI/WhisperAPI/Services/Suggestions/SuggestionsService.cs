@@ -41,60 +41,15 @@ namespace WhisperAPI.Services.Suggestions
             this._irrelevantIntents = irrelevantIntents;
         }
 
-        public Suggestion GetSuggestion(ConversationContext conversationContext)
+        public Suggestion GetNewSuggestion(ConversationContext conversationContext)
         {
-            var suggestion = new Suggestion();
-
-            var suggestedDocuments = this.GetSuggestedDocuments(conversationContext).ToList();
-            conversationContext.LastNotFilteredSuggestedDocuments = suggestedDocuments;
-
-            var mustHaveFacets = conversationContext.AnsweredQuestions.OfType<FacetQuestion>().Select(a => new Facet
-            {
-                Id = a.Id,
-                Name = a.FacetName,
-                Value = a.Answer
-            }).ToList();
-
-            if (mustHaveFacets.Any())
-            {
-                suggestedDocuments = this.FilterDocumentsByFacet(conversationContext, mustHaveFacets);
-                suggestion.ActiveFacets = mustHaveFacets;
-            }
-
-            suggestion.SuggestedDocuments = suggestedDocuments;
-
-            this.UpdateContextWithNewSuggestions(conversationContext, suggestedDocuments);
-            suggestedDocuments.ForEach(x => Log.Debug($"Id: {x.Id}, Title: {x.Title}, Uri: {x.Uri}, PrintableUri: {x.PrintableUri}, Summary: {x.Summary}"));
-
-            if (suggestedDocuments.Any())
-            {
-                var questions = this.GetQuestionsFromDocument(conversationContext, suggestedDocuments).ToList();
-                suggestion.Questions = questions.Select(QuestionToClient.FromQuestion).ToList();
-
-                this.UpdateContextWithNewQuestions(conversationContext, questions);
-                questions.ForEach(x => Log.Debug($"Id: {x.Id}, Text: {x.Text}"));
-            }
-
-            return suggestion;
+            var suggestedDocuments = this.GetDocumentsFromCoveo(conversationContext).ToList();
+            return this.GetSuggestion(conversationContext, suggestedDocuments);
         }
 
-        public Suggestion GetLastSuggestions(ConversationContext conversationContext)
+        public Suggestion GetLastSuggestion(ConversationContext conversationContext)
         {
-            var mustHaveFacets = conversationContext.AnsweredQuestions.OfType<FacetQuestion>().Select(a => new Facet
-            {
-                Id = a.Id,
-                Name = a.FacetName,
-                Value = a.Answer
-            }).ToList();
-
-            var suggestion = new Suggestion
-            {
-                SuggestedDocuments = conversationContext.LastSuggestedDocuments,
-                Questions = conversationContext.LastSuggestedQuestions.Select(QuestionToClient.FromQuestion).ToList(),
-                ActiveFacets = mustHaveFacets
-            };
-
-            return suggestion;
+            return this.GetSuggestion(conversationContext, conversationContext.LastNotFilteredSuggestedDocuments);
         }
 
         public IEnumerable<SuggestedDocument> GetSuggestedDocuments(ConversationContext conversationContext)
@@ -204,6 +159,31 @@ namespace WhisperAPI.Services.Suggestions
             return coveoIndexDocuments.Where(x => !queries.Any(y => y.Contains(x.Uri)));
         }
 
+        private IEnumerable<SuggestedDocument> GetDocumentsFromCoveo(ConversationContext conversationContext)
+        {
+            return conversationContext.LastNotFilteredSuggestedDocuments = this.GetSuggestedDocuments(conversationContext).ToList();
+        }
+
+        private Suggestion GetSuggestion(ConversationContext conversationContext, List<SuggestedDocument> suggestedDocuments)
+        {
+            var suggestion = new Suggestion();
+            suggestion.ActiveFacets = GetActiveFacets(conversationContext).ToList();
+
+            if (suggestion.ActiveFacets.Any())
+            {
+                suggestedDocuments = this.FilterDocuments(conversationContext, suggestedDocuments, suggestion.ActiveFacets).ToList();
+            }
+
+            suggestion.SuggestedDocuments = suggestedDocuments;
+
+            if (suggestion.SuggestedDocuments.Any())
+            {
+                suggestion.Questions = this.GenerateQuestions(conversationContext, suggestion.SuggestedDocuments).ToList();
+            }
+
+            return suggestion;
+        }
+
         private static IEnumerable<Question> FilterOutChosenQuestions(
             ConversationContext conversationContext,
             IEnumerable<Question> questions)
@@ -213,6 +193,38 @@ namespace WhisperAPI.Services.Suggestions
                 .Select(x => x.Text);
 
             return questions.Where(x => !questionsText.Any(y => y.Contains(x.Text)));
+        }
+
+        private static IEnumerable<Facet> GetActiveFacets(ConversationContext conversationContext)
+        {
+            return conversationContext.AnsweredQuestions.OfType<FacetQuestion>().Select(a => new Facet
+            {
+                Id = a.Id,
+                Name = a.FacetName,
+                Value = a.Answer
+            }).ToList();
+        }
+
+        private IEnumerable<SuggestedDocument> FilterDocuments(ConversationContext conversationContext, List<SuggestedDocument> suggestedDocuments, List<Facet> mustHaveFacets)
+        {
+            suggestedDocuments = this.FilterDocumentsByFacet(conversationContext, mustHaveFacets);
+
+            this.UpdateContextWithNewSuggestions(conversationContext, suggestedDocuments);
+            suggestedDocuments.ForEach(x =>
+                Log.Debug($"Id: {x.Id}, Title: {x.Title}, Uri: {x.Uri}, PrintableUri: {x.PrintableUri}, Summary: {x.Summary}"));
+
+            return suggestedDocuments;
+        }
+
+        private IEnumerable<QuestionToClient> GenerateQuestions(ConversationContext conversationContext, List<SuggestedDocument> suggestedDocuments)
+        {
+            var questions = this.GetQuestionsFromDocument(conversationContext, suggestedDocuments).ToList();
+            var questionsToClient = questions.Select(QuestionToClient.FromQuestion).ToList();
+
+            this.UpdateContextWithNewQuestions(conversationContext, questions);
+            questions.ForEach(x => Log.Debug($"Id: {x.Id}, Text: {x.Text}"));
+
+            return questionsToClient;
         }
 
         private IEnumerable<SuggestedDocument> SearchCoveoIndex(string query, List<SuggestedDocument> suggestedDocuments)
