@@ -46,6 +46,7 @@ namespace WhisperAPI.Controllers
         public IActionResult GetSuggestions(Query query)
         {
             Log.Debug($"Query: {query}");
+
             var suggestion = this._suggestionsService.GetLastSuggestion(this.ConversationContext);
 
             LogSuggestion(suggestion);
@@ -69,7 +70,6 @@ namespace WhisperAPI.Controllers
         public IActionResult RemoveAllFacets([FromBody] Query query)
         {
             this._questionsService.RejectAllAnswers(this.ConversationContext);
-
             Log.Debug("Removed all facets");
             return this.NoContent();
         }
