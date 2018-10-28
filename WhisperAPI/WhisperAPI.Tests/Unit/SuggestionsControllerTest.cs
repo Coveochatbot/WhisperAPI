@@ -101,11 +101,7 @@ namespace WhisperAPI.Tests.Unit
             var query = this._validSearchQueryList[validQueryIndex];
 
             this._suggestionServiceMock
-<<<<<<< HEAD
                 .Setup(x => x.GetNewSuggestion(It.IsAny<ConversationContext>(), query))
-=======
-                .Setup(x => x.GetSuggestion(It.IsAny<ConversationContext>(), query))
->>>>>>> 5c832620657361ca3667d25bc90117f52030772f
                 .Returns(suggestionFromService);
 
             this._questionsServiceMock = new Mock<IQuestionsService>();
