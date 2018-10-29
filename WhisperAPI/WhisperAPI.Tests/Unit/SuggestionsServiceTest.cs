@@ -199,6 +199,270 @@ namespace WhisperAPI.Tests.Unit
             Assert.IsTrue(this._conversationContext.AnswerPendingQuestions.Count == 0);
         }
 
+        [Test]
+        [TestCase("a21d07d5-fd5a-42ab-ac2c-2ef6101e58d3", 1)]
+        [TestCase("a21d07d5-fd5a-42ab-ac2c-2ef6101e58d3", 2)]
+        [TestCase("a21d07d5-fd5a-42ab-ac2c-2ef6101e58d3", 3)]
+        public void When_receive_more_documents_from_search_than_maximum_documents_return_that_maximum_of_documents(string suggestionQueryId, int maxDocuments)
+        {
+            this._conversationContext.SelectedSuggestedDocuments.Clear();
+
+            var suggestionQuery = SearchQueryBuilder.Build
+                .WithChatKey(new Guid(suggestionQueryId))
+                .WithMaxDocuments(maxDocuments)
+                .WithQuery("help")
+                .WithMessageType(SearchQuery.MessageType.Customer)
+                .WithRelevant(true)
+                .Instance;
+
+            this._documentFacetsMock
+                .Setup(x => x.GetQuestions(It.IsAny<IEnumerable<string>>()))
+                .Returns(this.GetSuggestedQuestions());
+
+            var intents = new List<Intent>
+            {
+                IntentBuilder.Build.WithName("Need Help").Instance
+            };
+
+            var nlpAnalysis = NlpAnalysisBuilder.Build.WithIntents(intents).Instance;
+            this._nlpCallMock
+                .Setup(x => x.GetNlpAnalysis(It.IsAny<string>()))
+                .Returns(nlpAnalysis);
+
+            this._indexSearchMock
+                .Setup(x => x.Search(It.IsAny<string>()))
+                .Returns(this.GetSearchResult());
+
+            this._suggestionsService.UpdateContextWithNewQuery(this._conversationContext, suggestionQuery);
+            var suggestion = this._suggestionsService.GetNewSuggestion(this._conversationContext, suggestionQuery);
+
+            suggestion.SuggestedDocuments.Should().HaveCount(maxDocuments);
+        }
+
+        [Test]
+        [TestCase("a21d07d5-fd5a-42ab-ac2c-2ef6101e58d3", 5)]
+        [TestCase("a21d07d5-fd5a-42ab-ac2c-2ef6101e58d3", 6)]
+        [TestCase("a21d07d5-fd5a-42ab-ac2c-2ef6101e58d3", 10)]
+        public void When_receive_less_documents_from_search_than_maximum_documents_return_all_documents(string suggestionQueryId, int maxDocuments)
+        {
+            this._conversationContext.SelectedSuggestedDocuments.Clear();
+
+            var suggestionQuery = SearchQueryBuilder.Build
+                .WithChatKey(new Guid(suggestionQueryId))
+                .WithMaxDocuments(maxDocuments)
+                .WithQuery("help")
+                .WithMessageType(SearchQuery.MessageType.Customer)
+                .WithRelevant(true)
+                .Instance;
+
+            this._documentFacetsMock
+                .Setup(x => x.GetQuestions(It.IsAny<IEnumerable<string>>()))
+                .Returns(this.GetSuggestedQuestions());
+
+            var intents = new List<Intent>
+            {
+                IntentBuilder.Build.WithName("Need Help").Instance
+            };
+
+            var nlpAnalysis = NlpAnalysisBuilder.Build.WithIntents(intents).Instance;
+            this._nlpCallMock
+                .Setup(x => x.GetNlpAnalysis(It.IsAny<string>()))
+                .Returns(nlpAnalysis);
+
+            this._indexSearchMock
+                .Setup(x => x.Search(It.IsAny<string>()))
+                .Returns(this.GetSearchResult());
+
+            this._suggestionsService.UpdateContextWithNewQuery(this._conversationContext, suggestionQuery);
+            var suggestion = this._suggestionsService.GetNewSuggestion(this._conversationContext, suggestionQuery);
+
+            suggestion.SuggestedDocuments.Should().HaveCount(this.GetSuggestedDocuments().Count());
+        }
+
+        [Test]
+        [TestCase("a21d07d5-fd5a-42ab-ac2c-2ef6101e58d3", 1)]
+        [TestCase("a21d07d5-fd5a-42ab-ac2c-2ef6101e58d3", 2)]
+        [TestCase("a21d07d5-fd5a-42ab-ac2c-2ef6101e58d3", 3)]
+        public void When_having_more_documents_from_last_search_than_maximum_documents_return_that_maximum_of_documents(string suggestionQueryId, int maxDocuments)
+        {
+            this._conversationContext.SelectedSuggestedDocuments.Clear();
+            this._conversationContext.LastNotFilteredSuggestedDocuments = this.GetSuggestedDocuments();
+
+            var suggestionQuery = SearchQueryBuilder.Build
+                .WithChatKey(new Guid(suggestionQueryId))
+                .WithMaxDocuments(maxDocuments)
+                .WithQuery("help")
+                .WithMessageType(SearchQuery.MessageType.Customer)
+                .WithRelevant(true)
+                .Instance;
+
+            this._documentFacetsMock
+                .Setup(x => x.GetQuestions(It.IsAny<IEnumerable<string>>()))
+                .Returns(this.GetSuggestedQuestions());
+
+            var suggestion = this._suggestionsService.GetLastSuggestion(this._conversationContext, suggestionQuery);
+
+            suggestion.SuggestedDocuments.Should().HaveCount(maxDocuments);
+        }
+
+        [Test]
+        [TestCase("a21d07d5-fd5a-42ab-ac2c-2ef6101e58d3", 5)]
+        [TestCase("a21d07d5-fd5a-42ab-ac2c-2ef6101e58d3", 6)]
+        [TestCase("a21d07d5-fd5a-42ab-ac2c-2ef6101e58d3", 10)]
+        public void When_having_less_documents_from_last_search_than_maximum_documents_return_all_documents(string suggestionQueryId, int maxQuestions)
+        {
+            this._conversationContext.SelectedSuggestedDocuments.Clear();
+            this._conversationContext.LastNotFilteredSuggestedDocuments = this.GetSuggestedDocuments();
+
+            var suggestionQuery = SearchQueryBuilder.Build
+                .WithChatKey(new Guid(suggestionQueryId))
+                .WithMaxQuestions(maxQuestions)
+                .WithQuery("help")
+                .WithMessageType(SearchQuery.MessageType.Customer)
+                .WithRelevant(true)
+                .Instance;
+
+            this._documentFacetsMock
+                .Setup(x => x.GetQuestions(It.IsAny<IEnumerable<string>>()))
+                .Returns(this.GetSuggestedQuestions());
+
+            var suggestion = this._suggestionsService.GetLastSuggestion(this._conversationContext, suggestionQuery);
+
+            suggestion.SuggestedDocuments.Should().HaveCount(this._conversationContext.LastNotFilteredSuggestedDocuments.Count());
+        }
+
+        [Test]
+        [TestCase("a21d07d5-fd5a-42ab-ac2c-2ef6101e58d3", 1)]
+        [TestCase("a21d07d5-fd5a-42ab-ac2c-2ef6101e58d3", 2)]
+        [TestCase("a21d07d5-fd5a-42ab-ac2c-2ef6101e58d3", 3)]
+        public void When_receive_more_documents_from_search_than_maximum_questions_return_that_maximum_of_documents(string suggestionQueryId, int maxQuestions)
+        {
+            this._conversationContext.Questions.Clear();
+
+            var suggestionQuery = SearchQueryBuilder.Build
+                .WithChatKey(new Guid(suggestionQueryId))
+                .WithMaxQuestions(maxQuestions)
+                .WithQuery("help")
+                .WithMessageType(SearchQuery.MessageType.Customer)
+                .WithRelevant(true)
+                .Instance;
+
+            this._documentFacetsMock
+                .Setup(x => x.GetQuestions(It.IsAny<IEnumerable<string>>()))
+                .Returns(this.GetSuggestedQuestions());
+
+            var intents = new List<Intent>
+            {
+                IntentBuilder.Build.WithName("Need Help").Instance
+            };
+
+            var nlpAnalysis = NlpAnalysisBuilder.Build.WithIntents(intents).Instance;
+            this._nlpCallMock
+                .Setup(x => x.GetNlpAnalysis(It.IsAny<string>()))
+                .Returns(nlpAnalysis);
+
+            this._indexSearchMock
+                .Setup(x => x.Search(It.IsAny<string>()))
+                .Returns(this.GetSearchResult());
+
+            this._suggestionsService.UpdateContextWithNewQuery(this._conversationContext, suggestionQuery);
+            var suggestion = this._suggestionsService.GetNewSuggestion(this._conversationContext, suggestionQuery);
+
+            suggestion.Questions.Should().HaveCount(maxQuestions);
+        }
+
+        [Test]
+        [TestCase("a21d07d5-fd5a-42ab-ac2c-2ef6101e58d3", 5)]
+        [TestCase("a21d07d5-fd5a-42ab-ac2c-2ef6101e58d3", 6)]
+        [TestCase("a21d07d5-fd5a-42ab-ac2c-2ef6101e58d3", 10)]
+        public void When_receive_less_documents_from_search_than_maximum_questions_return_all_documents(string suggestionQueryId, int maxQuestions)
+        {
+            this._conversationContext.SelectedSuggestedDocuments.Clear();
+
+            var suggestionQuery = SearchQueryBuilder.Build
+                .WithChatKey(new Guid(suggestionQueryId))
+                .WithMaxQuestions(maxQuestions)
+                .WithQuery("help")
+                .WithMessageType(SearchQuery.MessageType.Customer)
+                .WithRelevant(true)
+                .Instance;
+
+            this._documentFacetsMock
+                .Setup(x => x.GetQuestions(It.IsAny<IEnumerable<string>>()))
+                .Returns(this.GetSuggestedQuestions());
+
+            var intents = new List<Intent>
+            {
+                IntentBuilder.Build.WithName("Need Help").Instance
+            };
+
+            var nlpAnalysis = NlpAnalysisBuilder.Build.WithIntents(intents).Instance;
+            this._nlpCallMock
+                .Setup(x => x.GetNlpAnalysis(It.IsAny<string>()))
+                .Returns(nlpAnalysis);
+
+            this._indexSearchMock
+                .Setup(x => x.Search(It.IsAny<string>()))
+                .Returns(this.GetSearchResult());
+
+            this._suggestionsService.UpdateContextWithNewQuery(this._conversationContext, suggestionQuery);
+            var suggestion = this._suggestionsService.GetNewSuggestion(this._conversationContext, suggestionQuery);
+
+            suggestion.Questions.Should().HaveCount(this.GetSuggestedQuestions().Count());
+        }
+
+        [Test]
+        [TestCase("a21d07d5-fd5a-42ab-ac2c-2ef6101e58d3", 1)]
+        [TestCase("a21d07d5-fd5a-42ab-ac2c-2ef6101e58d3", 2)]
+        [TestCase("a21d07d5-fd5a-42ab-ac2c-2ef6101e58d3", 3)]
+        public void When_having_more_documents_from_last_search_than_maximum_questions_return_that_maximum_of_documents(string suggestionQueryId, int maxQuestions)
+        {
+            this._conversationContext.SelectedSuggestedDocuments.Clear();
+            this._conversationContext.LastNotFilteredSuggestedDocuments = this.GetSuggestedDocuments();
+
+            var suggestionQuery = SearchQueryBuilder.Build
+                .WithChatKey(new Guid(suggestionQueryId))
+                .WithMaxQuestions(maxQuestions)
+                .WithQuery("help")
+                .WithMessageType(SearchQuery.MessageType.Customer)
+                .WithRelevant(true)
+                .Instance;
+
+            this._documentFacetsMock
+                .Setup(x => x.GetQuestions(It.IsAny<IEnumerable<string>>()))
+                .Returns(this.GetSuggestedQuestions());
+
+            var suggestion = this._suggestionsService.GetLastSuggestion(this._conversationContext, suggestionQuery);
+
+            suggestion.Questions.Should().HaveCount(maxQuestions);
+        }
+
+        [Test]
+        [TestCase("a21d07d5-fd5a-42ab-ac2c-2ef6101e58d3", 5)]
+        [TestCase("a21d07d5-fd5a-42ab-ac2c-2ef6101e58d3", 6)]
+        [TestCase("a21d07d5-fd5a-42ab-ac2c-2ef6101e58d3", 10)]
+        public void When_having_less_documents_from_last_search_than_maximum_questions_return_all_documents(string suggestionQueryId, int maxQuestions)
+        {
+            this._conversationContext.SelectedSuggestedDocuments.Clear();
+            this._conversationContext.LastNotFilteredSuggestedDocuments = this.GetSuggestedDocuments();
+
+            var suggestionQuery = SearchQueryBuilder.Build
+                .WithChatKey(new Guid(suggestionQueryId))
+                .WithMaxQuestions(maxQuestions)
+                .WithQuery("help")
+                .WithMessageType(SearchQuery.MessageType.Customer)
+                .WithRelevant(true)
+                .Instance;
+
+            this._documentFacetsMock
+                .Setup(x => x.GetQuestions(It.IsAny<IEnumerable<string>>()))
+                .Returns(this.GetSuggestedQuestions());
+
+            var suggestion = this._suggestionsService.GetLastSuggestion(this._conversationContext, suggestionQuery);
+
+            suggestion.Questions.Should().HaveCount(this.GetSuggestedQuestions().Count());
+        }
+
         public List<SearchQuery> GetQueriesSentByByAgent()
         {
             return new List<SearchQuery>
@@ -295,6 +559,17 @@ namespace WhisperAPI.Tests.Unit
                     PrintableUri = "https://coveo.github.io/search-ui/components/facet.html",
                     Summary = null
                 }
+            };
+        }
+
+        public List<FacetQuestion> GetSuggestedQuestions()
+        {
+            return new List<FacetQuestion>
+            {
+                FacetQuestionBuilder.Build.Instance,
+                FacetQuestionBuilder.Build.Instance,
+                FacetQuestionBuilder.Build.Instance,
+                FacetQuestionBuilder.Build.Instance
             };
         }
 

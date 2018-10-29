@@ -194,10 +194,10 @@ namespace WhisperAPI.Services.Suggestions
 
             if (suggestion.ActiveFacets.Any())
             {
-                suggestedDocuments = this.FilterDocuments(conversationContext, suggestedDocuments, suggestion.ActiveFacets).Take(suggestionQuery.MaxDocuments).ToList();
+                suggestedDocuments = this.FilterDocuments(conversationContext, suggestedDocuments, suggestion.ActiveFacets).ToList();
             }
 
-            suggestion.SuggestedDocuments = suggestedDocuments;
+            suggestion.SuggestedDocuments = suggestedDocuments.Take(suggestionQuery.MaxDocuments).ToList();
 
             if (suggestion.SuggestedDocuments.Any())
             {

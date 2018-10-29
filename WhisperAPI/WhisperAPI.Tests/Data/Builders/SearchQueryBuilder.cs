@@ -11,6 +11,8 @@ namespace WhisperAPI.Tests.Data.Builders
 
         private SearchQuery.MessageType _type;
 
+        private bool _relevant;
+
         private int _maxDocuments;
 
         private int _maxQuestions;
@@ -23,7 +25,8 @@ namespace WhisperAPI.Tests.Data.Builders
             Query = this._query,
             Type = this._type,
             MaxDocuments = this._maxDocuments,
-            MaxQuestions = this._maxQuestions
+            MaxQuestions = this._maxQuestions,
+            Relevant = this._relevant
         };
 
         private SearchQueryBuilder()
@@ -33,6 +36,7 @@ namespace WhisperAPI.Tests.Data.Builders
             this._type = SearchQuery.MessageType.Customer;
             this._maxDocuments = 10;
             this._maxQuestions = 10;
+            this._relevant = true;
         }
 
         public SearchQueryBuilder WithChatKey(Guid? chatKey)
@@ -50,6 +54,12 @@ namespace WhisperAPI.Tests.Data.Builders
         public SearchQueryBuilder WithMessageType(SearchQuery.MessageType type)
         {
             this._type = type;
+            return this;
+        }
+
+        public SearchQueryBuilder WithRelevant(bool relevant)
+        {
+            this._relevant = relevant;
             return this;
         }
 
