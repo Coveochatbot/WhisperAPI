@@ -50,6 +50,7 @@ namespace WhisperAPI.Tests.Unit
             {
                 SearchQueryBuilder.Build.WithChatKey(chatKey).WithQuery("test").WithMessageType(SearchQuery.MessageType.Customer).Instance,
                 SearchQueryBuilder.Build.WithChatKey(chatKey).WithQuery("test").WithMessageType(SearchQuery.MessageType.Agent).Instance,
+                SearchQueryBuilder.Build.WithChatKey(chatKey).WithQuery("test").WithMaxDocuments(5).WithMaxQuestions(5).WithMessageType(SearchQuery.MessageType.Customer).Instance,
             };
 
             this._invalidSelectQueryList = new List<SelectQuery>
