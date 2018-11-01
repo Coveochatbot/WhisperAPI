@@ -12,15 +12,15 @@ namespace WhisperAPI.Services.Suggestions
 
         Suggestion GetLastSuggestion(ConversationContext conversationContext);
 
-        IEnumerable<SuggestedDocument> GetSuggestedDocuments(ConversationContext conversationContext);
+        IEnumerable<Document> GetDocuments(ConversationContext conversationContext);
 
-        IEnumerable<Question> GetQuestionsFromDocument(ConversationContext conversationContext, IEnumerable<SuggestedDocument> suggestedDocuments);
+        IEnumerable<Question> GetQuestionsFromDocument(ConversationContext conversationContext, IEnumerable<Document> documents);
 
-        List<SuggestedDocument> FilterDocumentsByFacet(ConversationContext conversationContext, List<Facet> mustHaveFacets);
+        List<Document> FilterDocumentsByFacet(ConversationContext conversationContext, List<Facet> mustHaveFacets);
 
         void UpdateContextWithNewQuery(ConversationContext conversationContext, SearchQuery searchQuery);
 
-        void UpdateContextWithNewSuggestions(ConversationContext conversationContext, List<SuggestedDocument> suggestedDocuments);
+        void UpdateContextWithNewSuggestions(ConversationContext conversationContext, List<Document> documents);
 
         void UpdateContextWithNewQuestions(ConversationContext conversationContext, List<Question> questions);
 

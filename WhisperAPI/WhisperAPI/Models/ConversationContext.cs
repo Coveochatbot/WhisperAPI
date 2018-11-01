@@ -17,12 +17,11 @@ namespace WhisperAPI.Models
         public ConversationContext()
         {
             this.SearchQueries = new List<SearchQuery>();
-            this.SuggestedDocuments = new HashSet<SuggestedDocument>();
-            this.LastSuggestedDocuments = new List<SuggestedDocument>();
-            this.LastNotFilteredSuggestedDocuments = new List<SuggestedDocument>();
+            this.SuggestedDocuments = new HashSet<Document>();
+            this.LastNotFilteredDocuments = new List<Document>();
             this.LastSuggestedQuestions = new List<Question>();
             this.Questions = new HashSet<Question>();
-            this.SelectedSuggestedDocuments = new HashSet<SuggestedDocument>();
+            this.SelectedSuggestedDocuments = new HashSet<Document>();
         }
 
         public Guid ChatKey { get; set; }
@@ -31,9 +30,9 @@ namespace WhisperAPI.Models
 
         public List<SearchQuery> SearchQueries { get; set; }
 
-        public HashSet<SuggestedDocument> SuggestedDocuments { get; set; }
+        public HashSet<Document> SuggestedDocuments { get; set; }
 
-        public HashSet<SuggestedDocument> SelectedSuggestedDocuments { get; set; }
+        public HashSet<Document> SelectedSuggestedDocuments { get; set; }
 
         public HashSet<Question> Questions { get; set; }
 
@@ -43,9 +42,7 @@ namespace WhisperAPI.Models
 
         public IReadOnlyList<Question> AnsweredQuestions => this.Questions.Where(q => q.Status == QuestionStatus.Answered).ToList();
 
-        public List<SuggestedDocument> LastSuggestedDocuments { get; set; }
-
-        public List<SuggestedDocument> LastNotFilteredSuggestedDocuments { get; set; }
+        public List<Document> LastNotFilteredDocuments { get; set; }
 
         public List<Question> LastSuggestedQuestions { get; set; }
     }

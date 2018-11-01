@@ -7,7 +7,7 @@ namespace WhisperAPI.Models
     {
         public List<QuestionToClient> Questions { get; set; }
 
-        public List<SuggestedDocument> SuggestedDocuments { get; set; }
+        public List<Document> Documents { get; set; }
 
         public List<Facet> ActiveFacets { get; set; }
     }
