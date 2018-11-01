@@ -36,7 +36,7 @@ namespace WhisperAPI.Controllers
                 searchQuery.Relevant = false;
             }
 
-            var suggestion = this._suggestionsService.GetSuggestion(this.ConversationContext);
+            var suggestion = this._suggestionsService.GetNewSuggestion(this.ConversationContext);
 
             LogSuggestion(suggestion);
             return this.Ok(suggestion);
@@ -46,7 +46,8 @@ namespace WhisperAPI.Controllers
         public IActionResult GetSuggestions(Query query)
         {
             Log.Debug($"Query: {query}");
-            var suggestion = this._suggestionsService.GetLastSuggestions(this.ConversationContext);
+
+            var suggestion = this._suggestionsService.GetLastSuggestion(this.ConversationContext);
 
             LogSuggestion(suggestion);
             return this.Ok(suggestion);
@@ -69,9 +70,6 @@ namespace WhisperAPI.Controllers
         public IActionResult RemoveAllFacets([FromBody] Query query)
         {
             this._questionsService.RejectAllAnswers(this.ConversationContext);
-
-            this._suggestionsService.GetSuggestion(this.ConversationContext);
-
             Log.Debug("Removed all facets");
             return this.NoContent();
         }
@@ -84,15 +82,13 @@ namespace WhisperAPI.Controllers
                 return this.BadRequest($"Question with id {id} doesn't exist.");
             }
 
-            this._suggestionsService.GetSuggestion(this.ConversationContext);
-
             Log.Debug($"Removed facet with id {id}");
             return this.NoContent();
         }
 
         private static void LogSuggestion(Suggestion suggestion)
         {
-            suggestion.SuggestedDocuments?.ForEach(x => Log.Debug($"Title: {x.Title}, Uri: {x.Uri}, PrintableUri: {x.PrintableUri}, Summary: {x.Summary}"));
+            suggestion.Documents?.ForEach(x => Log.Debug($"Title: {x.Title}, Uri: {x.Uri}, PrintableUri: {x.PrintableUri}, Summary: {x.Summary}"));
             suggestion.Questions?.ForEach(x => Log.Debug($"Id: {x.Id}, Text: {x.Text}"));
             suggestion.ActiveFacets?.ForEach(x => Log.Debug($"Id: {x.Id}, Name: {x.Name}, Value: {x.Value}"));
         }

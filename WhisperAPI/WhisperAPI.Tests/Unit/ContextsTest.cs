@@ -23,8 +23,8 @@ namespace WhisperAPI.Tests.Unit
         public void When_adding_duplicate_suggestion_only_one_is_added(string chatkey)
         {
             ConversationContext conversationcontext = this._contexts[new Guid(chatkey)];
-            SuggestedDocument query1 = this.GetSuggestedDocument();
-            SuggestedDocument query2 = this.GetSuggestedDocument();
+            Document query1 = this.GetDocument();
+            Document query2 = this.GetDocument();
             conversationcontext.SuggestedDocuments.Add(query1);
             conversationcontext.SuggestedDocuments.Add(query2);
             conversationcontext.SuggestedDocuments.Should().HaveCount(1);
@@ -37,7 +37,7 @@ namespace WhisperAPI.Tests.Unit
         public void When_retrieving_non_existing_conversation_context_then_return_new_one(string chatkey)
         {
             ConversationContext conversationcontext = this._contexts[new Guid(chatkey)];
-            conversationcontext.SuggestedDocuments.Add(this.GetSuggestedDocument());
+            conversationcontext.SuggestedDocuments.Add(this.GetDocument());
 
             conversationcontext.Should().NotBeNull();
             conversationcontext.ChatKey.Should().Be(chatkey);
@@ -52,7 +52,7 @@ namespace WhisperAPI.Tests.Unit
             ConversationContext conversationcontext = this._contexts[new Guid(chatkey)];
 
             conversationcontext.SuggestedDocuments.Count.Should().Be(1);
-            conversationcontext.SuggestedDocuments.Should().Contain(this.GetSuggestedDocument());
+            conversationcontext.SuggestedDocuments.Should().Contain(this.GetDocument());
             conversationcontext.ChatKey.Should().Be(chatkey);
         }
 
@@ -108,9 +108,9 @@ namespace WhisperAPI.Tests.Unit
             };
         }
 
-        private SuggestedDocument GetSuggestedDocument()
+        private Document GetDocument()
         {
-            return new SuggestedDocument()
+            return new Document()
             {
                 Title = "title",
                 PrintableUri = "www.test.com",

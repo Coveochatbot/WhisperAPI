@@ -72,7 +72,7 @@ namespace WhisperAPI.Tests.Unit
         {
             this._suggestionServiceMock = new Mock<ISuggestionsService>();
             this._suggestionServiceMock
-                .Setup(x => x.GetSuggestedDocuments(It.IsAny<ConversationContext>()))
+                .Setup(x => x.GetDocuments(It.IsAny<ConversationContext>()))
                 .Returns(GetListOfDocuments());
 
             this._questionsServiceMock = new Mock<IQuestionsService>();
@@ -94,13 +94,13 @@ namespace WhisperAPI.Tests.Unit
             var suggestionFromService = new Suggestion
             {
                 Questions = GetListOfQuestions().Select(QuestionToClient.FromQuestion).ToList(),
-                SuggestedDocuments = GetListOfDocuments()
+                Documents = GetListOfDocuments()
             };
 
             this._suggestionServiceMock = new Mock<ISuggestionsService>();
 
             this._suggestionServiceMock
-                .Setup(x => x.GetSuggestion(It.IsAny<ConversationContext>()))
+                .Setup(x => x.GetNewSuggestion(It.IsAny<ConversationContext>()))
                 .Returns(suggestionFromService);
 
             this._questionsServiceMock = new Mock<IQuestionsService>();
@@ -114,7 +114,7 @@ namespace WhisperAPI.Tests.Unit
 
             var suggestion = result.As<OkObjectResult>().Value as Suggestion;
             suggestion.Should().NotBeNull();
-            suggestion?.SuggestedDocuments.Should().BeEquivalentTo(suggestionFromService.SuggestedDocuments);
+            suggestion?.Documents.Should().BeEquivalentTo(suggestionFromService.Documents);
             suggestion?.Questions.Should().BeEquivalentTo(suggestionFromService.Questions);
         }
 
@@ -190,26 +190,26 @@ namespace WhisperAPI.Tests.Unit
             return actionExecutingContext;
         }
 
-        private static List<SuggestedDocument> GetListOfDocuments()
+        private static List<Document> GetListOfDocuments()
         {
-            return new List<SuggestedDocument>
+            return new List<Document>
             {
-                SuggestedDocumentBuilder.Build
+                DocumentBuilder.Build
                     .WithTitle("Available Coveo Cloud V2 Source Types")
                     .WithUri("https://onlinehelp.coveo.com/en/cloud/Available_Coveo_Cloud_V2_Source_Types.htm")
                     .WithPrintableUri("https://onlinehelp.coveo.com/en/cloud/Available_Coveo_Cloud_V2_Source_Types.htm")
                     .Instance,
-                SuggestedDocumentBuilder.Build
+                DocumentBuilder.Build
                     .WithTitle("Coveo Cloud Query Syntax Reference")
                     .WithUri("https://onlinehelp.coveo.com/en/cloud/Coveo_Cloud_Query_Syntax_Reference.htm")
                     .WithPrintableUri("https://onlinehelp.coveo.com/en/cloud/Coveo_Cloud_Query_Syntax_Reference.htm")
                     .Instance,
-                SuggestedDocumentBuilder.Build
+                DocumentBuilder.Build
                     .WithTitle("Events")
                     .WithUri("https://developers.coveo.com/display/JsSearchV1/Page/27230520/27230472/27230573")
                     .WithPrintableUri("https://developers.coveo.com/display/JsSearchV1/Page/27230520/27230472/27230573")
                     .Instance,
-                SuggestedDocumentBuilder.Build
+                DocumentBuilder.Build
                     .WithTitle("Coveo Facet Component (CoveoFacet)")
                     .WithUri("https://coveo.github.io/search-ui/components/facet.html")
                     .WithPrintableUri("https://coveo.github.io/search-ui/components/facet.html")
