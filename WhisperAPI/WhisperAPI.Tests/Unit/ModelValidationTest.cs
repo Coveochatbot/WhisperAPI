@@ -1,18 +1,15 @@
-﻿using FluentAssertions;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Routing;
 using Moq;
 using NUnit.Framework;
-using System;
-using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
 using WhisperAPI.Controllers;
 using WhisperAPI.Models.Queries;
 using WhisperAPI.Services.Context;
@@ -21,7 +18,7 @@ using WhisperAPI.Tests.Data.Builders;
 namespace WhisperAPI.Tests.Unit
 {
     [TestFixture]
-    class ModelValidationTest
+    public class ModelValidationTest
     {
         private readonly InMemoryContexts _contexts;
         private readonly ContextController _contexyController;
@@ -112,6 +109,7 @@ namespace WhisperAPI.Tests.Unit
 
                 return actionExecutingContext.ModelState.IsValid;
             }
+
             return false;
         }
     }

@@ -43,22 +43,22 @@ namespace WhisperAPI.Services.Suggestions
 
         public Suggestion GetNewSuggestion(ConversationContext conversationContext, SuggestionQuery query)
         {
-            var suggestedDocuments = this.GetDocumentsFromCoveo(conversationContext).ToList();
-            return this.GetSuggestion(conversationContext, suggestedDocuments, query);
+            conversationContext.LastNotFilteredDocuments = this.GetDocuments(conversationContext).ToList();
+            return this.GetSuggestion(conversationContext, query);
         }
 
         public Suggestion GetLastSuggestion(ConversationContext conversationContext, SuggestionQuery query)
         {
-            return this.GetSuggestion(conversationContext, conversationContext.LastNotFilteredSuggestedDocuments, query);
+            return this.GetSuggestion(conversationContext, query);
         }
 
-        public IEnumerable<SuggestedDocument> GetSuggestedDocuments(ConversationContext conversationContext)
+        public IEnumerable<Document> GetDocuments(ConversationContext conversationContext)
         {
             var allRelevantQueries = string.Join(" ", conversationContext.SearchQueries.Where(x => x.Relevant).Select(m => m.Query));
 
             if (string.IsNullOrEmpty(allRelevantQueries.Trim()))
             {
-                return new List<SuggestedDocument>();
+                return new List<Document>();
             }
 
             var coveoIndexDocuments = this.SearchCoveoIndex(allRelevantQueries, conversationContext.SuggestedDocuments.ToList());
@@ -66,23 +66,23 @@ namespace WhisperAPI.Services.Suggestions
             return this.FilterOutChosenSuggestions(coveoIndexDocuments, conversationContext.SearchQueries);
         }
 
-        public IEnumerable<Question> GetQuestionsFromDocument(ConversationContext conversationContext, IEnumerable<SuggestedDocument> suggestedDocuments)
+        public IEnumerable<Question> GetQuestionsFromDocument(ConversationContext conversationContext, IEnumerable<Document> documents)
         {
-            var questions = this._documentFacets.GetQuestions(suggestedDocuments.Select(x => x.Uri));
+            var questions = this._documentFacets.GetQuestions(documents.Select(x => x.Uri));
             this.AssociateKnownQuestionsWithId(conversationContext, questions.Cast<Question>().ToList());
             return FilterOutChosenQuestions(conversationContext, questions);
         }
 
-        public List<SuggestedDocument> FilterDocumentsByFacet(ConversationContext conversationContext, List<Facet> mustHaveFacets)
+        public List<Document> FilterDocumentsByFacet(ConversationContext conversationContext, List<Facet> mustHaveFacets)
         {
             var parameters = new FilterDocumentsParameters
             {
-                Documents = conversationContext.LastNotFilteredSuggestedDocuments.Select(d => d.Uri).ToList(),
+                Documents = conversationContext.LastNotFilteredDocuments.Select(d => d.Uri).ToList(),
                 MustHaveFacets = mustHaveFacets
             };
 
             var filteredDocuments = this._filterDocuments.FilterDocumentsByFacets(parameters);
-            return conversationContext.LastNotFilteredSuggestedDocuments.Where(d => filteredDocuments.Contains(d.Uri)).ToList();
+            return conversationContext.LastNotFilteredDocuments.Where(d => filteredDocuments.Contains(d.Uri)).ToList();
         }
 
         public void AssociateKnownQuestionsWithId(ConversationContext conversationContext, List<Question> questions)
@@ -100,13 +100,11 @@ namespace WhisperAPI.Services.Suggestions
             context.SearchQueries.Add(searchQuery);
         }
 
-        public void UpdateContextWithNewSuggestions(ConversationContext context, List<SuggestedDocument> suggestedDocuments)
+        public void UpdateContextWithNewSuggestions(ConversationContext context, List<Document> documents)
         {
-            context.LastSuggestedDocuments.Clear();
-            foreach (var suggestedDocument in suggestedDocuments)
+            foreach (var document in documents)
             {
-                context.SuggestedDocuments.Add(suggestedDocument);
-                context.LastSuggestedDocuments.Add(suggestedDocument);
+                context.SuggestedDocuments.Add(document);
             }
         }
 
@@ -122,10 +120,10 @@ namespace WhisperAPI.Services.Suggestions
 
         public bool UpdateContextWithSelectedSuggestion(ConversationContext conversationContext, Guid selectQueryId)
         {
-            SuggestedDocument suggestedDocument = conversationContext.SuggestedDocuments.ToList().Find(x => x.Id == selectQueryId);
-            if (suggestedDocument != null)
+            Document document = conversationContext.SuggestedDocuments.ToList().Find(x => x.Id == selectQueryId);
+            if (document != null)
             {
-                conversationContext.SelectedSuggestedDocuments.Add(suggestedDocument);
+                conversationContext.SelectedSuggestedDocuments.Add(document);
                 return true;
             }
 
@@ -148,8 +146,8 @@ namespace WhisperAPI.Services.Suggestions
             return this.IsIntentRelevant(nlpAnalysis);
         }
 
-        public IEnumerable<SuggestedDocument> FilterOutChosenSuggestions(
-            IEnumerable<SuggestedDocument> coveoIndexDocuments,
+        public IEnumerable<Document> FilterOutChosenSuggestions(
+            IEnumerable<Document> coveoIndexDocuments,
             IEnumerable<SearchQuery> queriesList)
         {
             var queries = queriesList
@@ -180,12 +178,7 @@ namespace WhisperAPI.Services.Suggestions
             }).ToList();
         }
 
-        private IEnumerable<SuggestedDocument> GetDocumentsFromCoveo(ConversationContext conversationContext)
-        {
-            return conversationContext.LastNotFilteredSuggestedDocuments = this.GetSuggestedDocuments(conversationContext).ToList();
-        }
-
-        private Suggestion GetSuggestion(ConversationContext conversationContext, List<SuggestedDocument> suggestedDocuments, SuggestionQuery suggestionQuery)
+        private Suggestion GetSuggestion(ConversationContext conversationContext, SuggestionQuery suggestionQuery)
         {
             var suggestion = new Suggestion
             {
@@ -194,33 +187,36 @@ namespace WhisperAPI.Services.Suggestions
 
             if (suggestion.ActiveFacets.Any())
             {
-                suggestedDocuments = this.FilterDocuments(conversationContext, suggestedDocuments, suggestion.ActiveFacets).ToList();
+                var documents = this.FilterDocuments(conversationContext, suggestion.ActiveFacets).Take(suggestionQuery.MaxDocuments).ToList();
+                suggestion.Documents = documents;
+            }
+            else
+            {
+                suggestion.Documents = conversationContext.LastNotFilteredDocuments.Take(suggestionQuery.MaxDocuments).ToList();
             }
 
-            suggestion.SuggestedDocuments = suggestedDocuments.Take(suggestionQuery.MaxDocuments).ToList();
-
-            if (suggestion.SuggestedDocuments.Any())
+            if (suggestion.Documents.Any())
             {
-                suggestion.Questions = this.GenerateQuestions(conversationContext, suggestion.SuggestedDocuments).Take(suggestionQuery.MaxQuestions).ToList();
+                suggestion.Questions = this.GenerateQuestions(conversationContext, suggestion.Documents).Take(suggestionQuery.MaxQuestions).ToList();
             }
 
             return suggestion;
         }
 
-        private IEnumerable<SuggestedDocument> FilterDocuments(ConversationContext conversationContext, List<SuggestedDocument> suggestedDocuments, List<Facet> mustHaveFacets)
+        private IEnumerable<Document> FilterDocuments(ConversationContext conversationContext, List<Facet> mustHaveFacets)
         {
-            suggestedDocuments = this.FilterDocumentsByFacet(conversationContext, mustHaveFacets);
+            var documentsFiltered = this.FilterDocumentsByFacet(conversationContext, mustHaveFacets);
 
-            this.UpdateContextWithNewSuggestions(conversationContext, suggestedDocuments);
-            suggestedDocuments.ForEach(x =>
+            this.UpdateContextWithNewSuggestions(conversationContext, documentsFiltered);
+            documentsFiltered.ForEach(x =>
                 Log.Debug($"Id: {x.Id}, Title: {x.Title}, Uri: {x.Uri}, PrintableUri: {x.PrintableUri}, Summary: {x.Summary}"));
 
-            return suggestedDocuments;
+            return documentsFiltered;
         }
 
-        private IEnumerable<QuestionToClient> GenerateQuestions(ConversationContext conversationContext, List<SuggestedDocument> suggestedDocuments)
+        private IEnumerable<QuestionToClient> GenerateQuestions(ConversationContext conversationContext, List<Document> documents)
         {
-            var questions = this.GetQuestionsFromDocument(conversationContext, suggestedDocuments).ToList();
+            var questions = this.GetQuestionsFromDocument(conversationContext, documents).ToList();
             var questionsToClient = questions.Select(QuestionToClient.FromQuestion).ToList();
 
             this.UpdateContextWithNewQuestions(conversationContext, questions);
@@ -229,10 +225,10 @@ namespace WhisperAPI.Services.Suggestions
             return questionsToClient;
         }
 
-        private IEnumerable<SuggestedDocument> SearchCoveoIndex(string query, List<SuggestedDocument> suggestedDocuments)
+        private IEnumerable<Document> SearchCoveoIndex(string query, List<Document> suggestedDocuments)
         {
             ISearchResult searchResult = this._indexSearch.Search(query);
-            var documents = new List<SuggestedDocument>();
+            var documents = new List<Document>();
 
             if (searchResult == null)
             {
@@ -250,8 +246,8 @@ namespace WhisperAPI.Services.Suggestions
             {
                 if (this.IsElementValid(result))
                 {
-                    SuggestedDocument suggestedDocument = suggestedDocuments.Find(x => x.Uri == result.Uri) ?? new SuggestedDocument(result);
-                    documents.Add(suggestedDocument);
+                    Document document = suggestedDocuments.Find(x => x.Uri == result.Uri) ?? new Document(result);
+                    documents.Add(document);
                 }
             }
 

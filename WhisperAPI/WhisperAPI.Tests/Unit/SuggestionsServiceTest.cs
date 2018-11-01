@@ -58,7 +58,7 @@ namespace WhisperAPI.Tests.Unit
                 .Setup(x => x.GetNlpAnalysis(It.IsAny<string>()))
                 .Returns(nlpAnalysis);
 
-            this._suggestionsService.GetSuggestedDocuments(this.GetConversationContext()).Should().BeEquivalentTo(this.GetSuggestedDocuments());
+            this._suggestionsService.GetDocuments(this.GetConversationContext()).Should().BeEquivalentTo(this.GetSuggestedDocuments());
         }
 
         [Test]
@@ -80,7 +80,7 @@ namespace WhisperAPI.Tests.Unit
                 .Setup(x => x.GetNlpAnalysis(It.IsAny<string>()))
                 .Returns(nlpAnalysis);
 
-            this._suggestionsService.GetSuggestedDocuments(this.GetConversationContext()).Should().BeEquivalentTo(new List<SuggestedDocument>());
+            this._suggestionsService.GetDocuments(this.GetConversationContext()).Should().BeEquivalentTo(new List<Document>());
         }
 
         [Test]
@@ -98,7 +98,7 @@ namespace WhisperAPI.Tests.Unit
                 .Setup(x => x.GetNlpAnalysis(It.IsAny<string>()))
                 .Returns(nlpAnalysis);
 
-            this._suggestionsService.GetSuggestedDocuments(this.GetConversationContext()).Should().BeEquivalentTo(new List<SuggestedDocument>());
+            this._suggestionsService.GetDocuments(this.GetConversationContext()).Should().BeEquivalentTo(new List<Document>());
         }
 
         [Test]
@@ -172,18 +172,18 @@ namespace WhisperAPI.Tests.Unit
         [TestCase("a21d07d5-fd5a-42ab-ac2c-2ef6101e58d1", "a21d07d5-fd5a-42ab-ac2c-2ef6101e58d2", "a21d07d5-fd5a-42ab-ac2c-2ef6101e58d2")]
         public void When_receiving_valid_selectQueryId_add_suggestion_to_list_and_return_true(string suggestedDocumentId, string questionId, string selectQueryId)
         {
-            SuggestedDocument suggestedDocument = new SuggestedDocument();
+            Document document = new Document();
             Question question = FacetQuestionBuilder.Build.Instance;
-            suggestedDocument.Id = new Guid(suggestedDocumentId);
+            document.Id = new Guid(suggestedDocumentId);
             question.Id = new Guid(questionId);
 
-            this._conversationContext.SuggestedDocuments.Add(suggestedDocument);
+            this._conversationContext.SuggestedDocuments.Add(document);
             this._conversationContext.Questions.Add(question);
 
             bool isContextUpdated = this._suggestionsService.UpdateContextWithSelectedSuggestion(this._conversationContext, new Guid(selectQueryId));
 
             Assert.IsTrue(isContextUpdated);
-            Assert.IsTrue(this._conversationContext.ClickedQuestions.Contains(question) != this._conversationContext.SelectedSuggestedDocuments.Contains(suggestedDocument));
+            Assert.IsTrue(this._conversationContext.ClickedQuestions.Contains(question) != this._conversationContext.SelectedSuggestedDocuments.Contains(document));
         }
 
         [Test]
@@ -236,7 +236,7 @@ namespace WhisperAPI.Tests.Unit
             this._suggestionsService.UpdateContextWithNewQuery(this._conversationContext, suggestionQuery);
             var suggestion = this._suggestionsService.GetNewSuggestion(this._conversationContext, suggestionQuery);
 
-            suggestion.SuggestedDocuments.Should().HaveCount(maxDocuments);
+            suggestion.Documents.Should().HaveCount(maxDocuments);
         }
 
         [Test]
@@ -276,7 +276,7 @@ namespace WhisperAPI.Tests.Unit
             this._suggestionsService.UpdateContextWithNewQuery(this._conversationContext, suggestionQuery);
             var suggestion = this._suggestionsService.GetNewSuggestion(this._conversationContext, suggestionQuery);
 
-            suggestion.SuggestedDocuments.Should().HaveCount(this.GetSuggestedDocuments().Count());
+            suggestion.Documents.Should().HaveCount(this.GetSuggestedDocuments().Count());
         }
 
         [Test]
@@ -286,7 +286,7 @@ namespace WhisperAPI.Tests.Unit
         public void When_having_more_documents_from_last_search_than_maximum_documents_return_that_maximum_of_documents(string suggestionQueryId, int maxDocuments)
         {
             this._conversationContext.SelectedSuggestedDocuments.Clear();
-            this._conversationContext.LastNotFilteredSuggestedDocuments = this.GetSuggestedDocuments();
+            this._conversationContext.LastNotFilteredDocuments = this.GetSuggestedDocuments();
 
             var suggestionQuery = SearchQueryBuilder.Build
                 .WithChatKey(new Guid(suggestionQueryId))
@@ -302,7 +302,7 @@ namespace WhisperAPI.Tests.Unit
 
             var suggestion = this._suggestionsService.GetLastSuggestion(this._conversationContext, suggestionQuery);
 
-            suggestion.SuggestedDocuments.Should().HaveCount(maxDocuments);
+            suggestion.Documents.Should().HaveCount(maxDocuments);
         }
 
         [Test]
@@ -312,7 +312,7 @@ namespace WhisperAPI.Tests.Unit
         public void When_having_less_documents_from_last_search_than_maximum_documents_return_all_documents(string suggestionQueryId, int maxQuestions)
         {
             this._conversationContext.SelectedSuggestedDocuments.Clear();
-            this._conversationContext.LastNotFilteredSuggestedDocuments = this.GetSuggestedDocuments();
+            this._conversationContext.LastNotFilteredDocuments = this.GetSuggestedDocuments();
 
             var suggestionQuery = SearchQueryBuilder.Build
                 .WithChatKey(new Guid(suggestionQueryId))
@@ -328,7 +328,7 @@ namespace WhisperAPI.Tests.Unit
 
             var suggestion = this._suggestionsService.GetLastSuggestion(this._conversationContext, suggestionQuery);
 
-            suggestion.SuggestedDocuments.Should().HaveCount(this._conversationContext.LastNotFilteredSuggestedDocuments.Count());
+            suggestion.Documents.Should().HaveCount(this._conversationContext.LastNotFilteredDocuments.Count());
         }
 
         [Test]
@@ -418,7 +418,7 @@ namespace WhisperAPI.Tests.Unit
         public void When_having_more_documents_from_last_search_than_maximum_questions_return_that_maximum_of_documents(string suggestionQueryId, int maxQuestions)
         {
             this._conversationContext.SelectedSuggestedDocuments.Clear();
-            this._conversationContext.LastNotFilteredSuggestedDocuments = this.GetSuggestedDocuments();
+            this._conversationContext.LastNotFilteredDocuments = this.GetSuggestedDocuments();
 
             var suggestionQuery = SearchQueryBuilder.Build
                 .WithChatKey(new Guid(suggestionQueryId))
@@ -444,7 +444,7 @@ namespace WhisperAPI.Tests.Unit
         public void When_having_less_documents_from_last_search_than_maximum_questions_return_all_documents(string suggestionQueryId, int maxQuestions)
         {
             this._conversationContext.SelectedSuggestedDocuments.Clear();
-            this._conversationContext.LastNotFilteredSuggestedDocuments = this.GetSuggestedDocuments();
+            this._conversationContext.LastNotFilteredDocuments = this.GetSuggestedDocuments();
 
             var suggestionQuery = SearchQueryBuilder.Build
                 .WithChatKey(new Guid(suggestionQueryId))
@@ -527,32 +527,32 @@ namespace WhisperAPI.Tests.Unit
             };
         }
 
-        public List<SuggestedDocument> GetSuggestedDocuments()
+        public List<Document> GetSuggestedDocuments()
         {
-            return new List<SuggestedDocument>
+            return new List<Document>
             {
-                new SuggestedDocument
+                new Document
                 {
                     Title = "Available Coveo Cloud V2 Source Types",
                     Uri = "https://onlinehelp.coveo.com/en/cloud/Available_Coveo_Cloud_V2_Source_Types.htm",
                     PrintableUri = "https://onlinehelp.coveo.com/en/cloud/Available_Coveo_Cloud_V2_Source_Types.htm",
                     Summary = null
                 },
-                new SuggestedDocument
+                new Document
                 {
                     Title = "Coveo Cloud Query Syntax Reference",
                     Uri = "https://onlinehelp.coveo.com/en/cloud/Coveo_Cloud_Query_Syntax_Reference.htm",
                     PrintableUri = "https://onlinehelp.coveo.com/en/cloud/Coveo_Cloud_Query_Syntax_Reference.htm",
                     Summary = null
                 },
-                new SuggestedDocument
+                new Document
                 {
                     Title = "Events",
                     Uri = "https://developers.coveo.com/display/JsSearchV1/Page/27230520/27230472/27230573",
                     PrintableUri = "https://developers.coveo.com/display/JsSearchV1/Page/27230520/27230472/27230573",
                     Summary = null
                 },
-                new SuggestedDocument
+                new Document
                 {
                     Title = "Coveo Facet Component (CoveoFacet)",
                     Uri = "https://coveo.github.io/search-ui/components/facet.html",
