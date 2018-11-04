@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Reflection;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -154,6 +155,65 @@ namespace WhisperAPI.Tests.Unit
 
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(query));
             this._suggestionController.SelectSuggestion(this._validSelectQueryList[validQueryIndex]).Should().BeEquivalentTo(new OkResult());
+        }
+
+        [Test]
+        public void When_adding_facet_filter_then_it_is_added_in_context()
+        {
+            this._questionsServiceMock = new Mock<IQuestionsService>();
+            this._suggestionServiceMock = new Mock<ISuggestionsService>();
+
+            var facet = FacetBuilder.Build
+                .WithName("Year")
+                .WithValue("2018")
+                .Instance;
+
+            var query = FilterQueryBuilder.Build
+                .WithFacet(facet)
+                .Instance;
+
+            this._suggestionController = new SuggestionsController(this._suggestionServiceMock.Object, this._questionsServiceMock.Object, this._contexts);
+
+            this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(query));
+            this._suggestionController.AddFilter(query);
+
+            var context =
+                this._suggestionController.GetType().BaseType
+                    .GetProperty("ConversationContext", BindingFlags.NonPublic | BindingFlags.Instance)
+                    .GetValue(this._suggestionController) as ConversationContext;
+
+            context.FilterDocumentsParameters.MustHaveFacets.Should().HaveCount(1);
+            context.FilterDocumentsParameters.MustHaveFacets.Single().Should().BeEquivalentTo(facet);
+        }
+
+        [Test]
+        public void When_removing_facet_filter_then_it_is_removed_in_context()
+        {
+            this._questionsServiceMock = new Mock<IQuestionsService>();
+            this._suggestionServiceMock = new Mock<ISuggestionsService>();
+
+            var facet = FacetBuilder.Build
+                .WithName("Year")
+                .WithValue("2018")
+                .Instance;
+
+            var query = FilterQueryBuilder.Build
+                .WithFacet(facet)
+                .Instance;
+
+            this._suggestionController = new SuggestionsController(this._suggestionServiceMock.Object, this._questionsServiceMock.Object, this._contexts);
+
+            this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(query));
+            this._suggestionController.AddFilter(query);
+
+            this._suggestionController.RemoveFilter(query);
+
+            var context =
+                this._suggestionController.GetType().BaseType
+                    .GetProperty("ConversationContext", BindingFlags.NonPublic | BindingFlags.Instance)
+                    .GetValue(this._suggestionController) as ConversationContext;
+
+            context.FilterDocumentsParameters.MustHaveFacets.Should().HaveCount(0);
         }
 
         private ActionExecutingContext GetActionExecutingContext(Query query)

@@ -1,16 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using WhisperAPI.Models.MLAPI;
 using WhisperAPI.Models.Queries;
 
 namespace WhisperAPI.Models
 {
     public class ConversationContext
     {
-        public ConversationContext(Guid chatkey, DateTime datetime)
+        public ConversationContext(Guid chatKey, DateTime datetime)
             : this()
         {
-            this.ChatKey = chatkey;
+            this.ChatKey = chatKey;
             this.StartDate = datetime;
         }
 
@@ -22,6 +23,7 @@ namespace WhisperAPI.Models
             this.LastSuggestedQuestions = new List<Question>();
             this.Questions = new HashSet<Question>();
             this.SelectedSuggestedDocuments = new HashSet<Document>();
+            this.FilterDocumentsParameters = new FilterDocumentsParameters();
         }
 
         public Guid ChatKey { get; set; }
@@ -45,5 +47,7 @@ namespace WhisperAPI.Models
         public List<Document> LastNotFilteredDocuments { get; set; }
 
         public List<Question> LastSuggestedQuestions { get; set; }
+
+        public FilterDocumentsParameters FilterDocumentsParameters { get; set; }
     }
 }
