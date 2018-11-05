@@ -51,6 +51,7 @@ namespace WhisperAPI.Tests.Unit
             {
                 SearchQueryBuilder.Build.WithChatKey(chatKey).WithQuery("test").WithMessageType(SearchQuery.MessageType.Customer).Instance,
                 SearchQueryBuilder.Build.WithChatKey(chatKey).WithQuery("test").WithMessageType(SearchQuery.MessageType.Agent).Instance,
+                SearchQueryBuilder.Build.WithChatKey(chatKey).WithQuery("test").WithMaxDocuments(5).WithMaxQuestions(5).WithMessageType(SearchQuery.MessageType.Customer).Instance,
             };
 
             this._invalidSelectQueryList = new List<SelectQuery>
@@ -99,16 +100,16 @@ namespace WhisperAPI.Tests.Unit
             };
 
             this._suggestionServiceMock = new Mock<ISuggestionsService>();
+            var query = this._validSearchQueryList[validQueryIndex];
 
             this._suggestionServiceMock
-                .Setup(x => x.GetNewSuggestion(It.IsAny<ConversationContext>()))
+                .Setup(x => x.GetNewSuggestion(It.IsAny<ConversationContext>(), query))
                 .Returns(suggestionFromService);
 
             this._questionsServiceMock = new Mock<IQuestionsService>();
 
             this._suggestionController = new SuggestionsController(this._suggestionServiceMock.Object, this._questionsServiceMock.Object, this._contexts);
 
-            var query = this._validSearchQueryList[validQueryIndex];
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(query));
 
             var result = this._suggestionController.GetSuggestions(query);
