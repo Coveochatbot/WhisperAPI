@@ -36,20 +36,21 @@ namespace WhisperAPI.Controllers
                 searchQuery.Relevant = false;
             }
 
-            var suggestion = this._suggestionsService.GetNewSuggestion(this.ConversationContext);
+            var suggestion = this._suggestionsService.GetNewSuggestion(this.ConversationContext, searchQuery);
 
             LogSuggestion(suggestion);
             return this.Ok(suggestion);
         }
 
         [HttpGet]
-        public IActionResult GetSuggestions(Query query)
+        public IActionResult GetSuggestions(SuggestionQuery suggestionQuery)
         {
-            Log.Debug($"Query: {query}");
+            Log.Debug($"SuggestionQuery: {suggestionQuery}");
 
-            var suggestion = this._suggestionsService.GetLastSuggestion(this.ConversationContext);
+            var suggestion = this._suggestionsService.GetLastSuggestion(this.ConversationContext, suggestionQuery);
 
             LogSuggestion(suggestion);
+
             return this.Ok(suggestion);
         }
 
@@ -70,6 +71,7 @@ namespace WhisperAPI.Controllers
         public IActionResult RemoveAllFacets([FromBody] Query query)
         {
             this._questionsService.RejectAllAnswers(this.ConversationContext);
+
             Log.Debug("Removed all facets");
             return this.NoContent();
         }

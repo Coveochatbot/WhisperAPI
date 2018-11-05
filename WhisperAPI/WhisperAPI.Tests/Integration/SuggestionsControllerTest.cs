@@ -246,17 +246,18 @@ namespace WhisperAPI.Tests.Integration
         }
 
         [Test]
-        public void When_getting_suggestions_with_more_attribute_then_required_then_returns_correctly()
+        public void When_getting_suggestions_with_more_attribute_than_required_then_returns_correctly()
         {
-            var jsonSearchQuery = "{\"chatkey\": \"aecaa8db-abc8-4ac9-aa8d-87987da2dbb0\",\"Query\": \"Need help with CoveoSearch API\",\"Type\": 1,\"command\": \"sudo ls\"}";
+            var jsonSearchQuery = "{\"chatkey\": \"aecaa8db-abc8-4ac9-aa8d-87987da2dbb0\",\"Query\": \"Need help with CoveoSearch API\",\"Type\": 1,\"command\": \"sudo ls\",\"maxDocuments\": \"10\",\"maxQuestions\": \"10\" }";
             var questions = GetQuestions();
 
             this.NlpCallHttpMessageHandleMock(HttpStatusCode.OK, new StringContent(JsonConvert.SerializeObject(this.GetRelevantNlpAnalysis())));
             this.IndexSearchHttpMessageHandleMock(HttpStatusCode.OK, this.GetSearchResultStringContent());
             this.DocumentFacetsHttpMessageHandleMock(HttpStatusCode.OK, new StringContent(JsonConvert.SerializeObject(questions)));
 
-            this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(JsonConvert.DeserializeObject<SearchQuery>(jsonSearchQuery)));
-            var result = this._suggestionController.GetSuggestions(JsonConvert.DeserializeObject<SearchQuery>(jsonSearchQuery));
+            var deserializedSearchQuery = JsonConvert.DeserializeObject<SearchQuery>(jsonSearchQuery);
+            this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(deserializedSearchQuery));
+            var result = this._suggestionController.GetSuggestions(deserializedSearchQuery);
 
             var suggestion = result.As<OkObjectResult>().Value as Suggestion;
 
@@ -266,10 +267,9 @@ namespace WhisperAPI.Tests.Integration
         [Test]
         public void When_getting_suggestions_then_refresh_result_are_the_same()
         {
-            var queryChatkeyRefresh = new Query
-            {
-                ChatKey = new Guid("aecaa8db-abc8-4ac9-aa8d-87987da2dbb0")
-            };
+            var queryChatkeyRefresh = SuggestionQueryBuilder.Build
+                .WithChatKey(new Guid("aecaa8db-abc8-4ac9-aa8d-87987da2dbb0"))
+                .Instance;
 
             this.NlpCallHttpMessageHandleMock(HttpStatusCode.OK, new StringContent(JsonConvert.SerializeObject(this.GetRelevantNlpAnalysis())));
             this.IndexSearchHttpMessageHandleMock(HttpStatusCode.OK, this.GetSearchResultStringContent());
@@ -343,7 +343,7 @@ namespace WhisperAPI.Tests.Integration
             result.Should().BeOfType<NoContentResult>();
 
             // Get the suggestion after clear
-            var query = QueryBuilder.Build.WithChatKey(searchQuery.ChatKey).Instance;
+            var query = SuggestionQueryBuilder.Build.WithChatKey(searchQuery.ChatKey).Instance;
             result = this._suggestionController.GetSuggestions(query);
             suggestion = result.As<OkObjectResult>().Value as Suggestion;
             suggestion.Should().NotBeNull();
