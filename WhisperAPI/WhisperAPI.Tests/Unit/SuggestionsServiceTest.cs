@@ -67,7 +67,7 @@ namespace WhisperAPI.Tests.Unit
 
             var nlpAnalysis = NlpAnalysisBuilder.Build.WithIntents(intents).Instance;
             this.SetUpNLPCallMockToReturn(nlpAnalysis);
-            this.SetUpIndexSearchMockToReturn(this.GetSearchResult());
+            this.SetUpIndexSearchMockToReturn(new SearchResult());
 
             this._suggestionsService.GetDocuments(this.GetConversationContext()).Should().BeEquivalentTo(new List<Document>());
         }
