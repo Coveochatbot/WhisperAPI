@@ -149,10 +149,6 @@ namespace WhisperAPI.Tests.Unit
         public void When_Intent_is_relevant(string wildcardString)
         {
             var query = SearchQueryBuilder.Build.WithQuery("I like C#").Instance;
-            var intentsFromApi = new List<string>
-            {
-                wildcardString
-            };
 
             var intentsFromNLP = new List<Intent>
             {
@@ -313,19 +309,6 @@ namespace WhisperAPI.Tests.Unit
                 SearchQueries = new List<SearchQuery>
                 {
                     new SearchQuery { ChatKey = new Guid("0f8fad5b-d9cb-469f-a165-708677289501"), Query = "rest api", Type = SearchQuery.MessageType.Customer, Relevant = true }
-                }
-            };
-            return context;
-        }
-
-        public ConversationContext GetConversationContextForFilterChosenSuggestions()
-        {
-            ConversationContext context = new ConversationContext(new Guid("0f8fad5b-d9cb-469f-a165-708677289501"), DateTime.Now)
-            {
-                SearchQueries = new List<SearchQuery>
-                {
-                    new SearchQuery { ChatKey = new Guid("0f8fad5b-d9cb-469f-a165-708677289501"), Query = "rest api", Type = SearchQuery.MessageType.Customer, Relevant = true },
-                    new SearchQuery { ChatKey = new Guid("0f8fad5b-d9cb-469f-a165-708677289501"), Query = "Available Coveo Cloud V2 Source Types", Type = SearchQuery.MessageType.Agent, Relevant = true }
                 }
             };
             return context;
