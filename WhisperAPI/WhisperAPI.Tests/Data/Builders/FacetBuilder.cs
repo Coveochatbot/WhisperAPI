@@ -22,9 +22,9 @@ namespace WhisperAPI.Tests.Data.Builders
 
         private FacetBuilder()
         {
+            this._id = Guid.NewGuid();
             this._name = "name";
             this._value = "value";
-            this._id = Guid.NewGuid();
         }
 
         public FacetBuilder WithId(Guid id)

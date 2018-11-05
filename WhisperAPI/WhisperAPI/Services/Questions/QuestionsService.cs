@@ -82,6 +82,16 @@ namespace WhisperAPI.Services.Questions
             return new string(s.Where(c => char.IsLetterOrDigit(c)).ToArray());
         }
 
+        private static Facet BuildFaceFromFacetQuestion(FacetQuestion question)
+        {
+            return new Facet
+            {
+                Id = question.Id,
+                Value = question.Answer,
+                Name = question.FacetName
+            };
+        }
+
         private bool Answered(Question pendingQuestion, string messageText)
         {
             switch (pendingQuestion)
@@ -105,12 +115,7 @@ namespace WhisperAPI.Services.Questions
             {
                 case FacetQuestion facetQuestion:
                     this.UpdateQuestionWithAnswer(facetQuestion, messageText);
-                    context.FilterDocumentsParameters.MustHaveFacets.Add(new Facet
-                    {
-                        Id = facetQuestion.Id,
-                        Name = facetQuestion.FacetName,
-                        Value = facetQuestion.Answer
-                    });
+                    context.FilterDocumentsParameters.MustHaveFacets.Add(BuildFaceFromFacetQuestion(facetQuestion));
                     return;
             }
 

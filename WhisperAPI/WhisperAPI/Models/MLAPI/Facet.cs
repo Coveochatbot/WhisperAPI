@@ -42,9 +42,9 @@ namespace WhisperAPI.Models.MLAPI
 
         protected bool Equals(Facet other)
         {
-            return string.Equals(this.Name, other.Name) &&
-                   string.Equals(this.Value, other.Value) &&
-                   this.Id.Equals(other.Id);
+            return this.Id.Equals(other.Id) &&
+                   string.Equals(this.Name, other.Name) &&
+                   string.Equals(this.Value, other.Value);
         }
     }
 }
