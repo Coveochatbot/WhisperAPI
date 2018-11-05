@@ -10,7 +10,7 @@ namespace WhisperAPI.Models.Queries
         [JsonProperty("maxDocuments")]
         public int MaxDocuments { get; set; }
 
-        [Required(ErrorMessage = "maxQuestions is required")]
+        [Required(ErrorMessage = "MaxQuestions is required")]
         [Range(0, int.MaxValue)]
         [JsonProperty("maxQuestions")]
         public int MaxQuestions { get; set; }
