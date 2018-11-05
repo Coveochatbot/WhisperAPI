@@ -20,7 +20,7 @@ namespace WhisperAPI.Tests.Data.Builders
 
         public static FacetQuestionBuilder Build => new FacetQuestionBuilder();
 
-        public Question Instance => new FacetQuestion
+        public FacetQuestion Instance => new FacetQuestion
         {
             FacetName = this._facetName,
             FacetValues = this._facetValues,

@@ -41,15 +41,15 @@ namespace WhisperAPI.Services.Suggestions
             this._irrelevantIntents = irrelevantIntents;
         }
 
-        public Suggestion GetNewSuggestion(ConversationContext conversationContext)
+        public Suggestion GetNewSuggestion(ConversationContext conversationContext, SuggestionQuery query)
         {
             conversationContext.LastNotFilteredDocuments = this.GetDocuments(conversationContext).ToList();
-            return this.GetSuggestion(conversationContext);
+            return this.GetSuggestion(conversationContext, query);
         }
 
-        public Suggestion GetLastSuggestion(ConversationContext conversationContext)
+        public Suggestion GetLastSuggestion(ConversationContext conversationContext, SuggestionQuery query)
         {
-            return this.GetSuggestion(conversationContext);
+            return this.GetSuggestion(conversationContext, query);
         }
 
         public IEnumerable<Document> GetDocuments(ConversationContext conversationContext)
@@ -178,24 +178,26 @@ namespace WhisperAPI.Services.Suggestions
             }).ToList();
         }
 
-        private Suggestion GetSuggestion(ConversationContext conversationContext)
+        private Suggestion GetSuggestion(ConversationContext conversationContext, SuggestionQuery suggestionQuery)
         {
-            var suggestion = new Suggestion();
-            suggestion.ActiveFacets = GetActiveFacets(conversationContext).ToList();
+            var suggestion = new Suggestion
+            {
+                ActiveFacets = GetActiveFacets(conversationContext).ToList()
+            };
 
             if (suggestion.ActiveFacets.Any())
             {
-                var documents = this.FilterDocuments(conversationContext, suggestion.ActiveFacets).ToList();
+                var documents = this.FilterDocuments(conversationContext, suggestion.ActiveFacets).Take(suggestionQuery.MaxDocuments).ToList();
                 suggestion.Documents = documents;
             }
             else
             {
-                suggestion.Documents = conversationContext.LastNotFilteredDocuments;
+                suggestion.Documents = conversationContext.LastNotFilteredDocuments.Take(suggestionQuery.MaxDocuments).ToList();
             }
 
             if (suggestion.Documents.Any())
             {
-                suggestion.Questions = this.GenerateQuestions(conversationContext, suggestion.Documents).ToList();
+                suggestion.Questions = this.GenerateQuestions(conversationContext, suggestion.Documents).Take(suggestionQuery.MaxQuestions).ToList();
             }
 
             return suggestion;

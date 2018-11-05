@@ -50,6 +50,7 @@ namespace WhisperAPI.Tests.Unit
             {
                 SearchQueryBuilder.Build.WithChatKey(chatKey).WithQuery("test").WithMessageType(SearchQuery.MessageType.Customer).Instance,
                 SearchQueryBuilder.Build.WithChatKey(chatKey).WithQuery("test").WithMessageType(SearchQuery.MessageType.Agent).Instance,
+                SearchQueryBuilder.Build.WithChatKey(chatKey).WithQuery("test").WithMaxDocuments(5).WithMaxQuestions(5).WithMessageType(SearchQuery.MessageType.Customer).Instance,
             };
 
             this._invalidSelectQueryList = new List<SelectQuery>
@@ -98,16 +99,16 @@ namespace WhisperAPI.Tests.Unit
             };
 
             this._suggestionServiceMock = new Mock<ISuggestionsService>();
+            var query = this._validSearchQueryList[validQueryIndex];
 
             this._suggestionServiceMock
-                .Setup(x => x.GetNewSuggestion(It.IsAny<ConversationContext>()))
+                .Setup(x => x.GetNewSuggestion(It.IsAny<ConversationContext>(), query))
                 .Returns(suggestionFromService);
 
             this._questionsServiceMock = new Mock<IQuestionsService>();
 
             this._suggestionController = new SuggestionsController(this._suggestionServiceMock.Object, this._questionsServiceMock.Object, this._contexts);
 
-            var query = this._validSearchQueryList[validQueryIndex];
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(query));
 
             var result = this._suggestionController.GetSuggestions(query);
@@ -156,40 +157,6 @@ namespace WhisperAPI.Tests.Unit
             this._suggestionController.SelectSuggestion(this._validSelectQueryList[validQueryIndex]).Should().BeEquivalentTo(new OkResult());
         }
 
-        private ActionExecutingContext GetActionExecutingContext(Query query)
-        {
-            var actionContext = new ActionContext(
-                new Mock<HttpContext>().Object,
-                new Mock<RouteData>().Object,
-                new Mock<ActionDescriptor>().Object);
-
-            var actionExecutingContext = new ActionExecutingContext(
-                actionContext,
-                new List<IFilterMetadata>(),
-                new Dictionary<string, object>(),
-                this._suggestionController);
-            actionExecutingContext.ActionArguments["query"] = query;
-            if (query != null)
-            {
-                var context = new ValidationContext(query, null, null);
-                var results = new List<ValidationResult>();
-
-                if (!Validator.TryValidateObject(query, context, results, true))
-                {
-                    actionExecutingContext.ModelState.Clear();
-                    this._suggestionController.ModelState.Clear();
-                    foreach (ValidationResult result in results)
-                    {
-                        var key = result.MemberNames.FirstOrDefault() ?? string.Empty;
-                        actionExecutingContext.ModelState.AddModelError(key, result.ErrorMessage);
-                        this._suggestionController.ModelState.AddModelError(key, result.ErrorMessage);
-                    }
-                }
-            }
-
-            return actionExecutingContext;
-        }
-
         private static List<Document> GetListOfDocuments()
         {
             return new List<Document>
@@ -224,6 +191,40 @@ namespace WhisperAPI.Tests.Unit
                 FacetQuestionBuilder.Build.WithFacetName("Dummy").WithFacetValues("A", "B", "C").Instance,
                 FacetQuestionBuilder.Build.WithFacetName("Dummy").WithFacetValues("C", "D", "E").Instance,
             };
+        }
+
+        private ActionExecutingContext GetActionExecutingContext(Query query)
+        {
+            var actionContext = new ActionContext(
+                new Mock<HttpContext>().Object,
+                new Mock<RouteData>().Object,
+                new Mock<ActionDescriptor>().Object);
+
+            var actionExecutingContext = new ActionExecutingContext(
+                actionContext,
+                new List<IFilterMetadata>(),
+                new Dictionary<string, object>(),
+                this._suggestionController);
+            actionExecutingContext.ActionArguments["query"] = query;
+            if (query != null)
+            {
+                var context = new ValidationContext(query, null, null);
+                var results = new List<ValidationResult>();
+
+                if (!Validator.TryValidateObject(query, context, results, true))
+                {
+                    actionExecutingContext.ModelState.Clear();
+                    this._suggestionController.ModelState.Clear();
+                    foreach (ValidationResult result in results)
+                    {
+                        var key = result.MemberNames.FirstOrDefault() ?? string.Empty;
+                        actionExecutingContext.ModelState.AddModelError(key, result.ErrorMessage);
+                        this._suggestionController.ModelState.AddModelError(key, result.ErrorMessage);
+                    }
+                }
+            }
+
+            return actionExecutingContext;
         }
     }
 }

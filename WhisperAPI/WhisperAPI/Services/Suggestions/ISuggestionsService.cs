@@ -8,9 +8,9 @@ namespace WhisperAPI.Services.Suggestions
 {
     public interface ISuggestionsService
     {
-        Suggestion GetNewSuggestion(ConversationContext conversationContext);
+        Suggestion GetNewSuggestion(ConversationContext conversationContext, SuggestionQuery query);
 
-        Suggestion GetLastSuggestion(ConversationContext conversationContext);
+        Suggestion GetLastSuggestion(ConversationContext conversationContext, SuggestionQuery query);
 
         IEnumerable<Document> GetDocuments(ConversationContext conversationContext);
 
