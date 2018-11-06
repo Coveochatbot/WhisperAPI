@@ -29,7 +29,7 @@ namespace WhisperAPI.Tests.Unit
         }
 
         [Test]
-        public void When_sending_chatkey_null_then_modelstate_is_not_valid()
+        public void When_sending_chatKey_null_then_modelstate_is_not_valid()
         {
             var jsonSearchQuery = "{\"Type\": 1,\"Query\": \"Need help with CoveoSearch API\"}";
 

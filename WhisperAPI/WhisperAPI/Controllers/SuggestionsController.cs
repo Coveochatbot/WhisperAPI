@@ -88,6 +88,20 @@ namespace WhisperAPI.Controllers
             return this.NoContent();
         }
 
+        [HttpPut("Filter")]
+        public IActionResult AddFilter([FromBody] FilterQuery query)
+        {
+            this.ConversationContext.FilterDocumentsParameters.MustHaveFacets.Add(query.Facet);
+            return this.NoContent();
+        }
+
+        [HttpDelete("Filter")]
+        public IActionResult RemoveFilter([FromBody] FilterQuery query)
+        {
+            this.ConversationContext.FilterDocumentsParameters.MustHaveFacets.Remove(query.Facet);
+            return this.NoContent();
+        }
+
         private static void LogSuggestion(Suggestion suggestion)
         {
             suggestion.Documents?.ForEach(x => Log.Debug($"Title: {x.Title}, Uri: {x.Uri}, PrintableUri: {x.PrintableUri}, Summary: {x.Summary}"));

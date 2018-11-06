@@ -31,10 +31,10 @@ namespace WhisperAPI.Tests.Data.Builders
 
         private FacetQuestionBuilder()
         {
-            this._id = Guid.NewGuid();
-            this._status = Models.QuestionStatus.None;
             this._facetName = string.Empty;
             this._facetValues = new List<string>();
+            this._id = Guid.NewGuid();
+            this._status = QuestionStatus.None;
             this._answer = string.Empty;
         }
 

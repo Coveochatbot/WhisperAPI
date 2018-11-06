@@ -1,9 +1,12 @@
-﻿using WhisperAPI.Models.MLAPI;
+﻿using System;
+using WhisperAPI.Models.MLAPI;
 
 namespace WhisperAPI.Tests.Data.Builders
 {
     public class FacetBuilder
     {
+        private Guid? _id;
+
         private string _name;
 
         private string _value;
@@ -12,14 +15,22 @@ namespace WhisperAPI.Tests.Data.Builders
 
         public Facet Instance => new Facet
         {
+            Id = this._id,
             Name = this._name,
             Value = this._value
         };
 
         private FacetBuilder()
         {
+            this._id = Guid.NewGuid();
             this._name = "name";
             this._value = "value";
+        }
+
+        public FacetBuilder WithId(Guid id)
+        {
+            this._id = id;
+            return this;
         }
 
         public FacetBuilder WithName(string name)

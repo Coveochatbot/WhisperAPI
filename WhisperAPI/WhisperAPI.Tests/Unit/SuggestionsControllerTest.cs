@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Reflection;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -157,40 +158,63 @@ namespace WhisperAPI.Tests.Unit
             this._suggestionController.SelectSuggestion(this._validSelectQueryList[validQueryIndex]).Should().BeEquivalentTo(new OkResult());
         }
 
-        private static List<Document> GetListOfDocuments()
+        [Test]
+        public void When_adding_facet_filter_then_it_is_added_in_context()
         {
-            return new List<Document>
-            {
-                DocumentBuilder.Build
-                    .WithTitle("Available Coveo Cloud V2 Source Types")
-                    .WithUri("https://onlinehelp.coveo.com/en/cloud/Available_Coveo_Cloud_V2_Source_Types.htm")
-                    .WithPrintableUri("https://onlinehelp.coveo.com/en/cloud/Available_Coveo_Cloud_V2_Source_Types.htm")
-                    .Instance,
-                DocumentBuilder.Build
-                    .WithTitle("Coveo Cloud Query Syntax Reference")
-                    .WithUri("https://onlinehelp.coveo.com/en/cloud/Coveo_Cloud_Query_Syntax_Reference.htm")
-                    .WithPrintableUri("https://onlinehelp.coveo.com/en/cloud/Coveo_Cloud_Query_Syntax_Reference.htm")
-                    .Instance,
-                DocumentBuilder.Build
-                    .WithTitle("Events")
-                    .WithUri("https://developers.coveo.com/display/JsSearchV1/Page/27230520/27230472/27230573")
-                    .WithPrintableUri("https://developers.coveo.com/display/JsSearchV1/Page/27230520/27230472/27230573")
-                    .Instance,
-                DocumentBuilder.Build
-                    .WithTitle("Coveo Facet Component (CoveoFacet)")
-                    .WithUri("https://coveo.github.io/search-ui/components/facet.html")
-                    .WithPrintableUri("https://coveo.github.io/search-ui/components/facet.html")
-                    .Instance
-            };
+            this._questionsServiceMock = new Mock<IQuestionsService>();
+            this._suggestionServiceMock = new Mock<ISuggestionsService>();
+
+            var facet = FacetBuilder.Build
+                .WithName("Year")
+                .WithValue("2018")
+                .Instance;
+
+            var query = FilterQueryBuilder.Build
+                .WithFacet(facet)
+                .Instance;
+
+            this._suggestionController = new SuggestionsController(this._suggestionServiceMock.Object, this._questionsServiceMock.Object, this._contexts);
+
+            this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(query));
+            this._suggestionController.AddFilter(query);
+
+            var context =
+                this._suggestionController.GetType().BaseType
+                    .GetProperty("ConversationContext", BindingFlags.NonPublic | BindingFlags.Instance)
+                    .GetValue(this._suggestionController) as ConversationContext;
+
+            context.FilterDocumentsParameters.MustHaveFacets.Should().HaveCount(1);
+            context.FilterDocumentsParameters.MustHaveFacets.Single().Should().BeEquivalentTo(facet);
         }
 
-        private static List<Question> GetListOfQuestions()
+        [Test]
+        public void When_removing_facet_filter_then_it_is_removed_in_context()
         {
-            return new List<Question>
-            {
-                FacetQuestionBuilder.Build.WithFacetName("Dummy").WithFacetValues("A", "B", "C").Instance,
-                FacetQuestionBuilder.Build.WithFacetName("Dummy").WithFacetValues("C", "D", "E").Instance,
-            };
+            this._questionsServiceMock = new Mock<IQuestionsService>();
+            this._suggestionServiceMock = new Mock<ISuggestionsService>();
+
+            var facet = FacetBuilder.Build
+                .WithName("Year")
+                .WithValue("2018")
+                .Instance;
+
+            var query = FilterQueryBuilder.Build
+                .WithFacet(facet)
+                .Instance;
+
+            this._suggestionController = new SuggestionsController(this._suggestionServiceMock.Object, this._questionsServiceMock.Object, this._contexts);
+
+            this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(query));
+            this._suggestionController.AddFilter(query);
+
+            this._suggestionController.RemoveFilter(query);
+
+            var context =
+                this._suggestionController.GetType().BaseType
+                    .GetProperty("ConversationContext", BindingFlags.NonPublic | BindingFlags.Instance)
+                    .GetValue(this._suggestionController) as ConversationContext;
+
+            context.FilterDocumentsParameters.MustHaveFacets.Should().HaveCount(0);
         }
 
         private ActionExecutingContext GetActionExecutingContext(Query query)
@@ -225,6 +249,42 @@ namespace WhisperAPI.Tests.Unit
             }
 
             return actionExecutingContext;
+        }
+
+        private static List<Document> GetListOfDocuments()
+        {
+            return new List<Document>
+            {
+                DocumentBuilder.Build
+                    .WithTitle("Available Coveo Cloud V2 Source Types")
+                    .WithUri("https://onlinehelp.coveo.com/en/cloud/Available_Coveo_Cloud_V2_Source_Types.htm")
+                    .WithPrintableUri("https://onlinehelp.coveo.com/en/cloud/Available_Coveo_Cloud_V2_Source_Types.htm")
+                    .Instance,
+                DocumentBuilder.Build
+                    .WithTitle("Coveo Cloud Query Syntax Reference")
+                    .WithUri("https://onlinehelp.coveo.com/en/cloud/Coveo_Cloud_Query_Syntax_Reference.htm")
+                    .WithPrintableUri("https://onlinehelp.coveo.com/en/cloud/Coveo_Cloud_Query_Syntax_Reference.htm")
+                    .Instance,
+                DocumentBuilder.Build
+                    .WithTitle("Events")
+                    .WithUri("https://developers.coveo.com/display/JsSearchV1/Page/27230520/27230472/27230573")
+                    .WithPrintableUri("https://developers.coveo.com/display/JsSearchV1/Page/27230520/27230472/27230573")
+                    .Instance,
+                DocumentBuilder.Build
+                    .WithTitle("Coveo Facet Component (CoveoFacet)")
+                    .WithUri("https://coveo.github.io/search-ui/components/facet.html")
+                    .WithPrintableUri("https://coveo.github.io/search-ui/components/facet.html")
+                    .Instance
+            };
+        }
+
+        private static List<Question> GetListOfQuestions()
+        {
+            return new List<Question>
+            {
+                FacetQuestionBuilder.Build.WithFacetName("Dummy").WithFacetValues("A", "B", "C").Instance,
+                FacetQuestionBuilder.Build.WithFacetName("Dummy").WithFacetValues("C", "D", "E").Instance,
+            };
         }
     }
 }
