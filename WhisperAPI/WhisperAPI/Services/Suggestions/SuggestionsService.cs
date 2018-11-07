@@ -2,14 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text.RegularExpressions;
 using WhisperAPI.Models;
 using WhisperAPI.Models.MLAPI;
-using WhisperAPI.Models.NLPAPI;
 using WhisperAPI.Models.Queries;
 using WhisperAPI.Models.Search;
 using WhisperAPI.Services.MLAPI.Facets;
-using WhisperAPI.Services.NLPAPI;
 using WhisperAPI.Services.Search;
 [assembly: InternalsVisibleTo("WhisperAPI.Tests")]
 
