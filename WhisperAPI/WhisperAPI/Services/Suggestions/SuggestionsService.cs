@@ -50,7 +50,7 @@ namespace WhisperAPI.Services.Suggestions
 
         public IEnumerable<Document> GetDocuments(ConversationContext conversationContext)
         {
-            var allRelevantQueries = string.Join(" ", conversationContext.SearchQueries.Where(x => x.Relevant).Select(m => m.FilteredQuery));
+            var allRelevantQueries = string.Join(" ", conversationContext.SearchQueries.Where(x => x.Relevant).Select(m => m.Query));
 
             if (string.IsNullOrEmpty(allRelevantQueries.Trim()))
             {
