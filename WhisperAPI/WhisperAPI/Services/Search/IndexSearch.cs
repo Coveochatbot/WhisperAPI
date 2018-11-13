@@ -10,14 +10,16 @@ namespace WhisperAPI.Services.Search
     {
         private static readonly log4net.ILog Log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        private readonly string _searchEndPoint = "rest/search/v2";
         private readonly string _apiKey;
+        private readonly string _organizationID;
         private readonly int _numberOfResults;
         private readonly HttpClient _httpClient;
+        private readonly string _searchEndPoint = "rest/search/v2?organizationId=";
 
-        public IndexSearch(string apiKey, int numberOfResults, HttpClient client, string searchBaseAddress)
+        public IndexSearch(string apiKey, int numberOfResults, HttpClient client, string searchBaseAddress, string organizationID)
         {
             this._apiKey = apiKey;
+            this._organizationID = organizationID;
             this._numberOfResults = numberOfResults;
             this._httpClient = client;
             this.InitHttpClient(searchBaseAddress);
@@ -25,7 +27,7 @@ namespace WhisperAPI.Services.Search
 
         public ISearchResult Search(string query)
         {
-            return JsonConvert.DeserializeObject<SearchResult>(this.GetStringFromPost(this._searchEndPoint, this.CreateStringContent(query)));
+            return JsonConvert.DeserializeObject<SearchResult>(this.GetStringFromPost(this._searchEndPoint + this._organizationID, this.CreateStringContent(query)));
         }
 
         private string GetStringFromPost(string url, StringContent content)
@@ -40,7 +42,7 @@ namespace WhisperAPI.Services.Search
         {
             var searchParameters = new SearchParameters
             {
-                Lq = query,
+                Q = query,
                 NumberOfResults = this._numberOfResults
             };
 

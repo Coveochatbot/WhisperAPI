@@ -17,5 +17,7 @@ namespace WhisperAPI.Settings
         public int NumberOfResults { get; set; }
 
         public string ContextLifeSpan { get; set; }
+
+        public string OrganizationID { get; set; }
     }
 }
