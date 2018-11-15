@@ -59,5 +59,16 @@ namespace WhisperAPI.Tests.Unit.MegaGenial
             var module = detector.DetectModule("Je vois un écran avec des chiffres");
             Assert.AreEqual(Module.Memory, module);
         }
+
+        [Test]
+        [TestCase]
+        public void WhenSentenceIsDescribingManyModulesThenSaidModulesAreReturned()
+        {
+            var detector = new ModuleDetector();
+            var modules = detector.DetectModuleList("J'aime les fils");
+            Assert.IsTrue(modules.Contains((Module.WireComplicated, 1)));
+            Assert.IsTrue(modules.Contains((Module.WireSequence, 1)));
+            Assert.IsTrue(modules.Contains((Module.WireSimple, 1)));
+        }
     }
 }

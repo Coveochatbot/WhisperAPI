@@ -6,7 +6,8 @@ namespace WhisperAPI.Models.MegaGenial
 {
     public class ModuleDetector
     {
-        private static readonly Dictionary<Module, string> _vocabularyByModule = new Dictionary<Module, string> {
+        private static readonly Dictionary<Module, string> _vocabularyByModule = new Dictionary<Module, string>
+        {
             { Module.Keypad, "dessins boutons quatres 4" },
             { Module.Maze, "quadrillé triangle rouge cercles verts point blanc 6 par six maze labyrinthe" },
             { Module.Memory, "mémoire memoire quatres chiffres 1234 gros nombres boutons premier deuxième troisième quatrième deuxieme troisieme quatrieme" },
@@ -18,6 +19,20 @@ namespace WhisperAPI.Models.MegaGenial
             { Module.WireSimple, "3 trois 4 quatre 5 cinq 6 six couleurs fils simple premier deuxième troisième quatrième cinquième sixième deuxieme troisieme quatrieme cinquieme sixieme coupé coupe couper horizontal horizontaux" },
             { Module.None, string.Empty },
         };
+
+        public List<(Module, int)> DetectModuleList(string textContent)
+        {
+            var scoresByModule = this.GetScoresByModule(textContent);
+            var nonZeroModules = scoresByModule.Where(x => x.Value != 0);
+            if (nonZeroModules.Count() == 0)
+            {
+                return Enumerable.Empty<(Module, int)>().ToList();
+            }
+            else
+            {
+                return nonZeroModules.OrderByDescending(x => x.Value).Take(3).Select(x => (x.Key, x.Value)).ToList();
+            }
+        }
 
         public Module DetectModule(string textContent)
         {
