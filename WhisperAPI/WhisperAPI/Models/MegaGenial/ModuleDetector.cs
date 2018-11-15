@@ -19,7 +19,7 @@ namespace WhisperAPI.Models.MegaGenial
             { Module.None, string.Empty },
         };
 
-        public Module GetModule(string textContent)
+        public Module DetectModule(string textContent)
         {
             var scoresByModule = this.GetScoresByModule(textContent);
             var nonZeroModules = scoresByModule.Where(x => x.Value != 0);
@@ -49,7 +49,7 @@ namespace WhisperAPI.Models.MegaGenial
             var score = 0;
             foreach (var word in textContent.ToLower().Split(" "))
             {
-                if (_vocabularyByModule[module].Contains(word))
+                if (_vocabularyByModule[module].Split(" ").Contains(word))
                 {
                     score += 1;
                 }
