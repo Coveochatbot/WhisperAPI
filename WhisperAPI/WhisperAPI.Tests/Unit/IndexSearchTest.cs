@@ -14,7 +14,9 @@ namespace WhisperAPI.Tests.Unit
     [TestFixture]
     public class IndexSearchTest
     {
+        private string _organizationId = "orgId";
         private Mock<HttpMessageHandler> _httpMessageHandler;
+        private int _numberOfResults = 1000;
         private HttpClient _httpClient;
 
         [SetUp]
@@ -36,7 +38,7 @@ namespace WhisperAPI.Tests.Unit
                 }));
 
             this._httpClient = new HttpClient(this._httpMessageHandler.Object);
-            IIndexSearch indexSearchOK = new IndexSearch(null, this._httpClient, "https://localhost:5000");
+            IIndexSearch indexSearchOK = new IndexSearch(null, this._numberOfResults, this._httpClient, "https://localhost:5000", _organizationId);
 
             indexSearchOK.Search(query).Should().BeEquivalentTo(this.GetSearchResult());
         }
@@ -54,7 +56,7 @@ namespace WhisperAPI.Tests.Unit
                 }));
 
             this._httpClient = new HttpClient(this._httpMessageHandler.Object);
-            IIndexSearch indexSearchNotFound = new IndexSearch(null, this._httpClient, "https://localhost:5000");
+            IIndexSearch indexSearchNotFound = new IndexSearch(null, this._numberOfResults, this._httpClient, "https://localhost:5000", _organizationId);
 
             Assert.Throws<HttpRequestException>(() => indexSearchNotFound.Search(query));
         }
@@ -72,7 +74,7 @@ namespace WhisperAPI.Tests.Unit
                 }));
 
             this._httpClient = new HttpClient(this._httpMessageHandler.Object);
-            IIndexSearch indexSearchOKNoContent = new IndexSearch(null, this._httpClient, "https://localhost:5000");
+            IIndexSearch indexSearchOKNoContent = new IndexSearch(null, this._numberOfResults, this._httpClient, "https://localhost:5000", _organizationId);
 
             indexSearchOKNoContent.Search(query).Should().BeEquivalentTo((SearchResult)null);
         }

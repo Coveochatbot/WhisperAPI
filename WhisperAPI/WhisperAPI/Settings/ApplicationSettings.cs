@@ -14,6 +14,10 @@ namespace WhisperAPI.Settings
 
         public List<string> IrrelevantIntents { get; set; }
 
+        public int NumberOfResults { get; set; }
+
         public string ContextLifeSpan { get; set; }
+
+        public string OrganizationID { get; set; }
     }
 }

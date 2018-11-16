@@ -5,6 +5,6 @@ namespace WhisperAPI.Services.MLAPI.Facets
 {
     public interface IDocumentFacets
     {
-        List<FacetQuestion> GetQuestions(IEnumerable<string> suggestedDocuments);
+        List<FacetQuestion> GetQuestions(IEnumerable<string> documentsUri);
     }
 }

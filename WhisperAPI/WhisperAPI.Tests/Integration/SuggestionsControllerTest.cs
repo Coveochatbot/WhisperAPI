@@ -34,6 +34,8 @@ namespace WhisperAPI.Tests.Integration
     public class SuggestionsControllerTest
     {
         private SuggestionsController _suggestionController;
+        private int _numberOfResults = 1000;
+        private string _organizationId = "orgId";
 
         private Mock<HttpMessageHandler> _indexSearchHttpMessageHandleMock;
         private Mock<HttpMessageHandler> _nlpCallHttpMessageHandleMock;
@@ -53,7 +55,7 @@ namespace WhisperAPI.Tests.Integration
             var documentFacetHttpClient = new HttpClient(this._documentFacetsHttpMessageHandleMock.Object);
             var filterDocumentHttpClient = new HttpClient(this._filterDocumentsHttpMessageHandleMock.Object);
 
-            var indexSearch = new IndexSearch(null, indexSearchHttpClient, "https://localhost:5000");
+            var indexSearch = new IndexSearch(null, this._numberOfResults, indexSearchHttpClient, "https://localhost:5000", _organizationId);
             var nlpCall = new NlpCall(nlpCallHttpClient, "https://localhost:5000");
             var documentFacets = new DocumentFacets(documentFacetHttpClient, "https://localhost:5000");
             var filterDocuments = new FilterDocuments(filterDocumentHttpClient, "https://localhost:5000");
@@ -81,7 +83,7 @@ namespace WhisperAPI.Tests.Integration
 
             var questionsToClient = questions.Select(q => QuestionToClient.FromQuestion(q)).ToList();
 
-            suggestion.SuggestedDocuments.Should().BeEquivalentTo(GetSuggestedDocuments());
+            suggestion.Documents.Should().BeEquivalentTo(GetSuggestedDocuments());
             suggestion.Questions.Should().BeEquivalentTo(questionsToClient);
         }
 
@@ -105,7 +107,7 @@ namespace WhisperAPI.Tests.Integration
 
             var suggestion = result.As<OkObjectResult>().Value as Suggestion;
 
-            suggestion.SuggestedDocuments.Should().BeEquivalentTo(new List<SuggestedDocument>());
+            suggestion.Documents.Should().BeEquivalentTo(new List<Document>());
         }
 
         [Test]
@@ -153,7 +155,7 @@ namespace WhisperAPI.Tests.Integration
 
             var suggestion = result.As<OkObjectResult>().Value as Suggestion;
 
-            suggestion.SuggestedDocuments.Should().BeEquivalentTo(new List<SuggestedDocument>());
+            suggestion.Documents.Should().BeEquivalentTo(new List<Document>());
             suggestion.Questions.Should().BeEquivalentTo(null);
 
             // Customer says: I need help with CoveoSearch API
@@ -176,7 +178,7 @@ namespace WhisperAPI.Tests.Integration
 
             var questionsToClient = questions.Select(q => QuestionToClient.FromQuestion(q)).ToList();
 
-            suggestion.SuggestedDocuments.Should().BeEquivalentTo(GetSuggestedDocuments());
+            suggestion.Documents.Should().BeEquivalentTo(GetSuggestedDocuments());
             suggestion.Questions.Should().BeEquivalentTo(questionsToClient);
 
             // Agent says: Maybe this could help: https://onlinehelp.coveo.com/en/cloud/Available_Coveo_Cloud_V2_Source_Types.htm
@@ -195,8 +197,8 @@ namespace WhisperAPI.Tests.Integration
 
             suggestion = result.As<OkObjectResult>().Value as Suggestion;
 
-            suggestion.SuggestedDocuments.Count.Should().NotBe(0);
-            suggestion.SuggestedDocuments.Select(x => x.Uri)
+            suggestion.Documents.Count.Should().NotBe(0);
+            suggestion.Documents.Select(x => x.Uri)
                 .Contains("https://onlinehelp.coveo.com/en/cloud/Available_Coveo_Cloud_V2_Source_Types.htm").Should().BeFalse();
         }
 
@@ -215,7 +217,7 @@ namespace WhisperAPI.Tests.Integration
 
             var suggestion = result.As<OkObjectResult>().Value as Suggestion;
 
-            suggestion.SuggestedDocuments.Should().BeEquivalentTo(new List<SuggestedDocument>());
+            suggestion.Documents.Should().BeEquivalentTo(new List<Document>());
             suggestion.Questions.Should().BeEquivalentTo(null);
 
             // Customer says: I need help with CoveoSearch API
@@ -239,36 +241,36 @@ namespace WhisperAPI.Tests.Integration
 
             suggestion = result.As<OkObjectResult>().Value as Suggestion;
 
-            suggestion.SuggestedDocuments.Count.Should().NotBe(0);
-            suggestion.SuggestedDocuments.Select(x => x.Uri)
+            suggestion.Documents.Count.Should().NotBe(0);
+            suggestion.Documents.Select(x => x.Uri)
                 .Contains("https://onlinehelp.coveo.com/en/cloud/Available_Coveo_Cloud_V2_Source_Types.htm").Should().BeFalse();
         }
 
         [Test]
-        public void When_getting_suggestions_with_more_attribute_then_required_then_returns_correctly()
+        public void When_getting_suggestions_with_more_attribute_than_required_then_returns_correctly()
         {
-            var jsonSearchQuery = "{\"chatkey\": \"aecaa8db-abc8-4ac9-aa8d-87987da2dbb0\",\"Query\": \"Need help with CoveoSearch API\",\"Type\": 1,\"command\": \"sudo ls\"}";
+            var jsonSearchQuery = "{\"chatkey\": \"aecaa8db-abc8-4ac9-aa8d-87987da2dbb0\",\"Query\": \"Need help with CoveoSearch API\",\"Type\": 1,\"command\": \"sudo ls\",\"maxDocuments\": \"10\",\"maxQuestions\": \"10\" }";
             var questions = GetQuestions();
 
             this.NlpCallHttpMessageHandleMock(HttpStatusCode.OK, new StringContent(JsonConvert.SerializeObject(this.GetRelevantNlpAnalysis())));
             this.IndexSearchHttpMessageHandleMock(HttpStatusCode.OK, this.GetSearchResultStringContent());
             this.DocumentFacetsHttpMessageHandleMock(HttpStatusCode.OK, new StringContent(JsonConvert.SerializeObject(questions)));
 
-            this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(JsonConvert.DeserializeObject<SearchQuery>(jsonSearchQuery)));
-            var result = this._suggestionController.GetSuggestions(JsonConvert.DeserializeObject<SearchQuery>(jsonSearchQuery));
+            var deserializedSearchQuery = JsonConvert.DeserializeObject<SearchQuery>(jsonSearchQuery);
+            this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(deserializedSearchQuery));
+            var result = this._suggestionController.GetSuggestions(deserializedSearchQuery);
 
             var suggestion = result.As<OkObjectResult>().Value as Suggestion;
 
-            suggestion.SuggestedDocuments.Should().BeEquivalentTo(GetSuggestedDocuments());
+            suggestion.Documents.Should().BeEquivalentTo(GetSuggestedDocuments());
         }
 
         [Test]
         public void When_getting_suggestions_then_refresh_result_are_the_same()
         {
-            var queryChatkeyRefresh = new Query
-            {
-                ChatKey = new Guid("aecaa8db-abc8-4ac9-aa8d-87987da2dbb0")
-            };
+            var queryChatkeyRefresh = SuggestionQueryBuilder.Build
+                .WithChatKey(new Guid("aecaa8db-abc8-4ac9-aa8d-87987da2dbb0"))
+                .Instance;
 
             this.NlpCallHttpMessageHandleMock(HttpStatusCode.OK, new StringContent(JsonConvert.SerializeObject(this.GetRelevantNlpAnalysis())));
             this.IndexSearchHttpMessageHandleMock(HttpStatusCode.OK, this.GetSearchResultStringContent());
@@ -280,7 +282,7 @@ namespace WhisperAPI.Tests.Integration
             var resultLastSuggestions = this._suggestionController.GetSuggestions(queryChatkeyRefresh);
 
             var lastSuggestion = (Suggestion)resultLastSuggestions.As<OkObjectResult>().Value;
-            lastSuggestion.SuggestedDocuments.Should().BeEquivalentTo(suggestion.SuggestedDocuments);
+            lastSuggestion.Documents.Should().BeEquivalentTo(suggestion.Documents);
             lastSuggestion.Questions.Should().BeEquivalentTo(suggestion.Questions);
             lastSuggestion.ActiveFacets.Should().BeEquivalentTo(suggestion.ActiveFacets);
         }
@@ -306,7 +308,7 @@ namespace WhisperAPI.Tests.Integration
 
             var questionsToClient = questions.Select(q => QuestionToClient.FromQuestion(q)).ToList();
 
-            suggestion.SuggestedDocuments.Should().BeEquivalentTo(GetSuggestedDocuments());
+            suggestion.Documents.Should().BeEquivalentTo(GetSuggestedDocuments());
             suggestion.Questions.Should().BeEquivalentTo(questionsToClient);
 
             // Agent click on a question in the UI
@@ -314,12 +316,14 @@ namespace WhisperAPI.Tests.Integration
             this._suggestionController.SelectSuggestion(selectQuery);
 
             // Agent asks the question he clicked to the custommer
-            searchQuery.Type = SearchQuery.MessageType.Agent;
-            searchQuery.Query = questions[0].Text;
+            searchQuery = SearchQueryBuilder.Build
+                .WithMessageType(SearchQuery.MessageType.Agent)
+            .WithQuery(questions[0].Text)
+            .Instance;
             result = this._suggestionController.GetSuggestions(searchQuery);
             suggestion = result.As<OkObjectResult>().Value as Suggestion;
 
-            suggestion.SuggestedDocuments.Should().BeEquivalentTo(GetSuggestedDocuments());
+            suggestion.Documents.Should().BeEquivalentTo(GetSuggestedDocuments());
             suggestion.Questions.Count.Should().Be(1);
             suggestion.Questions.Single().Should().BeEquivalentTo(questionsToClient[1]);
 
@@ -331,23 +335,28 @@ namespace WhisperAPI.Tests.Integration
             suggestion = result.As<OkObjectResult>().Value as Suggestion;
 
             // The return list from facet is the same list than the complete list so it should filtered everything
-            suggestion.SuggestedDocuments.Should().BeEmpty();
+            suggestion.Documents.Should().BeEmpty();
             suggestion.ActiveFacets.Should().HaveCount(1);
             suggestion.ActiveFacets[0].Value = answerFromClient;
 
             // Agent clear the facet
-            result = this._suggestionController.RemoveFacet(suggestion.ActiveFacets[0].Id, searchQuery);
+            result = this._suggestionController.RemoveFacet(suggestion.ActiveFacets[0].Id.Value, searchQuery);
+            result.Should().BeOfType<NoContentResult>();
+
+            // Get the suggestion after clear
+            var query = SuggestionQueryBuilder.Build.WithChatKey(searchQuery.ChatKey).Instance;
+            result = this._suggestionController.GetSuggestions(query);
             suggestion = result.As<OkObjectResult>().Value as Suggestion;
             suggestion.Should().NotBeNull();
-            suggestion?.ActiveFacets.Should().BeNull();
-            suggestion?.SuggestedDocuments.Should().BeEquivalentTo(GetSuggestedDocuments());
+            suggestion.ActiveFacets.Should().HaveCount(0);
+            suggestion.Documents.Should().BeEquivalentTo(GetSuggestedDocuments());
         }
 
-        private static List<SuggestedDocument> GetSuggestedDocuments()
+        private static List<Document> GetSuggestedDocuments()
         {
-            return new List<SuggestedDocument>
+            return new List<Document>
             {
-                new SuggestedDocument
+                new Document
                 {
                     Title = "Available Coveo Cloud V2 Source Types",
                     Uri = "https://onlinehelp.coveo.com/en/cloud/Available_Coveo_Cloud_V2_Source_Types.htm",
@@ -355,7 +364,7 @@ namespace WhisperAPI.Tests.Integration
                     Summary = null,
                     Excerpt = null
                 },
-                new SuggestedDocument
+                new Document
                 {
                     Title = "Coveo Cloud Query Syntax Reference",
                     Uri = "https://onlinehelp.coveo.com/en/cloud/Coveo_Cloud_Query_Syntax_Reference.htm",
@@ -363,7 +372,7 @@ namespace WhisperAPI.Tests.Integration
                     Summary = null,
                     Excerpt = null
                 },
-                new SuggestedDocument
+                new Document
                 {
                     Title = "Events",
                     Uri = "https://developers.coveo.com/display/JsSearchV1/Page/27230520/27230472/27230573",
@@ -371,7 +380,7 @@ namespace WhisperAPI.Tests.Integration
                     Summary = null,
                     Excerpt = null
                 },
-                new SuggestedDocument
+                new Document
                 {
                     Title = "Coveo Facet Component (CoveoFacet)",
                     Uri = "https://coveo.github.io/search-ui/components/facet.html",

@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using WhisperAPI.Models;
+using WhisperAPI.Models.MLAPI;
 using WhisperAPI.Models.Queries;
 
 namespace WhisperAPI.Services.Questions
@@ -44,7 +43,7 @@ namespace WhisperAPI.Services.Questions
             {
                 if (this.Answered(pendingQuestion, messageText))
                 {
-                    this.UpdateQuestionWithAnswer(pendingQuestion, messageText);
+                    this.UpdateQuestionWithAnswer(context, pendingQuestion, messageText);
                     detectedAnswer = true;
                 }
             }
@@ -71,6 +70,7 @@ namespace WhisperAPI.Services.Questions
             if (question != null)
             {
                 question.Status = QuestionStatus.Rejected;
+                context.FilterDocumentsParameters.MustHaveFacets.RemoveAll(x => x.Id == question.Id);
                 return true;
             }
 
@@ -80,6 +80,16 @@ namespace WhisperAPI.Services.Questions
         private static string StringWithoutSpaceAndOnlyWithAlphanumericCharacters(string s)
         {
             return new string(s.Where(c => char.IsLetterOrDigit(c)).ToArray());
+        }
+
+        private static Facet BuildFaceFromFacetQuestion(FacetQuestion question)
+        {
+            return new Facet
+            {
+                Id = question.Id,
+                Value = question.Answer,
+                Name = question.FacetName
+            };
         }
 
         private bool Answered(Question pendingQuestion, string messageText)
@@ -99,12 +109,13 @@ namespace WhisperAPI.Services.Questions
             return pendingQuestion.FacetValues.Any(facet => simplifiedMessageText.Contains(StringWithoutSpaceAndOnlyWithAlphanumericCharacters(facet), StringComparison.InvariantCultureIgnoreCase));
         }
 
-        private void UpdateQuestionWithAnswer(Question question, string messageText)
+        private void UpdateQuestionWithAnswer(ConversationContext context, Question question, string messageText)
         {
             switch (question)
             {
                 case FacetQuestion facetQuestion:
                     this.UpdateQuestionWithAnswer(facetQuestion, messageText);
+                    context.FilterDocumentsParameters.MustHaveFacets.Add(BuildFaceFromFacetQuestion(facetQuestion));
                     return;
             }
 
