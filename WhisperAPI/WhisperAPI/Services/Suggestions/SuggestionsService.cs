@@ -4,6 +4,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using WhisperAPI.Models;
+using WhisperAPI.Models.MegaGenial;
 using WhisperAPI.Models.MLAPI;
 using WhisperAPI.Models.NLPAPI;
 using WhisperAPI.Models.Queries;
@@ -18,6 +19,10 @@ namespace WhisperAPI.Services.Suggestions
     public class SuggestionsService : ISuggestionsService
     {
         private static readonly log4net.ILog Log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+        private static readonly ModuleQuestionsRepo _questionRepo = new ModuleQuestionsRepo();
+
+        private static readonly ModuleDetector _moduleDetector = new ModuleDetector();
 
         private readonly IIndexSearch _indexSearch;
 
@@ -193,9 +198,9 @@ namespace WhisperAPI.Services.Suggestions
                 suggestion.Documents = conversationContext.LastNotFilteredDocuments.Take(suggestionQuery.MaxDocuments).ToList();
             }
 
-            if (suggestion.Documents.Any())
+            if (suggestionQuery is SearchQuery)
             {
-                suggestion.Questions = this.GenerateQuestions(conversationContext, suggestion.Documents).Take(suggestionQuery.MaxQuestions).ToList();
+                suggestion.Questions = this.GenerateQuestions(conversationContext, (SearchQuery)suggestionQuery).Take(suggestionQuery.MaxQuestions).ToList();
             }
 
             return suggestion;
@@ -212,9 +217,15 @@ namespace WhisperAPI.Services.Suggestions
             return documentsFiltered;
         }
 
-        private IEnumerable<QuestionToClient> GenerateQuestions(ConversationContext conversationContext, List<Document> documents)
+        private IEnumerable<QuestionToClient> GenerateQuestions(ConversationContext conversationContext, SearchQuery query)
         {
-            var questions = this.GetQuestionsFromDocument(conversationContext, documents).ToList();
+            var questions = new List<Question>();
+            var moduleList = _moduleDetector.DetectModuleList(query.Query);
+            foreach (var (module, score) in moduleList)
+            {
+                questions.AddRange(_questionRepo.GetQuestions(module));
+            }
+
             var questionsToClient = questions.Select(QuestionToClient.FromQuestion).ToList();
 
             UpdateContextWithNewQuestions(conversationContext, questions);
