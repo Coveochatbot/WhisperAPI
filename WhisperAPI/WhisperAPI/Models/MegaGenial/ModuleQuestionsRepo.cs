@@ -26,8 +26,8 @@ namespace WhisperAPI.Models.MegaGenial
             {Module.WhosFirst, new List<string> { "Mots affichés?", "Étiquettes en ordre?" } },
             {Module.Maze, new List<string> { "Position des cercles?", "Position du point?", "Position du triangle?" } },
             {Module.WireSequence, new List<string> { "Combinaison couleur, chiffre et lettre?" } },
-            {Module.WireComplicated, new List<string> { "Couleur fils, étoile, DEL?", "Numéro de série pair?", "Port parallèle présent?", "Nombre de piles?" } },
-            {Module.Memory, new List<string> { "Quelle étape?", "Chiffre affiché?", "Chiffres en ordre?" } }
+            {Module.WireComplicated, new List<string> { "Couleur fils, étoile, lumière?", "Numéro de série pair?", "Port parallèle présent?", "Nombre de piles?" } },
+            {Module.Memory, new List<string> { "Quelle étape?", "Chiffre affiché en haut?", "Chiffres en ordre?" } }
         };
 
         public List<Question> GetQuestions(Module module)
