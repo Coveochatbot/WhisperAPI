@@ -1,4 +1,4 @@
-![alt text](https://travis-ci.org/CoveoWhisper/WhisperAPI.svg?branch=master)
+[![Build Status](https://travis-ci.org/Coveochatbot/megageniale-whisperapi.svg?branch=development)](https://travis-ci.org/Coveochatbot/megageniale-whisperapi)
 
 # Whisper
 
