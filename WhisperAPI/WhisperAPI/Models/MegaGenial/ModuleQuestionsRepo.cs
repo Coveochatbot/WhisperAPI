@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace WhisperAPI.Models.MegaGenial
 {
@@ -11,6 +12,7 @@ namespace WhisperAPI.Models.MegaGenial
         public ModuleQuestion(string text)
         {
             this._text = text;
+            this.Id = Guid.NewGuid();
         }
 
     }
