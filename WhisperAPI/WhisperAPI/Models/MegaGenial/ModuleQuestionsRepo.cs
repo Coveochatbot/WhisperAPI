@@ -15,6 +15,38 @@ namespace WhisperAPI.Models.MegaGenial
             this.Id = Guid.NewGuid();
         }
 
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != this.GetType())
+            {
+                return false;
+            }
+
+            return this.Equals((ModuleQuestion)obj);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                return (this.Text != null ? this.Text.GetHashCode() : 0) * 397;
+            }
+        }
+
+        protected bool Equals(ModuleQuestion other)
+        {
+            return string.Equals(this.Text, other.Text);
+        }
     }
 
     public class ModuleQuestionsRepo

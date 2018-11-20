@@ -195,7 +195,7 @@ namespace WhisperAPI.Services.Suggestions
             }
             else
             {
-                suggestion.Questions = conversationContext.LastSuggestedQuestions.Select(QuestionToClient.FromQuestion).ToList();
+                suggestion.Questions = conversationContext.LastSuggestedQuestions.Where(x => x.Status != QuestionStatus.Clicked).Select(QuestionToClient.FromQuestion).ToList();
             }
 
             return suggestion;
@@ -219,6 +219,14 @@ namespace WhisperAPI.Services.Suggestions
             foreach (var (module, score) in moduleList)
             {
                 questions.AddRange(_questionRepo.GetQuestions(module));
+            }
+
+            foreach (var question in conversationContext.ClickedQuestions)
+            {
+                if (questions.Contains(question))
+                {
+                    questions.Remove(question);
+                }
             }
 
             var questionsToClient = questions.Select(QuestionToClient.FromQuestion).ToList();

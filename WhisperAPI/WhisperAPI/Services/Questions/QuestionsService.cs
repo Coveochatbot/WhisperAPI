@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using WhisperAPI.Models;
+using WhisperAPI.Models.MegaGenial;
 using WhisperAPI.Models.MLAPI;
 using WhisperAPI.Models.Queries;
 
@@ -133,33 +134,17 @@ namespace WhisperAPI.Services.Questions
         {
             switch (clickedQuestion)
             {
-                case FacetQuestion clickedFacetQuestion:
-                    return this.DidAgentAskQuestion(agentMessage, clickedFacetQuestion);
+                case ModuleQuestion clickedModuleQuestion:
+                    return this.DidAgentAskQuestion(agentMessage, clickedModuleQuestion);
             }
 
             throw new NotSupportedException("Question type not supported");
         }
 
-        private bool DidAgentAskQuestion(string agentMessage, FacetQuestion clickedFacetQuestion)
+        private bool DidAgentAskQuestion(string agentMessage, ModuleQuestion clickedModuleQuestion)
         {
             var simplifiedAgentMessage = StringWithoutSpaceAndOnlyWithAlphanumericCharacters(agentMessage);
-
-            int matchesFound = 0;
-
-            if (simplifiedAgentMessage.Contains(StringWithoutSpaceAndOnlyWithAlphanumericCharacters(clickedFacetQuestion.FacetName), StringComparison.InvariantCultureIgnoreCase))
-            {
-                matchesFound++;
-            }
-
-            foreach (var facetValue in clickedFacetQuestion.FacetValues)
-            {
-                if (simplifiedAgentMessage.Contains(StringWithoutSpaceAndOnlyWithAlphanumericCharacters(facetValue), StringComparison.InvariantCultureIgnoreCase))
-                {
-                    matchesFound++;
-                }
-            }
-
-            return matchesFound >= 2;
+            return simplifiedAgentMessage.Contains(StringWithoutSpaceAndOnlyWithAlphanumericCharacters(clickedModuleQuestion.Text));
         }
     }
 }

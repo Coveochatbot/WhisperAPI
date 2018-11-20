@@ -63,33 +63,33 @@ namespace WhisperAPI.Tests.Unit
             }
         }
 
-        [TestCase(true, "My question is: Is year 2018 ?", "Year", new string[] { "2018", "2017" })]
-        [TestCase(true, "My question is: Is year 2018 ?", "Year", new string[] { "20 18", "2017" })]
-        [TestCase(true, "My question is: Is year 20 18 ?", "Year", new string[] { "20 18", "2017" })]
-        [TestCase(true, "My question is: Is it Asparagus or Brocoli ?", "Dummy", new string[] { "Asparagus", "Brocoli" })]
-        [TestCase(true, "My question is: Is it Asparagus or Brocoli ?", "Dummy", new string[] { "asparagus", "brocoli" })]
-        [TestCase(true, "My question is: Is Dummy Asparagus or Brocoli ?", "Dummy", new string[] { "Asparagus", "Cantelope" })]
-        [TestCase(false, "My question is: Is it A or B ?", "Dummy", new string[] { "C", "D" })]
-        [TestCase(false, "My question is: Is Dummy Asparagus or Brocoli ?", "Dummy", new string[] { "Cantelope", "Databurger" })]
-        [TestCase(false, "My question is: Is it A or B ?", "Dummy", new string[] { "A", "C" })]
-        [TestCase(false, "My cat is stuck in a tree.", "Dummy", new string[] { "Asparagus", "Cantelope" })]
-        public void When_receive_question_that_was_clicked_in_message_then_detect_question_and_set_to_pending_questionIfShouldDetect(bool shouldDetect, string agentMessage, string facetName, string[] facetValues)
-        {
-            var clickedQuestion = FacetQuestionBuilder.Build
-                .WithStatus(QuestionStatus.Clicked)
-                .WithFacetName(facetName)
-                .WithFacetValues(facetValues)
-                .Instance;
+        ////[TestCase(true, "My question is: Is year 2018 ?", "Year", new string[] { "2018", "2017" })]
+        ////[TestCase(true, "My question is: Is year 2018 ?", "Year", new string[] { "20 18", "2017" })]
+        ////[TestCase(true, "My question is: Is year 20 18 ?", "Year", new string[] { "20 18", "2017" })]
+        ////[TestCase(true, "My question is: Is it Asparagus or Brocoli ?", "Dummy", new string[] { "Asparagus", "Brocoli" })]
+        ////[TestCase(true, "My question is: Is it Asparagus or Brocoli ?", "Dummy", new string[] { "asparagus", "brocoli" })]
+        ////[TestCase(true, "My question is: Is Dummy Asparagus or Brocoli ?", "Dummy", new string[] { "Asparagus", "Cantelope" })]
+        ////[TestCase(false, "My question is: Is it A or B ?", "Dummy", new string[] { "C", "D" })]
+        ////[TestCase(false, "My question is: Is Dummy Asparagus or Brocoli ?", "Dummy", new string[] { "Cantelope", "Databurger" })]
+        ////[TestCase(false, "My question is: Is it A or B ?", "Dummy", new string[] { "A", "C" })]
+        ////[TestCase(false, "My cat is stuck in a tree.", "Dummy", new string[] { "Asparagus", "Cantelope" })]
+        ////public void When_receive_question_that_was_clicked_in_message_then_detect_question_and_set_to_pending_questionIfShouldDetect(bool shouldDetect, string agentMessage, string facetName, string[] facetValues)
+        ////{
+        ////    var clickedQuestion = FacetQuestionBuilder.Build
+        ////        .WithStatus(QuestionStatus.Clicked)
+        ////        .WithFacetName(facetName)
+        ////        .WithFacetValues(facetValues)
+        ////        .Instance;
 
-            this._conversationContext.Questions.Add(clickedQuestion);
-            var questionAsked = SearchQueryBuilder.Build
-                .WithMessageType(MessageType.Agent)
-                .WithQuery(agentMessage)
-                .Instance;
+        ////    this._conversationContext.Questions.Add(clickedQuestion);
+        ////    var questionAsked = SearchQueryBuilder.Build
+        ////        .WithMessageType(MessageType.Agent)
+        ////        .WithQuery(agentMessage)
+        ////        .Instance;
 
-            Assert.AreEqual(shouldDetect, this._questionsService.DetectQuestionAsked(this._conversationContext, questionAsked));
-            Assert.AreEqual(shouldDetect, clickedQuestion.Status == QuestionStatus.AnswerPending);
-        }
+        ////    Assert.AreEqual(shouldDetect, this._questionsService.DetectQuestionAsked(this._conversationContext, questionAsked));
+        ////    Assert.AreEqual(shouldDetect, clickedQuestion.Status == QuestionStatus.AnswerPending);
+        ////}
 
         [TestCase]
         public void When_receive_question_that_was_cancelled_set_to_rejected_question()

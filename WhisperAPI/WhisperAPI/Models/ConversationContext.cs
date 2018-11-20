@@ -23,6 +23,7 @@ namespace WhisperAPI.Models
             this.LastSuggestedQuestions = new List<Question>();
             this.Questions = new HashSet<Question>();
             this.SelectedSuggestedDocuments = new HashSet<Document>();
+            this.SelectedQuestions = new HashSet<Question>();
             this.FilterDocumentsParameters = new FilterDocumentsParameters();
         }
 
@@ -35,6 +36,8 @@ namespace WhisperAPI.Models
         public HashSet<Document> SuggestedDocuments { get; set; }
 
         public HashSet<Document> SelectedSuggestedDocuments { get; set; }
+
+        public HashSet<Question> SelectedQuestions { get; set; }
 
         public HashSet<Question> Questions { get; set; }
 
