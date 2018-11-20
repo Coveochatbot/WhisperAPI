@@ -14,7 +14,8 @@ namespace WhisperAPI.Tests.Data.Builders
         public NlpAnalysis Instance => new NlpAnalysis
         {
             Intents = this._intents,
-            Entities = this._entities
+            Entities = this._entities,
+            ParsedQuery = "fils couleur 6"
         };
 
         private NlpAnalysisBuilder()

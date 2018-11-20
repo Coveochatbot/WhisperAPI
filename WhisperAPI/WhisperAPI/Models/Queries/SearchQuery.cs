@@ -14,6 +14,9 @@ namespace WhisperAPI.Models.Queries
         [JsonIgnore]
         public int Id { get; set; }
 
+        [JsonIgnore]
+        public string ParsedQuery { get; set; }
+
         [Required(ErrorMessage = "Query is required")]
         [JsonProperty("query")]
         public string Query { get; set; }
