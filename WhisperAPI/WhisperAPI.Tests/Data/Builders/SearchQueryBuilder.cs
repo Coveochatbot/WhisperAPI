@@ -17,6 +17,8 @@ namespace WhisperAPI.Tests.Data.Builders
 
         private int _maxQuestions;
 
+        private string _parsedQuery;
+
         public static SearchQueryBuilder Build => new SearchQueryBuilder();
 
         public SearchQuery Instance => new SearchQuery
@@ -26,7 +28,8 @@ namespace WhisperAPI.Tests.Data.Builders
             Type = this._type,
             MaxDocuments = this._maxDocuments,
             MaxQuestions = this._maxQuestions,
-            Relevant = this._relevant
+            Relevant = this._relevant,
+            ParsedQuery = this._parsedQuery
         };
 
         private SearchQueryBuilder()
@@ -37,6 +40,7 @@ namespace WhisperAPI.Tests.Data.Builders
             this._maxDocuments = 10;
             this._maxQuestions = 10;
             this._relevant = true;
+            this._parsedQuery = "fils couleur 6";
         }
 
         public SearchQueryBuilder WithChatKey(Guid? chatKey)
@@ -72,6 +76,12 @@ namespace WhisperAPI.Tests.Data.Builders
         public SearchQueryBuilder WithMaxQuestions(int maxQuestions)
         {
             this._maxQuestions = maxQuestions;
+            return this;
+        }
+
+        public SearchQueryBuilder WithParsedQuery(string parsedQuery)
+        {
+            this._parsedQuery = parsedQuery;
             return this;
         }
     }

@@ -186,22 +186,16 @@ namespace WhisperAPI.Services.Suggestions
         {
             var suggestion = new Suggestion
             {
-                ActiveFacets = GetActiveFacets(conversationContext).ToList()
+                Documents = conversationContext.LastNotFilteredDocuments.Take(suggestionQuery.MaxDocuments).ToList()
             };
 
-            if (suggestion.ActiveFacets.Any())
+            if (suggestionQuery is SearchQuery query && query.Type != SearchQuery.MessageType.Agent)
             {
-                var documents = this.FilterDocuments(conversationContext).Take(suggestionQuery.MaxDocuments).ToList();
-                suggestion.Documents = documents;
+                suggestion.Questions = this.GenerateQuestions(conversationContext, query).Take(query.MaxQuestions).ToList();
             }
             else
             {
-                suggestion.Documents = conversationContext.LastNotFilteredDocuments.Take(suggestionQuery.MaxDocuments).ToList();
-            }
-
-            if (suggestionQuery is SearchQuery)
-            {
-                suggestion.Questions = this.GenerateQuestions(conversationContext, (SearchQuery)suggestionQuery).Take(suggestionQuery.MaxQuestions).ToList();
+                suggestion.Questions = conversationContext.LastSuggestedQuestions.Select(QuestionToClient.FromQuestion).ToList();
             }
 
             return suggestion;

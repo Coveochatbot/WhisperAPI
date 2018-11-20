@@ -28,10 +28,8 @@ namespace WhisperAPI.Controllers
         public IActionResult GetSuggestions([FromBody] SearchQuery searchQuery)
         {
             this._suggestionsService.UpdateContextWithNewQuery(this.ConversationContext, searchQuery);
-            this._questionsService.DetectAnswer(this.ConversationContext, searchQuery);
-            bool questionAskedDetected = this._questionsService.DetectQuestionAsked(this.ConversationContext, searchQuery);
 
-            if (questionAskedDetected)
+            if (searchQuery.Type == SearchQuery.MessageType.Agent)
             {
                 searchQuery.Relevant = false;
             }
