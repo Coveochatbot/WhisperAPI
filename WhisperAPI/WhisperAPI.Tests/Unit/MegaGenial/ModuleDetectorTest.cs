@@ -11,8 +11,8 @@ namespace WhisperAPI.Tests.Unit.MegaGenial
         public void WhenSentenceIsDescribingNoModuleThenNoneModuleIsReturned()
         {
             var detector = new ModuleDetector();
-            var module = detector.DetectModule("Je vois des dragons géants");
-            Assert.AreEqual(Module.None, module);
+            var modules = detector.DetectModuleList("Je vois des dragons géants");
+            Assert.IsEmpty(modules);
         }
 
         [Test]
@@ -20,8 +20,8 @@ namespace WhisperAPI.Tests.Unit.MegaGenial
         public void WhenSentenceIsDescribingAWireModuleThenSaidModuleIsReturned()
         {
             var detector = new ModuleDetector();
-            var module = detector.DetectModule("J'observe des fils avec des lumières et des étoiles");
-            Assert.AreEqual(Module.WireComplicated, module);
+            var modules = detector.DetectModuleList("J'observe des fils avec des lumières et des étoiles");
+            Assert.Contains((Module.WireComplicated, 1), modules);
         }
 
         [Test]
@@ -29,8 +29,8 @@ namespace WhisperAPI.Tests.Unit.MegaGenial
         public void WhenSentenceIsDescribingAMazeModuleThenSaidModuleIsReturned()
         {
             var detector = new ModuleDetector();
-            var module = detector.DetectModule("Je vois un module avec des cercles verts et un triangle rouge");
-            Assert.AreEqual(Module.Maze, module);
+            var modules = detector.DetectModuleList("Je vois un module avec des cercles verts et un triangle rouge");
+            Assert.Contains((Module.Maze, 4), modules);
         }
 
         [Test]
@@ -38,8 +38,8 @@ namespace WhisperAPI.Tests.Unit.MegaGenial
         public void WhenSentenceIsDescribingASimonSaysModuleThenSaidModuleIsReturned()
         {
             var detector = new ModuleDetector();
-            var module = detector.DetectModule("Je vois un module 4 carrés de couleurs");
-            Assert.AreEqual(Module.SimonSays, module);
+            var modules = detector.DetectModuleList("Je vois un module 4 carrés de couleurs");
+            Assert.Contains((Module.SimonSays, 2), modules);
         }
 
         [Test]
@@ -47,8 +47,8 @@ namespace WhisperAPI.Tests.Unit.MegaGenial
         public void WhenSentenceIsDescribingAWireSequenceModuleThenSaidModuleIsReturned()
         {
             var detector = new ModuleDetector();
-            var module = detector.DetectModule("Je vois des chiffres de 1 à 3 et des lettres a b c avec des fils");
-            Assert.AreEqual(Module.WireSequence, module);
+            var modules = detector.DetectModuleList("Je vois des chiffres de 1 à 3 et des lettres a b c avec des fils");
+            Assert.Contains((Module.WireSequence, 4), modules);
         }
 
         [Test]
@@ -56,8 +56,8 @@ namespace WhisperAPI.Tests.Unit.MegaGenial
         public void WhenSentenceIsDescribingAMemoryModuleThenSaidModuleIsReturned()
         {
             var detector = new ModuleDetector();
-            var module = detector.DetectModule("Je vois un écran avec des chiffres");
-            Assert.AreEqual(Module.Memory, module);
+            var modules = detector.DetectModuleList("Je vois un écran avec des chiffres");
+            Assert.Contains((Module.Memory, 1), modules);
         }
 
         [Test]
@@ -66,9 +66,9 @@ namespace WhisperAPI.Tests.Unit.MegaGenial
         {
             var detector = new ModuleDetector();
             var modules = detector.DetectModuleList("J'aime les fils");
-            Assert.IsTrue(modules.Contains((Module.WireComplicated, 1)));
-            Assert.IsTrue(modules.Contains((Module.WireSequence, 1)));
-            Assert.IsTrue(modules.Contains((Module.WireSimple, 1)));
+            Assert.Contains((Module.WireComplicated, 1), modules);
+            Assert.Contains((Module.WireSequence, 1), modules);
+            Assert.Contains((Module.WireSimple, 1), modules);
         }
     }
 }

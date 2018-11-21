@@ -34,20 +34,6 @@ namespace WhisperAPI.Models.MegaGenial
             }
         }
 
-        public Module DetectModule(string textContent)
-        {
-            var scoresByModule = this.GetScoresByModule(textContent);
-            var nonZeroModules = scoresByModule.Where(x => x.Value != 0);
-            if (nonZeroModules.Count() == 0)
-            {
-                return Module.None;
-            }
-            else
-            {
-                return nonZeroModules.Aggregate((l, r) => l.Value > r.Value ? l : r).Key;
-            }
-        }
-
         private Dictionary<Module, int> GetScoresByModule(string textContent)
         {
             var scoreByModule = new Dictionary<Module, int>();
