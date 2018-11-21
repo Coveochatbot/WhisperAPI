@@ -32,6 +32,7 @@ namespace WhisperAPI.Services.Search
 
         private string GetStringFromPost(string url, StringContent content)
         {
+            Log.Info(string.Concat("SEARCH URL : ", url));
             HttpResponseMessage response = this._httpClient.PostAsync(url, content).Result;
             response.EnsureSuccessStatusCode();
 
