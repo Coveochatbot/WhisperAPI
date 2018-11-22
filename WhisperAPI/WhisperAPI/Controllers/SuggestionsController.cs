@@ -19,7 +19,8 @@ namespace WhisperAPI.Controllers
         private readonly ISuggestionsService _suggestionsService;
 
         private readonly IQuestionsService _questionsService;
-        private Module _currentDetectedModule = Module.None;
+
+        public Module CurrentDetectedModule { get; set; }
 
         public SuggestionsController(ISuggestionsService suggestionsService, IQuestionsService questionsService, IContexts contexts)
             : base(contexts)
@@ -35,9 +36,9 @@ namespace WhisperAPI.Controllers
             var currentDetectedModules = from module in currentDetectedModulesAndMatchScore select module.Item1;
             if (currentDetectedModules.Any())
             {
-                if (!currentDetectedModules.Contains(this._currentDetectedModule))
+                if (!currentDetectedModules.Contains(this.CurrentDetectedModule))
                 {
-                    this._currentDetectedModule = currentDetectedModules.First();
+                    this.CurrentDetectedModule = currentDetectedModules.First();
                     var previousConversationContext = this.ConversationContext;
                     this.ConversationContext = new ConversationContext(
                         previousConversationContext.ChatKey, previousConversationContext.StartDate);
@@ -123,11 +124,5 @@ namespace WhisperAPI.Controllers
             suggestion.Questions?.ForEach(x => Log.Debug($"Id: {x.Id}, Text: {x.Text}"));
             suggestion.ActiveFacets?.ForEach(x => Log.Debug($"Id: {x.Id}, Name: {x.Name}, Value: {x.Value}"));
         }
-
-        public Module getCurrentModule()
-        {
-            return _currentDetectedModule;
-        }
-
     }
 }

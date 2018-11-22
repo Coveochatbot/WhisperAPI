@@ -14,22 +14,21 @@ namespace WhisperAPI.Models.MegaGenial
             this._text = text;
             this.Id = Guid.NewGuid();
         }
-
     }
 
     public class ModuleQuestionsRepo
     {
         private static Dictionary<Module, List<string>> _questionsByModule = new Dictionary<Module, List<string>>
         {
-            {Module.WireSimple, new List<string> { "Nombre de fils?", "Numéro de série?", "Couleur des fils de haut en bas?" } },
-            {Module.Keypad, new List<string> { "Décris-moi les symboles?" } },
-            {Module.SimonSays, new List<string> { "Numéro de série avec voyelle ou non?", "Nombre de strikes?", "Couleur du flash?" } },
-            {Module.Password, new List<string> { "Lettre possible pour chaque position?" } },
-            {Module.WhosFirst, new List<string> { "Mots affichés?", "Étiquettes en ordre?" } },
-            {Module.Maze, new List<string> { "Position des cercles?", "Position du point?", "Position du triangle?" } },
-            {Module.WireSequence, new List<string> { "Combinaison couleur, chiffre et lettre?" } },
-            {Module.WireComplicated, new List<string> { "Couleur fils, étoile, lumière?", "Numéro de série pair?", "Port parallèle présent?", "Nombre de piles?" } },
-            {Module.Memory, new List<string> { "Quelle étape?", "Chiffre affiché en haut?", "Chiffres en ordre?" } }
+            { Module.WireSimple, new List<string> { "Nombre de fils?", "Numéro de série?", "Couleur des fils de haut en bas?" } },
+            { Module.Keypad, new List<string> { "Décris-moi les symboles?" } },
+            { Module.SimonSays, new List<string> { "Numéro de série avec voyelle ou non?", "Nombre de strikes?", "Couleur du flash?" } },
+            { Module.Password, new List<string> { "Lettre possible pour chaque position?" } },
+            { Module.WhosFirst, new List<string> { "Mots affichés?", "Étiquettes en ordre?" } },
+            { Module.Maze, new List<string> { "Position des cercles?", "Position du point?", "Position du triangle?" } },
+            { Module.WireSequence, new List<string> { "Combinaison couleur, chiffre et lettre?" } },
+            { Module.WireComplicated, new List<string> { "Couleur fils, étoile, lumière?", "Numéro de série pair?", "Port parallèle présent?", "Nombre de piles?" } },
+            { Module.Memory, new List<string> { "Quelle étape?", "Chiffre affiché en haut?", "Chiffres en ordre?" } }
         };
 
         public List<Question> GetQuestions(Module module)
