@@ -3,7 +3,6 @@ using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using WhisperAPI.Models;
 using WhisperAPI.Models.MegaGenial;
-using WhisperAPI.Models.MLAPI;
 using WhisperAPI.Models.Queries;
 using WhisperAPI.Services.Context;
 using WhisperAPI.Services.Questions;
@@ -20,7 +19,9 @@ namespace WhisperAPI.Controllers
 
         private readonly IQuestionsService _questionsService;
 
-        public Module CurrentDetectedModule { get; set; }
+        internal Module CurrentDetectedModule { get; set; }
+
+        private readonly ModuleDetector _moduleDetector = new ModuleDetector();
 
         public SuggestionsController(ISuggestionsService suggestionsService, IQuestionsService questionsService, IContexts contexts)
             : base(contexts)
@@ -32,7 +33,7 @@ namespace WhisperAPI.Controllers
         [HttpPost]
         public IActionResult GetSuggestions([FromBody] SearchQuery searchQuery)
         {
-            var currentDetectedModulesAndMatchScore = new ModuleDetector().DetectModuleList(searchQuery.Query);
+            var currentDetectedModulesAndMatchScore = this._moduleDetector.DetectModuleList(searchQuery.Query);
             var currentDetectedModules = from module in currentDetectedModulesAndMatchScore select module.Item1;
             if (currentDetectedModules.Any())
             {
