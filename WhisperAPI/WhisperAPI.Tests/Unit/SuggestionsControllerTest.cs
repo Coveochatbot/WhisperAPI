@@ -180,7 +180,7 @@ namespace WhisperAPI.Tests.Unit
 
             var context =
                 this._suggestionController.GetType().BaseType
-                    .GetProperty("ConversationContext", BindingFlags.NonPublic | BindingFlags.Instance)
+                    .GetProperty("ConversationContext", BindingFlags.Public | BindingFlags.Instance)
                     .GetValue(this._suggestionController) as ConversationContext;
 
             context.FilterDocumentsParameters.MustHaveFacets.Should().HaveCount(1);
@@ -211,7 +211,7 @@ namespace WhisperAPI.Tests.Unit
 
             var context =
                 this._suggestionController.GetType().BaseType
-                    .GetProperty("ConversationContext", BindingFlags.NonPublic | BindingFlags.Instance)
+                    .GetProperty("ConversationContext", BindingFlags.Public | BindingFlags.Instance)
                     .GetValue(this._suggestionController) as ConversationContext;
 
             context.FilterDocumentsParameters.MustHaveFacets.Should().HaveCount(0);

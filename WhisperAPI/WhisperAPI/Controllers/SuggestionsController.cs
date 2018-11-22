@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using WhisperAPI.Models;
+using WhisperAPI.Models.MegaGenial;
 using WhisperAPI.Models.Queries;
 using WhisperAPI.Services.Context;
 using WhisperAPI.Services.Questions;
@@ -17,6 +19,10 @@ namespace WhisperAPI.Controllers
 
         private readonly IQuestionsService _questionsService;
 
+        internal Module CurrentDetectedModule { get; set; }
+
+        private readonly ModuleDetector _moduleDetector = new ModuleDetector();
+
         public SuggestionsController(ISuggestionsService suggestionsService, IQuestionsService questionsService, IContexts contexts)
             : base(contexts)
         {
@@ -27,6 +33,19 @@ namespace WhisperAPI.Controllers
         [HttpPost]
         public IActionResult GetSuggestions([FromBody] SearchQuery searchQuery)
         {
+            var currentDetectedModulesAndMatchScore = this._moduleDetector.DetectModuleList(searchQuery.Query);
+            var currentDetectedModules = from module in currentDetectedModulesAndMatchScore select module.Item1;
+            if (currentDetectedModules.Any())
+            {
+                if (!currentDetectedModules.Contains(this.CurrentDetectedModule))
+                {
+                    this.CurrentDetectedModule = currentDetectedModules.First();
+                    var previousConversationContext = this.ConversationContext;
+                    this.ConversationContext = new ConversationContext(
+                        previousConversationContext.ChatKey, previousConversationContext.StartDate);
+                }
+            }
+
             this._suggestionsService.UpdateContextWithNewQuery(this.ConversationContext, searchQuery);
 
             if (searchQuery.Type == SearchQuery.MessageType.Agent)

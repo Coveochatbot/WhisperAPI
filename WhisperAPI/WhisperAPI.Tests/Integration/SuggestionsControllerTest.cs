@@ -18,6 +18,8 @@ using Newtonsoft.Json;
 using NUnit.Framework;
 using WhisperAPI.Controllers;
 using WhisperAPI.Models;
+using WhisperAPI.Models.MegaGenial;
+using WhisperAPI.Models.MLAPI;
 using WhisperAPI.Models.NLPAPI;
 using WhisperAPI.Models.Queries;
 using WhisperAPI.Services.Context;
@@ -55,7 +57,7 @@ namespace WhisperAPI.Tests.Integration
             var documentFacetHttpClient = new HttpClient(this._documentFacetsHttpMessageHandleMock.Object);
             var filterDocumentHttpClient = new HttpClient(this._filterDocumentsHttpMessageHandleMock.Object);
 
-            var indexSearch = new IndexSearch(null, this._numberOfResults, indexSearchHttpClient, "https://localhost:5000", _organizationId);
+            var indexSearch = new IndexSearch(null, this._numberOfResults, indexSearchHttpClient, "https://localhost:5000", this._organizationId);
             var nlpCall = new NlpCall(nlpCallHttpClient, "https://localhost:5000");
             var documentFacets = new DocumentFacets(documentFacetHttpClient, "https://localhost:5000");
             var filterDocuments = new FilterDocuments(filterDocumentHttpClient, "https://localhost:5000");
@@ -279,6 +281,187 @@ namespace WhisperAPI.Tests.Integration
             lastSuggestion.Documents.Should().BeEquivalentTo(suggestion.Documents);
             lastSuggestion.Questions.Should().BeEquivalentTo(suggestion.Questions);
             lastSuggestion.ActiveFacets.Should().BeEquivalentTo(suggestion.ActiveFacets);
+        }
+
+        [Test]
+        public void When_initialized_then_there_is_no_current_module()
+        {
+            Assert.AreEqual(Module.None, this._suggestionController.CurrentDetectedModule);
+        }
+
+        [Test]
+        public void When_there_is_no_current_module_and_no_module_is_detected_then_get_suggestions_does_not_update_the_current_module()
+        {
+            var questions = GetQuestions();
+            this.NlpCallHttpMessageHandleMock(HttpStatusCode.OK, new StringContent(JsonConvert.SerializeObject(this.GetRelevantNlpAnalysis())));
+            this.IndexSearchHttpMessageHandleMock(HttpStatusCode.OK, this.GetSearchResultStringContent());
+            this.DocumentFacetsHttpMessageHandleMock(HttpStatusCode.OK, new StringContent(JsonConvert.SerializeObject(questions)));
+            var searchQuery = SearchQueryBuilder.Build
+                .WithQuery("module not found")
+                .Instance;
+            this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(searchQuery));
+
+            this._suggestionController.GetSuggestions(searchQuery);
+            Assert.AreEqual(Module.None, this._suggestionController.CurrentDetectedModule);
+        }
+
+        [Test]
+        public void When_there_is_no_current_module_and_a_module_is_detected_then_get_suggestions_updates_the_current_module()
+        {
+            var questions = GetQuestions();
+            this.NlpCallHttpMessageHandleMock(HttpStatusCode.OK, new StringContent(JsonConvert.SerializeObject(this.GetRelevantNlpAnalysis())));
+            this.IndexSearchHttpMessageHandleMock(HttpStatusCode.OK, this.GetSearchResultStringContent());
+            this.DocumentFacetsHttpMessageHandleMock(HttpStatusCode.OK, new StringContent(JsonConvert.SerializeObject(questions)));
+            var searchQuery = SearchQueryBuilder.Build
+                .WithQuery("labyrinthe")
+                .Instance;
+            this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(searchQuery));
+
+            this._suggestionController.GetSuggestions(searchQuery);
+            Assert.AreEqual(Module.Maze, this._suggestionController.CurrentDetectedModule);
+        }
+
+        [Test]
+        public void When_previous_module_is_still_in_the_detected_modules_but_not_the_first_one_then_get_suggestions_does_not_update_the_current_module()
+        {
+            var questions = GetQuestions();
+            this.NlpCallHttpMessageHandleMock(HttpStatusCode.OK, new StringContent(JsonConvert.SerializeObject(this.GetRelevantNlpAnalysis())));
+            this.IndexSearchHttpMessageHandleMock(HttpStatusCode.OK, this.GetSearchResultStringContent());
+            this.DocumentFacetsHttpMessageHandleMock(HttpStatusCode.OK, new StringContent(JsonConvert.SerializeObject(questions)));
+            var mazeQuery = SearchQueryBuilder.Build
+                .WithQuery("labyrinthe")
+                .Instance;
+            this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(mazeQuery));
+            this._suggestionController.GetSuggestions(mazeQuery);
+            Assert.AreEqual(Module.Maze, this._suggestionController.CurrentDetectedModule);
+
+            var simonSaysQuery = SearchQueryBuilder.Build
+                .WithQuery("simon says labyrinthe")
+                .Instance;
+            this._suggestionController.GetSuggestions(simonSaysQuery);
+            Assert.AreEqual(Module.Maze, this._suggestionController.CurrentDetectedModule);
+        }
+
+        [Test]
+        public void When_previous_module_is_not_in_the_detected_modules_then_get_suggestions_updates_the_current_module()
+        {
+            var questions = GetQuestions();
+            this.NlpCallHttpMessageHandleMock(HttpStatusCode.OK, new StringContent(JsonConvert.SerializeObject(this.GetRelevantNlpAnalysis())));
+            this.IndexSearchHttpMessageHandleMock(HttpStatusCode.OK, this.GetSearchResultStringContent());
+            this.DocumentFacetsHttpMessageHandleMock(HttpStatusCode.OK, new StringContent(JsonConvert.SerializeObject(questions)));
+            var mazeQuery = SearchQueryBuilder.Build
+                .WithQuery("labyrinthe")
+                .Instance;
+            this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(mazeQuery));
+            this._suggestionController.GetSuggestions(mazeQuery);
+            Assert.AreEqual(Module.Maze, this._suggestionController.CurrentDetectedModule);
+
+            var simonSaysQuery = SearchQueryBuilder.Build
+                .WithQuery("simon says fil bouton")
+                .Instance;
+            this._suggestionController.GetSuggestions(simonSaysQuery);
+            Assert.AreEqual(Module.SimonSays, this._suggestionController.CurrentDetectedModule);
+        }
+
+        [Test]
+        public void When_no_module_is_detected_then_get_suggestions_keeps_the_previous_module()
+        {
+            var questions = GetQuestions();
+            this.NlpCallHttpMessageHandleMock(HttpStatusCode.OK, new StringContent(JsonConvert.SerializeObject(this.GetRelevantNlpAnalysis())));
+            this.IndexSearchHttpMessageHandleMock(HttpStatusCode.OK, this.GetSearchResultStringContent());
+            this.DocumentFacetsHttpMessageHandleMock(HttpStatusCode.OK, new StringContent(JsonConvert.SerializeObject(questions)));
+            var mazeQuery = SearchQueryBuilder.Build
+                .WithQuery("labyrinthe")
+                .Instance;
+            this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(mazeQuery));
+            this._suggestionController.GetSuggestions(mazeQuery);
+            Assert.AreEqual(Module.Maze, this._suggestionController.CurrentDetectedModule);
+
+            var simonSaysQuery = SearchQueryBuilder.Build
+                .WithQuery("module not found")
+                .Instance;
+            this._suggestionController.GetSuggestions(simonSaysQuery);
+            Assert.AreEqual(Module.Maze, this._suggestionController.CurrentDetectedModule);
+        }
+
+        [Test]
+        public void When_the_detected_module_changes_then_get_suggestions_resets_the_conversation_context_but_keep_the_last_query()
+        {
+            this.NlpCallHttpMessageHandleMock(HttpStatusCode.OK, new StringContent(JsonConvert.SerializeObject(this.GetRelevantNlpAnalysis())));
+            this.IndexSearchHttpMessageHandleMock(HttpStatusCode.OK, this.GetSearchResultStringContent());
+            this.DocumentFacetsHttpMessageHandleMock(HttpStatusCode.OK, new StringContent(JsonConvert.SerializeObject(GetQuestions())));
+            var mazeQuery = SearchQueryBuilder.Build
+                .WithQuery("labyrinthe")
+                .WithChatKey(new Guid("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"))
+                .Instance;
+            this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(mazeQuery));
+            this._suggestionController.GetSuggestions(mazeQuery);
+            this._suggestionController.GetSuggestions(mazeQuery);
+            Assert.AreEqual(Module.Maze, this._suggestionController.CurrentDetectedModule);
+
+            // Add values in other fields to test that everything was reset
+            var beforeChangeContextWithDummyValues = this._suggestionController.ConversationContext;
+            beforeChangeContextWithDummyValues.SearchQueries.Add(SearchQueryBuilder.Build.Instance);
+            beforeChangeContextWithDummyValues.SuggestedDocuments.Add(DocumentBuilder.Build.Instance);
+            beforeChangeContextWithDummyValues.SelectedSuggestedDocuments.Add(DocumentBuilder.Build.Instance);
+            beforeChangeContextWithDummyValues.Questions.Add(new ModuleQuestion(string.Empty));
+            beforeChangeContextWithDummyValues.LastNotFilteredDocuments.Add(DocumentBuilder.Build.Instance);
+            beforeChangeContextWithDummyValues.LastSuggestedQuestions.Add(new ModuleQuestion(string.Empty));
+            beforeChangeContextWithDummyValues.FilterDocumentsParameters.Documents.Add(string.Empty);
+
+            var simonSaysQuery = SearchQueryBuilder.Build
+                .WithQuery("simon says")
+                .WithChatKey(new Guid("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"))
+                .Instance;
+            this._suggestionController.GetSuggestions(simonSaysQuery);
+            Assert.AreEqual(Module.SimonSays, this._suggestionController.CurrentDetectedModule);
+
+            var afterChangeContext = this._suggestionController.ConversationContext;
+            Assert.AreEqual(beforeChangeContextWithDummyValues.ChatKey, afterChangeContext.ChatKey);
+            Assert.AreEqual(beforeChangeContextWithDummyValues.StartDate, afterChangeContext.StartDate);
+            Assert.AreEqual(1, afterChangeContext.SearchQueries.Count);
+            Assert.AreEqual("simon says", afterChangeContext.SearchQueries.First().Query);
+            Assert.IsFalse(afterChangeContext.SuggestedDocuments.Any());
+            Assert.IsFalse(afterChangeContext.SelectedSuggestedDocuments.Any());
+            Assert.IsFalse(afterChangeContext.ClickedQuestions.Any());
+            Assert.IsFalse(afterChangeContext.AnswerPendingQuestions.Any());
+            Assert.IsFalse(afterChangeContext.AnsweredQuestions.Any());
+        }
+
+        [Test]
+        public void When_the_detected_module_changes_but_chatkey_is_different_then_get_suggestions_does_not_reset_the_conversation_context()
+        {
+            this.NlpCallHttpMessageHandleMock(HttpStatusCode.OK, new StringContent(JsonConvert.SerializeObject(this.GetRelevantNlpAnalysis())));
+            this.IndexSearchHttpMessageHandleMock(HttpStatusCode.OK, this.GetSearchResultStringContent());
+            this.DocumentFacetsHttpMessageHandleMock(HttpStatusCode.OK, new StringContent(JsonConvert.SerializeObject(GetQuestions())));
+            var mazeQuery1 = SearchQueryBuilder.Build
+                .WithQuery("labyrinthe 1")
+                .WithChatKey(new Guid("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"))
+                .Instance;
+            var mazeQuery2 = SearchQueryBuilder.Build
+                .WithQuery("labyrinthe 2")
+                .WithChatKey(new Guid("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"))
+                .Instance;
+            this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(mazeQuery1));
+            this._suggestionController.GetSuggestions(mazeQuery1);
+            this._suggestionController.GetSuggestions(mazeQuery2);
+            Assert.AreEqual(Module.Maze, this._suggestionController.CurrentDetectedModule);
+            var beforeChangeContextWithDummyValues = this._suggestionController.ConversationContext;
+
+            var simonSaysQuery = SearchQueryBuilder.Build
+                .WithQuery("simon says")
+                .WithChatKey(new Guid("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"))
+                .Instance;
+            this._suggestionController.GetSuggestions(simonSaysQuery);
+            Assert.AreEqual(Module.SimonSays, this._suggestionController.CurrentDetectedModule);
+
+            var afterChangeContext = this._suggestionController.ConversationContext;
+            Assert.AreNotEqual(beforeChangeContextWithDummyValues, afterChangeContext);
+            Assert.AreEqual(2, beforeChangeContextWithDummyValues.SearchQueries.Count);
+            Assert.AreEqual("labyrinthe 1", beforeChangeContextWithDummyValues.SearchQueries.First().Query);
+            Assert.AreEqual("labyrinthe 2", beforeChangeContextWithDummyValues.SearchQueries.ElementAt(1).Query);
+            Assert.AreEqual(1, afterChangeContext.SearchQueries.Count);
+            Assert.AreEqual("simon says", afterChangeContext.SearchQueries.First().Query);
         }
 
         ////[Test]

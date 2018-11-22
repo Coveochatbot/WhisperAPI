@@ -14,7 +14,7 @@ namespace WhisperAPI.Models.MegaGenial
             { Module.Password, "lettres submit 5 cinq flèches fleches tableau vert haut bas mot de passe password premier deuxième troisième quatrième cinquième deuxieme troisieme quatrieme cinquieme" },
             { Module.SimonSays, "simon says 4 carrés jaune bleu rouge vert clignote clignotant flash quatre" },
             { Module.WhosFirst, "mots étiquettes etiquettes boutons 6 six 2 colonnes rangées rangees deux they are blank read red you your you're their they're empty reed leeds there display says no lead hold on you are c c see ready first no blank nothing yes what u h h h left right middle okay wait press you you are your you're u r u uh huh staccato what question done next hold sure like whos who's" },
-            { Module.WireComplicated, "fils complique compliqué stripes coupé coupe couper étoile etoile lumiere lumière rouge bleu piles ports vertical verticaux"},
+            { Module.WireComplicated, "fils complique compliqué stripes coupé coupe couper étoile etoile lumiere lumière rouge bleu piles ports vertical verticaux" },
             { Module.WireSequence, "coupé coupe couper fils premier deuxième troisième quatrième cinquième sixième septième septieme huitième huitieme neuvieme neuvième 123456789 deuxieme troisieme quatrieme cinquieme sixieme A B C a b c rouge bleu noir" },
             { Module.WireSimple, "3 trois 4 quatre 5 cinq 6 six couleurs fils simple premier deuxième troisième quatrième cinquième sixième deuxieme troisieme quatrieme cinquieme sixieme coupé coupe couper horizontal horizontaux" },
             { Module.None, string.Empty },
@@ -31,20 +31,6 @@ namespace WhisperAPI.Models.MegaGenial
             else
             {
                 return nonZeroModules.OrderByDescending(x => x.Value).Take(3).Select(x => (x.Key, x.Value)).ToList();
-            }
-        }
-
-        public Module DetectModule(string textContent)
-        {
-            var scoresByModule = this.GetScoresByModule(textContent);
-            var nonZeroModules = scoresByModule.Where(x => x.Value != 0);
-            if (nonZeroModules.Count() == 0)
-            {
-                return Module.None;
-            }
-            else
-            {
-                return nonZeroModules.Aggregate((l, r) => l.Value > r.Value ? l : r).Key;
             }
         }
 
@@ -69,6 +55,7 @@ namespace WhisperAPI.Models.MegaGenial
                     score += 1;
                 }
             }
+
             return score;
         }
     }
