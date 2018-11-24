@@ -21,7 +21,7 @@ namespace WhisperAPI.Tests.Unit.MegaGenial
         {
             var detector = new ModuleDetector();
             var modules = detector.DetectModuleList("J'observe des fils avec des lumières et des étoiles");
-            Assert.Contains((Module.WireComplicated, 1), modules);
+            Assert.Contains((Module.WireComplicated, 3), modules);
         }
 
         [Test]
@@ -57,6 +57,15 @@ namespace WhisperAPI.Tests.Unit.MegaGenial
         {
             var detector = new ModuleDetector();
             var modules = detector.DetectModuleList("Je vois un écran avec des chiffres");
+            Assert.Contains((Module.Memory, 2), modules);
+        }
+
+        [Test]
+        [TestCase]
+        public void WhenSentenceIsDescribingAMemoryModuleWithTyposThenSaidModuleIsReturned()
+        {
+            var detector = new ModuleDetector();
+            var modules = detector.DetectModuleList("Je vois un ecran avec des chifre");
             Assert.Contains((Module.Memory, 1), modules);
         }
 
@@ -69,6 +78,26 @@ namespace WhisperAPI.Tests.Unit.MegaGenial
             Assert.Contains((Module.WireComplicated, 1), modules);
             Assert.Contains((Module.WireSequence, 1), modules);
             Assert.Contains((Module.WireSimple, 1), modules);
+        }
+
+        [Test]
+        [TestCase]
+        public void WhenSentenceIsDescribingManyModulesWithATypoThenSaidModulesAreReturned()
+        {
+            var detector = new ModuleDetector();
+            var modules = detector.DetectModuleList("J'aime les fisl");
+            Assert.Contains((Module.WireComplicated, 1), modules);
+            Assert.Contains((Module.WireSequence, 1), modules);
+            Assert.Contains((Module.WireSimple, 1), modules);
+        }
+
+        [Test]
+        [TestCase]
+        public void WhenSentenceIsDescribingManyModulesWithAMajorTypoThenNoModulesAreReturned()
+        {
+            var detector = new ModuleDetector();
+            var modules = detector.DetectModuleList("J'aime les filles");
+            Assert.IsEmpty(modules);
         }
     }
 }

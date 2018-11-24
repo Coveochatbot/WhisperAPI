@@ -159,7 +159,7 @@ namespace WhisperAPI.Tests.Integration
 
             // Customer says: I need help with CoveoSearch API
             searchQuery = SearchQueryBuilder.Build
-                .WithQuery("I need help with CoveoSearch API")
+                .WithQuery("I necessitate help with CoveoSearch API")
                 .WithChatKey(searchQuery.ChatKey)
                 .Instance;
 
