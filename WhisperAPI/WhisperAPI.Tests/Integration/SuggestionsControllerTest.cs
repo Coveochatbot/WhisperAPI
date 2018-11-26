@@ -286,6 +286,11 @@ namespace WhisperAPI.Tests.Integration
         [Test]
         public void When_initialized_then_there_is_no_current_module()
         {
+            var queryChatkeyRefresh = SuggestionQueryBuilder.Build
+                   .WithChatKey(new Guid("aecaa8db-abc8-4ac9-aa8d-87987da2dbb0"))
+                   .Instance;
+
+            this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(queryChatkeyRefresh));
             Assert.AreEqual(Module.None, this._suggestionController.ConversationContext.CurrentDetectedModule);
         }
 
@@ -330,13 +335,15 @@ namespace WhisperAPI.Tests.Integration
             this.DocumentFacetsHttpMessageHandleMock(HttpStatusCode.OK, new StringContent(JsonConvert.SerializeObject(questions)));
             var mazeQuery = SearchQueryBuilder.Build
                 .WithQuery("labyrinthe")
+                .WithChatKey(new Guid("aecaa8db-abc8-4ac9-aa8d-87987da2dbb0"))
                 .Instance;
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(mazeQuery));
             this._suggestionController.GetSuggestions(mazeQuery);
-            Assert.AreEqual(Module.Maze, this._suggestionController);
+            Assert.AreEqual(Module.Maze, this._suggestionController.ConversationContext.CurrentDetectedModule);
 
             var simonSaysQuery = SearchQueryBuilder.Build
                 .WithQuery("simon says labyrinthe")
+                .WithChatKey(new Guid("aecaa8db-abc8-4ac9-aa8d-87987da2dbb0"))
                 .Instance;
             this._suggestionController.GetSuggestions(simonSaysQuery);
             Assert.AreEqual(Module.Maze, this._suggestionController.ConversationContext.CurrentDetectedModule);
@@ -351,6 +358,7 @@ namespace WhisperAPI.Tests.Integration
             this.DocumentFacetsHttpMessageHandleMock(HttpStatusCode.OK, new StringContent(JsonConvert.SerializeObject(questions)));
             var mazeQuery = SearchQueryBuilder.Build
                 .WithQuery("labyrinthe")
+                .WithChatKey(new Guid("aecaa8db-abc8-4ac9-aa8d-87987da2dbb0"))
                 .Instance;
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(mazeQuery));
             this._suggestionController.GetSuggestions(mazeQuery);
@@ -358,6 +366,7 @@ namespace WhisperAPI.Tests.Integration
 
             var simonSaysQuery = SearchQueryBuilder.Build
                 .WithQuery("simon says fil bouton")
+                .WithChatKey(new Guid("aecaa8db-abc8-4ac9-aa8d-87987da2dbb0"))
                 .Instance;
             this._suggestionController.GetSuggestions(simonSaysQuery);
             Assert.AreEqual(Module.SimonSays, this._suggestionController.ConversationContext.CurrentDetectedModule);
@@ -372,6 +381,7 @@ namespace WhisperAPI.Tests.Integration
             this.DocumentFacetsHttpMessageHandleMock(HttpStatusCode.OK, new StringContent(JsonConvert.SerializeObject(questions)));
             var mazeQuery = SearchQueryBuilder.Build
                 .WithQuery("labyrinthe")
+                .WithChatKey(new Guid("aecaa8db-abc8-4ac9-aa8d-87987da2dbb0"))
                 .Instance;
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(mazeQuery));
             this._suggestionController.GetSuggestions(mazeQuery);
@@ -379,6 +389,7 @@ namespace WhisperAPI.Tests.Integration
 
             var simonSaysQuery = SearchQueryBuilder.Build
                 .WithQuery("module not found")
+                .WithChatKey(new Guid("aecaa8db-abc8-4ac9-aa8d-87987da2dbb0"))
                 .Instance;
             this._suggestionController.GetSuggestions(simonSaysQuery);
             Assert.AreEqual(Module.Maze, this._suggestionController.ConversationContext.CurrentDetectedModule);

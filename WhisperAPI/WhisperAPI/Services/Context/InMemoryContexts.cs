@@ -16,7 +16,7 @@ namespace WhisperAPI.Services.Context
 
         public TimeSpan ContextLifeSpan { get; set; }
 
-        protected ConcurrentDictionary<Guid, ConversationContext> ConversationContexts { get; }
+        private ConcurrentDictionary<Guid, ConversationContext> ConversationContexts { get; }
 
         public ConversationContext this[Guid chatKey]
         {

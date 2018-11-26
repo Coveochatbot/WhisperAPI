@@ -37,13 +37,12 @@ namespace WhisperAPI.Controllers
                 var currentDetectedModules = from module in currentDetectedModulesAndMatchScore select module.Item1;
                 if (currentDetectedModules.Any())
                 {
-                    if (!currentDetectedModules.Contains(this._contexts[searchQuery.ChatKey.Value].CurrentDetectedModule))
+                    if (!currentDetectedModules.Contains(this.ConversationContext.CurrentDetectedModule))
                     {
-                        var previousConversationContext = this.ConversationContext;
                         this.ReplaceConversationContext(
-                            searchQuery.ChatKey.Value,
-                            new ConversationContext(previousConversationContext.ChatKey, previousConversationContext.StartDate)
+                            new ConversationContext()
                             {
+                                ChatKey = searchQuery.ChatKey.Value,
                                 CurrentDetectedModule = currentDetectedModules.First()
                             });
                     }
