@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Net.Http;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -6,6 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Swashbuckle.AspNetCore.Swagger;
+using WhisperAPI.Models.MegaGenial;
 using WhisperAPI.Services.Context;
 using WhisperAPI.Services.MLAPI.Facets;
 using WhisperAPI.Services.NLPAPI;
@@ -21,7 +23,10 @@ namespace WhisperAPI
         public Startup(IConfiguration configuration)
         {
             this.Configuration = configuration;
+            this.CreateFileWatcher(".");
         }
+
+        private FileSystemWatcher _watcher;
 
         public IConfiguration Configuration { get; }
 
@@ -71,6 +76,11 @@ namespace WhisperAPI
             app.UseMvc();
         }
 
+        private static void OnVocabularyChanged(object source, FileSystemEventArgs e)
+        {
+            ModuleDetector.RefreshVocabulariesFromFile();
+        }
+
         private static void ConfigureDependency(IServiceCollection services, ApplicationSettings applicationSettings)
         {
             services.AddTransient<ISuggestionsService>(
@@ -111,6 +121,18 @@ namespace WhisperAPI
             services.AddSingleton<IContexts>(
                 x => new InMemoryContexts(
                     TimeSpan.Parse(applicationSettings.ContextLifeSpan)));
+        }
+
+        private void CreateFileWatcher(string path)
+        {
+            this._watcher = new FileSystemWatcher
+            {
+                Path = path,
+                Filter = "vocabulary.json",
+                NotifyFilter = NotifyFilters.LastWrite
+            };
+            this._watcher.Changed += new FileSystemEventHandler(OnVocabularyChanged);
+            this._watcher.EnableRaisingEvents = true;
         }
     }
 }
