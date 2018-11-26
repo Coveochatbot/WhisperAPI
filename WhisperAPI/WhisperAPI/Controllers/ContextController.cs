@@ -19,7 +19,7 @@ namespace WhisperAPI.Controllers
             this._contexts = contexts;
         }
 
-        public ConversationContext ConversationContext { get; set; }
+        public ConversationContext ConversationContext { get; set; } = new ConversationContext();
 
         public override void OnActionExecuting(ActionExecutingContext actionExecutingContext)
         {
