@@ -324,19 +324,22 @@ namespace WhisperAPI.Tests.Integration
         [Test]
         public void When_previous_module_is_still_in_the_detected_modules_but_not_the_first_one_then_get_suggestions_does_not_update_the_current_module()
         {
+            var guid = Guid.NewGuid();
             var questions = GetQuestions();
             this.NlpCallHttpMessageHandleMock(HttpStatusCode.OK, new StringContent(JsonConvert.SerializeObject(this.GetRelevantNlpAnalysis())));
             this.IndexSearchHttpMessageHandleMock(HttpStatusCode.OK, this.GetSearchResultStringContent());
             this.DocumentFacetsHttpMessageHandleMock(HttpStatusCode.OK, new StringContent(JsonConvert.SerializeObject(questions)));
             var mazeQuery = SearchQueryBuilder.Build
                 .WithQuery("labyrinthe")
+                .WithChatKey(guid)
                 .Instance;
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(mazeQuery));
             this._suggestionController.GetSuggestions(mazeQuery);
-            Assert.AreEqual(Module.Maze, this._suggestionController);
+            Assert.AreEqual(Module.Maze, this._suggestionController.ConversationContext.CurrentDetectedModule);
 
             var simonSaysQuery = SearchQueryBuilder.Build
                 .WithQuery("simon says labyrinthe")
+                .WithChatKey(guid)
                 .Instance;
             this._suggestionController.GetSuggestions(simonSaysQuery);
             Assert.AreEqual(Module.Maze, this._suggestionController.ConversationContext.CurrentDetectedModule);
@@ -345,12 +348,14 @@ namespace WhisperAPI.Tests.Integration
         [Test]
         public void When_previous_module_is_not_in_the_detected_modules_then_get_suggestions_updates_the_current_module()
         {
+            var guid = Guid.NewGuid();
             var questions = GetQuestions();
             this.NlpCallHttpMessageHandleMock(HttpStatusCode.OK, new StringContent(JsonConvert.SerializeObject(this.GetRelevantNlpAnalysis())));
             this.IndexSearchHttpMessageHandleMock(HttpStatusCode.OK, this.GetSearchResultStringContent());
             this.DocumentFacetsHttpMessageHandleMock(HttpStatusCode.OK, new StringContent(JsonConvert.SerializeObject(questions)));
             var mazeQuery = SearchQueryBuilder.Build
                 .WithQuery("labyrinthe")
+                .WithChatKey(guid)
                 .Instance;
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(mazeQuery));
             this._suggestionController.GetSuggestions(mazeQuery);
@@ -358,6 +363,7 @@ namespace WhisperAPI.Tests.Integration
 
             var simonSaysQuery = SearchQueryBuilder.Build
                 .WithQuery("simon says fil bouton")
+                .WithChatKey(guid)
                 .Instance;
             this._suggestionController.GetSuggestions(simonSaysQuery);
             Assert.AreEqual(Module.SimonSays, this._suggestionController.ConversationContext.CurrentDetectedModule);
