@@ -31,27 +31,27 @@ namespace WhisperAPI.Controllers
         [HttpPost]
         public IActionResult GetSuggestions([FromBody] SearchQuery searchQuery)
         {
-            this._suggestionsService.UpdateContextWithNewQuery(this.ConversationContext, searchQuery);
-
-            if (searchQuery.Type == SearchQuery.MessageType.Agent)
-            {
-                searchQuery.Relevant = false;
-            }
-
-            if (searchQuery.Relevant)
+            if (searchQuery.Type == SearchQuery.MessageType.Customer)
             {
                 var currentDetectedModulesAndMatchScore = this._moduleDetector.DetectModuleList(searchQuery.Query);
                 var currentDetectedModules = from module in currentDetectedModulesAndMatchScore select module.Item1;
                 if (currentDetectedModules.Any())
                 {
-                    if (!currentDetectedModules.Contains(this.ConversationContext.CurrentDetectedModule))
+                    if (!currentDetectedModules.Contains(this._contexts[searchQuery.ChatKey.Value].CurrentDetectedModule))
                     {
-                        this.ConversationContext.CurrentDetectedModule = currentDetectedModules.First();
                         var previousConversationContext = this.ConversationContext;
-                        this.ConversationContext = new ConversationContext(
+                        this._contexts[searchQuery.ChatKey.Value] = new ConversationContext(
                             previousConversationContext.ChatKey, previousConversationContext.StartDate);
+                        this._contexts[searchQuery.ChatKey.Value].CurrentDetectedModule = currentDetectedModules.First();
                     }
                 }
+            }
+
+            this._suggestionsService.UpdateContextWithNewQuery(this.ConversationContext, searchQuery);
+
+            if (searchQuery.Type == SearchQuery.MessageType.Agent)
+            {
+                searchQuery.Relevant = false;
             }
 
             var suggestion = this._suggestionsService.GetNewSuggestion(this.ConversationContext, searchQuery);

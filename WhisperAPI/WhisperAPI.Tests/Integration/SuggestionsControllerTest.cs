@@ -286,7 +286,7 @@ namespace WhisperAPI.Tests.Integration
         [Test]
         public void When_initialized_then_there_is_no_current_module()
         {
-            Assert.AreEqual(Module.None, this._suggestionController.CurrentDetectedModule);
+            Assert.AreEqual(Module.None, this._suggestionController.ConversationContext.CurrentDetectedModule);
         }
 
         [Test]
@@ -302,7 +302,7 @@ namespace WhisperAPI.Tests.Integration
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(searchQuery));
 
             this._suggestionController.GetSuggestions(searchQuery);
-            Assert.AreEqual(Module.None, this._suggestionController.CurrentDetectedModule);
+            Assert.AreEqual(Module.None, this._suggestionController.ConversationContext.CurrentDetectedModule);
         }
 
         [Test]
@@ -318,7 +318,7 @@ namespace WhisperAPI.Tests.Integration
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(searchQuery));
 
             this._suggestionController.GetSuggestions(searchQuery);
-            Assert.AreEqual(Module.Maze, this._suggestionController.CurrentDetectedModule);
+            Assert.AreEqual(Module.Maze, this._suggestionController.ConversationContext.CurrentDetectedModule);
         }
 
         [Test]
@@ -333,13 +333,13 @@ namespace WhisperAPI.Tests.Integration
                 .Instance;
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(mazeQuery));
             this._suggestionController.GetSuggestions(mazeQuery);
-            Assert.AreEqual(Module.Maze, this._suggestionController.CurrentDetectedModule);
+            Assert.AreEqual(Module.Maze, this._suggestionController);
 
             var simonSaysQuery = SearchQueryBuilder.Build
                 .WithQuery("simon says labyrinthe")
                 .Instance;
             this._suggestionController.GetSuggestions(simonSaysQuery);
-            Assert.AreEqual(Module.Maze, this._suggestionController.CurrentDetectedModule);
+            Assert.AreEqual(Module.Maze, this._suggestionController.ConversationContext.CurrentDetectedModule);
         }
 
         [Test]
@@ -354,13 +354,13 @@ namespace WhisperAPI.Tests.Integration
                 .Instance;
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(mazeQuery));
             this._suggestionController.GetSuggestions(mazeQuery);
-            Assert.AreEqual(Module.Maze, this._suggestionController.CurrentDetectedModule);
+            Assert.AreEqual(Module.Maze, this._suggestionController.ConversationContext.CurrentDetectedModule);
 
             var simonSaysQuery = SearchQueryBuilder.Build
                 .WithQuery("simon says fil bouton")
                 .Instance;
             this._suggestionController.GetSuggestions(simonSaysQuery);
-            Assert.AreEqual(Module.SimonSays, this._suggestionController.CurrentDetectedModule);
+            Assert.AreEqual(Module.SimonSays, this._suggestionController.ConversationContext.CurrentDetectedModule);
         }
 
         [Test]
@@ -375,13 +375,13 @@ namespace WhisperAPI.Tests.Integration
                 .Instance;
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(mazeQuery));
             this._suggestionController.GetSuggestions(mazeQuery);
-            Assert.AreEqual(Module.Maze, this._suggestionController.CurrentDetectedModule);
+            Assert.AreEqual(Module.Maze, this._suggestionController.ConversationContext.CurrentDetectedModule);
 
             var simonSaysQuery = SearchQueryBuilder.Build
                 .WithQuery("module not found")
                 .Instance;
             this._suggestionController.GetSuggestions(simonSaysQuery);
-            Assert.AreEqual(Module.Maze, this._suggestionController.CurrentDetectedModule);
+            Assert.AreEqual(Module.Maze, this._suggestionController.ConversationContext.CurrentDetectedModule);
         }
 
         [Test]
@@ -397,7 +397,7 @@ namespace WhisperAPI.Tests.Integration
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(mazeQuery));
             this._suggestionController.GetSuggestions(mazeQuery);
             this._suggestionController.GetSuggestions(mazeQuery);
-            Assert.AreEqual(Module.Maze, this._suggestionController.CurrentDetectedModule);
+            Assert.AreEqual(Module.Maze, this._suggestionController.ConversationContext.CurrentDetectedModule);
 
             // Add values in other fields to test that everything was reset
             var beforeChangeContextWithDummyValues = this._suggestionController.ConversationContext;
@@ -414,7 +414,7 @@ namespace WhisperAPI.Tests.Integration
                 .WithChatKey(new Guid("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"))
                 .Instance;
             this._suggestionController.GetSuggestions(simonSaysQuery);
-            Assert.AreEqual(Module.SimonSays, this._suggestionController.CurrentDetectedModule);
+            Assert.AreEqual(Module.SimonSays, this._suggestionController.ConversationContext.CurrentDetectedModule);
 
             var afterChangeContext = this._suggestionController.ConversationContext;
             Assert.AreEqual(beforeChangeContextWithDummyValues.ChatKey, afterChangeContext.ChatKey);
@@ -445,7 +445,7 @@ namespace WhisperAPI.Tests.Integration
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(mazeQuery1));
             this._suggestionController.GetSuggestions(mazeQuery1);
             this._suggestionController.GetSuggestions(mazeQuery2);
-            Assert.AreEqual(Module.Maze, this._suggestionController.CurrentDetectedModule);
+            Assert.AreEqual(Module.Maze, this._suggestionController.ConversationContext.CurrentDetectedModule);
             var beforeChangeContextWithDummyValues = this._suggestionController.ConversationContext;
 
             var simonSaysQuery = SearchQueryBuilder.Build
@@ -453,7 +453,7 @@ namespace WhisperAPI.Tests.Integration
                 .WithChatKey(new Guid("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"))
                 .Instance;
             this._suggestionController.GetSuggestions(simonSaysQuery);
-            Assert.AreEqual(Module.SimonSays, this._suggestionController.CurrentDetectedModule);
+            Assert.AreEqual(Module.SimonSays, this._suggestionController.ConversationContext.CurrentDetectedModule);
 
             var afterChangeContext = this._suggestionController.ConversationContext;
             Assert.AreNotEqual(beforeChangeContextWithDummyValues, afterChangeContext);

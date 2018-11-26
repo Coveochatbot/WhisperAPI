@@ -12,7 +12,7 @@ namespace WhisperAPI.Controllers
     public class ContextController : Controller
     {
         private static readonly log4net.ILog Log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-        private readonly IContexts _contexts;
+        protected IContexts _contexts;
 
         public ContextController(IContexts contexts)
         {
