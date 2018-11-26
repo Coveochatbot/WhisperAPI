@@ -28,7 +28,7 @@ namespace WhisperAPI.Models
             this.CurrentDetectedModule = Module.None;
         }
 
-        public Module CurrentDetectedModule { get; set; }
+        public Module CurrentDetectedModule { get; set; } = Module.None;
 
         public Guid ChatKey { get; set; }
 
