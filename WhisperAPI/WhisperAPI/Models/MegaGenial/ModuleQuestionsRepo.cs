@@ -22,13 +22,13 @@ namespace WhisperAPI.Models.MegaGenial
         {
             { Module.WireSimple, new List<string> { "Nombre de fils?", "Numéro de série?", "Couleur des fils de haut en bas?" } },
             { Module.Keypad, new List<string> { "Décris-moi les symboles?" } },
-            { Module.SimonSays, new List<string> { "Numéro de série avec voyelle ou non?", "Nombre de strikes?", "Couleur du flash?" } },
-            { Module.Password, new List<string> { "Lettre possible pour chaque position?" } },
+            { Module.SimonSays, new List<string> { "Numéro de série avec voyelle ou non?", "Nombre de strikes sur la bombe?", "Couleur du flash?" } },
+            { Module.Password, new List<string> { "Lettres possibles pour chaque position?" } },
             { Module.WhosFirst, new List<string> { "Mots affichés?", "Étiquettes en ordre?" } },
             { Module.Maze, new List<string> { "Position des cercles?", "Position du point?", "Position du triangle?" } },
-            { Module.WireSequence, new List<string> { "Combinaison couleur, chiffre et lettre?" } },
-            { Module.WireComplicated, new List<string> { "Couleur fils, étoile, lumière?", "Numéro de série pair?", "Port parallèle présent?", "Nombre de piles?" } },
-            { Module.Memory, new List<string> { "Quelle étape?", "Chiffre affiché en haut?", "Chiffres en ordre?" } },
+            { Module.WireSequence, new List<string> { "Combinaisons de couleur de fils, chiffre et lettre?" } },
+            { Module.WireComplicated, new List<string> { "Combinaisons de couleur de fils, étoile, lumière?", "Numéro de série pair?", "Port parallèle présent?", "Nombre de piles?" } },
+            { Module.Memory, new List<string> { "Quelle étape? (Jauge vert)", "Chiffre affiché en haut?", "Chiffres en ordre?" } },
             { Module.None, new List<string> { } }
         };
 
