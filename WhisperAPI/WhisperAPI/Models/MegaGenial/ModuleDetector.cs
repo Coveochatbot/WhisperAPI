@@ -10,7 +10,7 @@ namespace WhisperAPI.Models.MegaGenial
         private static readonly Dictionary<Module, string> _vocabularyByModule = new Dictionary<Module, string>
         {
             { Module.Keypad, "dessins boutons quatres 4 image images symboles symbole signes signe" },
-            { Module.Maze, "quadrillé triangle rouge cercles verts point blanc 6 par six maze labyrinthe" },
+            { Module.Maze, "quadrillé triangle rouge cercles verts point blanc 6 par six maze labyrinthe lignes ligne" },
             { Module.Memory, "mémoire memoire quatres chiffres écran ecran 1234 gros nombres boutons premier deuxième troisième quatrième deuxieme troisieme quatrieme" },
             { Module.Password, "ecran écran code lettre lettres submit 5 cinq flèches fleches tableau vert haut bas mot de passe password premier deuxième troisième quatrième cinquième deuxieme troisieme quatrieme cinquieme caracteres caratère combinaison combinaisons" },
             { Module.SimonSays, "simon says 4 carrés jaune bleu rouge vert clignote clignotant flash quatre" },
