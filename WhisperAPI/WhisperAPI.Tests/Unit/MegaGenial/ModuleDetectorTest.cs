@@ -26,6 +26,43 @@ namespace WhisperAPI.Tests.Unit.MegaGenial
 
         [Test]
         [TestCase]
+        public void RealLifeTest1()
+        {
+            var detector = new ModuleDetector();
+            var modules = detector.DetectModuleList("6fil");
+            Assert.Contains((Module.WireComplicated, 1), modules);
+        }
+
+        [Test]
+        [TestCase]
+        public void RealLifeTest2()
+        {
+            var detector = new ModuleDetector();
+            var modules = detector.DetectModuleList("Écran");
+            Assert.Contains((Module.WhosFirst, 1), modules);
+            Assert.Contains((Module.Memory, 1), modules);
+        }
+
+        [Test]
+        [TestCase]
+        public void RealLifeTest3()
+        {
+            var detector = new ModuleDetector();
+            var modules = detector.DetectModuleList("Code");
+            Assert.Contains((Module.Password, 1), modules);
+        }
+
+        [Test]
+        [TestCase]
+        public void RealLifeTest4()
+        {
+            var detector = new ModuleDetector();
+            var modules = detector.DetectModuleList("Il y a un ecran vert et il es ecrit");
+            Assert.Contains((Module.Password, 2), modules);
+        }
+
+        [Test]
+        [TestCase]
         public void WhenSentenceIsDescribingAMazeModuleThenSaidModuleIsReturned()
         {
             var detector = new ModuleDetector();
