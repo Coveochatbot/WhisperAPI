@@ -12,7 +12,7 @@ namespace WhisperAPI.Models.MegaGenial
             { Module.Keypad, "dessins boutons quatres 4 image images symboles symbole signes signe" },
             { Module.Maze, "quadrillé triangle rouge cercles verts point blanc 6 par six maze labyrinthe" },
             { Module.Memory, "mémoire memoire quatres chiffres écran ecran 1234 gros nombres boutons premier deuxième troisième quatrième deuxieme troisieme quatrieme" },
-            { Module.Password, "ecran écran code lettre lettres submit 5 cinq flèches fleches tableau vert haut bas mot de passe password premier deuxième troisième quatrième cinquième deuxieme troisieme quatrieme cinquieme caracteres caratère" },
+            { Module.Password, "ecran écran code lettre lettres submit 5 cinq flèches fleches tableau vert haut bas mot de passe password premier deuxième troisième quatrième cinquième deuxieme troisieme quatrieme cinquieme caracteres caratère combinaison combinaisons" },
             { Module.SimonSays, "simon says 4 carrés jaune bleu rouge vert clignote clignotant flash quatre" },
             { Module.WhosFirst, "ecran écran mots étiquettes etiquettes boutons 6 six 2 colonnes rangées rangees deux they are blank read red you your you're their they're empty reed leeds there display says no lead hold on you are c c see ready first no blank nothing yes what u h h h left right middle okay wait press you you are your you're u r u uh huh staccato what question done next hold sure like whos who's" },
             { Module.WireComplicated, "fils fil complique compliqué stripes coupé coupe couper étoile etoile lumiere lumière rouge bleu piles ports vertical verticaux" },
