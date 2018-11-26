@@ -286,7 +286,12 @@ namespace WhisperAPI.Tests.Integration
         [Test]
         public void When_initialized_then_there_is_no_current_module()
         {
-            Assert.AreEqual(Module.None, this._suggestionController.CurrentDetectedModule);
+            var queryChatkeyRefresh = SuggestionQueryBuilder.Build
+                   .WithChatKey(new Guid("aecaa8db-abc8-4ac9-aa8d-87987da2dbb0"))
+                   .Instance;
+
+            this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(queryChatkeyRefresh));
+            Assert.AreEqual(Module.None, this._suggestionController.ConversationContext.CurrentDetectedModule);
         }
 
         [Test]
@@ -302,7 +307,7 @@ namespace WhisperAPI.Tests.Integration
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(searchQuery));
 
             this._suggestionController.GetSuggestions(searchQuery);
-            Assert.AreEqual(Module.None, this._suggestionController.CurrentDetectedModule);
+            Assert.AreEqual(Module.None, this._suggestionController.ConversationContext.CurrentDetectedModule);
         }
 
         [Test]
@@ -318,49 +323,55 @@ namespace WhisperAPI.Tests.Integration
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(searchQuery));
 
             this._suggestionController.GetSuggestions(searchQuery);
-            Assert.AreEqual(Module.Maze, this._suggestionController.CurrentDetectedModule);
+            Assert.AreEqual(Module.Maze, this._suggestionController.ConversationContext.CurrentDetectedModule);
         }
 
         [Test]
         public void When_previous_module_is_still_in_the_detected_modules_but_not_the_first_one_then_get_suggestions_does_not_update_the_current_module()
         {
+            var guid = Guid.NewGuid();
             var questions = GetQuestions();
             this.NlpCallHttpMessageHandleMock(HttpStatusCode.OK, new StringContent(JsonConvert.SerializeObject(this.GetRelevantNlpAnalysis())));
             this.IndexSearchHttpMessageHandleMock(HttpStatusCode.OK, this.GetSearchResultStringContent());
             this.DocumentFacetsHttpMessageHandleMock(HttpStatusCode.OK, new StringContent(JsonConvert.SerializeObject(questions)));
             var mazeQuery = SearchQueryBuilder.Build
                 .WithQuery("labyrinthe")
+                .WithChatKey(guid)
                 .Instance;
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(mazeQuery));
             this._suggestionController.GetSuggestions(mazeQuery);
-            Assert.AreEqual(Module.Maze, this._suggestionController.CurrentDetectedModule);
+            Assert.AreEqual(Module.Maze, this._suggestionController.ConversationContext.CurrentDetectedModule);
 
             var simonSaysQuery = SearchQueryBuilder.Build
                 .WithQuery("simon says labyrinthe")
+                .WithChatKey(guid)
                 .Instance;
             this._suggestionController.GetSuggestions(simonSaysQuery);
-            Assert.AreEqual(Module.Maze, this._suggestionController.CurrentDetectedModule);
+            Assert.AreEqual(Module.Maze, this._suggestionController.ConversationContext.CurrentDetectedModule);
         }
 
         [Test]
         public void When_previous_module_is_not_in_the_detected_modules_then_get_suggestions_updates_the_current_module()
         {
+            var guid = Guid.NewGuid();
             var questions = GetQuestions();
             this.NlpCallHttpMessageHandleMock(HttpStatusCode.OK, new StringContent(JsonConvert.SerializeObject(this.GetRelevantNlpAnalysis())));
             this.IndexSearchHttpMessageHandleMock(HttpStatusCode.OK, this.GetSearchResultStringContent());
             this.DocumentFacetsHttpMessageHandleMock(HttpStatusCode.OK, new StringContent(JsonConvert.SerializeObject(questions)));
             var mazeQuery = SearchQueryBuilder.Build
                 .WithQuery("labyrinthe")
+                .WithChatKey(guid)
                 .Instance;
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(mazeQuery));
             this._suggestionController.GetSuggestions(mazeQuery);
-            Assert.AreEqual(Module.Maze, this._suggestionController.CurrentDetectedModule);
+            Assert.AreEqual(Module.Maze, this._suggestionController.ConversationContext.CurrentDetectedModule);
 
             var simonSaysQuery = SearchQueryBuilder.Build
                 .WithQuery("simon says fil bouton")
+                .WithChatKey(guid)
                 .Instance;
             this._suggestionController.GetSuggestions(simonSaysQuery);
-            Assert.AreEqual(Module.SimonSays, this._suggestionController.CurrentDetectedModule);
+            Assert.AreEqual(Module.SimonSays, this._suggestionController.ConversationContext.CurrentDetectedModule);
         }
 
         [Test]
@@ -372,16 +383,18 @@ namespace WhisperAPI.Tests.Integration
             this.DocumentFacetsHttpMessageHandleMock(HttpStatusCode.OK, new StringContent(JsonConvert.SerializeObject(questions)));
             var mazeQuery = SearchQueryBuilder.Build
                 .WithQuery("labyrinthe")
+                .WithChatKey(new Guid("aecaa8db-abc8-4ac9-aa8d-87987da2dbb0"))
                 .Instance;
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(mazeQuery));
             this._suggestionController.GetSuggestions(mazeQuery);
-            Assert.AreEqual(Module.Maze, this._suggestionController.CurrentDetectedModule);
+            Assert.AreEqual(Module.Maze, this._suggestionController.ConversationContext.CurrentDetectedModule);
 
             var simonSaysQuery = SearchQueryBuilder.Build
                 .WithQuery("module not found")
+                .WithChatKey(new Guid("aecaa8db-abc8-4ac9-aa8d-87987da2dbb0"))
                 .Instance;
             this._suggestionController.GetSuggestions(simonSaysQuery);
-            Assert.AreEqual(Module.Maze, this._suggestionController.CurrentDetectedModule);
+            Assert.AreEqual(Module.Maze, this._suggestionController.ConversationContext.CurrentDetectedModule);
         }
 
         [Test]
@@ -397,7 +410,7 @@ namespace WhisperAPI.Tests.Integration
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(mazeQuery));
             this._suggestionController.GetSuggestions(mazeQuery);
             this._suggestionController.GetSuggestions(mazeQuery);
-            Assert.AreEqual(Module.Maze, this._suggestionController.CurrentDetectedModule);
+            Assert.AreEqual(Module.Maze, this._suggestionController.ConversationContext.CurrentDetectedModule);
 
             // Add values in other fields to test that everything was reset
             var beforeChangeContextWithDummyValues = this._suggestionController.ConversationContext;
@@ -414,11 +427,11 @@ namespace WhisperAPI.Tests.Integration
                 .WithChatKey(new Guid("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"))
                 .Instance;
             this._suggestionController.GetSuggestions(simonSaysQuery);
-            Assert.AreEqual(Module.SimonSays, this._suggestionController.CurrentDetectedModule);
+            Assert.AreEqual(Module.SimonSays, this._suggestionController.ConversationContext.CurrentDetectedModule);
 
             var afterChangeContext = this._suggestionController.ConversationContext;
             Assert.AreEqual(beforeChangeContextWithDummyValues.ChatKey, afterChangeContext.ChatKey);
-            Assert.AreEqual(beforeChangeContextWithDummyValues.StartDate, afterChangeContext.StartDate);
+            Assert.AreNotEqual(beforeChangeContextWithDummyValues.StartDate, afterChangeContext.StartDate);
             Assert.AreEqual(1, afterChangeContext.SearchQueries.Count);
             Assert.AreEqual("simon says", afterChangeContext.SearchQueries.First().Query);
             Assert.IsFalse(afterChangeContext.SuggestedDocuments.Any());
@@ -445,7 +458,7 @@ namespace WhisperAPI.Tests.Integration
             this._suggestionController.OnActionExecuting(this.GetActionExecutingContext(mazeQuery1));
             this._suggestionController.GetSuggestions(mazeQuery1);
             this._suggestionController.GetSuggestions(mazeQuery2);
-            Assert.AreEqual(Module.Maze, this._suggestionController.CurrentDetectedModule);
+            Assert.AreEqual(Module.Maze, this._suggestionController.ConversationContext.CurrentDetectedModule);
             var beforeChangeContextWithDummyValues = this._suggestionController.ConversationContext;
 
             var simonSaysQuery = SearchQueryBuilder.Build
@@ -453,7 +466,7 @@ namespace WhisperAPI.Tests.Integration
                 .WithChatKey(new Guid("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"))
                 .Instance;
             this._suggestionController.GetSuggestions(simonSaysQuery);
-            Assert.AreEqual(Module.SimonSays, this._suggestionController.CurrentDetectedModule);
+            Assert.AreEqual(Module.SimonSays, this._suggestionController.ConversationContext.CurrentDetectedModule);
 
             var afterChangeContext = this._suggestionController.ConversationContext;
             Assert.AreNotEqual(beforeChangeContextWithDummyValues, afterChangeContext);

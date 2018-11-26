@@ -32,6 +32,14 @@ namespace WhisperAPI.Services.Context
 
                 return conversationContext;
             }
+
+            set
+            {
+                if (this.ConversationContexts.TryGetValue(chatKey, out ConversationContext conversationContext))
+                {
+                    this.ConversationContexts.TryUpdate(chatKey, value, conversationContext);
+                }
+            }
         }
 
         public List<ConversationContext> RemoveOldContext()

@@ -12,7 +12,7 @@ namespace WhisperAPI.Controllers
     public class ContextController : Controller
     {
         private static readonly log4net.ILog Log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-        private readonly IContexts _contexts;
+        private IContexts _contexts;
 
         public ContextController(IContexts contexts)
         {
@@ -37,6 +37,11 @@ namespace WhisperAPI.Controllers
             Guid chatKey = query.ChatKey.Value;
             this.ConversationContext = this._contexts[chatKey];
             base.OnActionExecuting(actionExecutingContext);
+        }
+
+        protected void ReplaceConversationContext(ConversationContext conversationContext)
+        {
+            this.ConversationContext = this._contexts[conversationContext.ChatKey] = conversationContext;
         }
     }
 }

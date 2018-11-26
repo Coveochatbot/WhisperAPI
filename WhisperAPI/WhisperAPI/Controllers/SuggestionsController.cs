@@ -19,8 +19,6 @@ namespace WhisperAPI.Controllers
 
         private readonly IQuestionsService _questionsService;
 
-        internal Module CurrentDetectedModule { get; set; }
-
         private readonly ModuleDetector _moduleDetector = new ModuleDetector();
 
         public SuggestionsController(ISuggestionsService suggestionsService, IQuestionsService questionsService, IContexts contexts)
@@ -33,16 +31,20 @@ namespace WhisperAPI.Controllers
         [HttpPost]
         public IActionResult GetSuggestions([FromBody] SearchQuery searchQuery)
         {
-            var currentDetectedModulesAndMatchScore = this._moduleDetector.DetectModuleList(searchQuery.Query);
-            var currentDetectedModules = from module in currentDetectedModulesAndMatchScore select module.Item1;
-            if (currentDetectedModules.Any())
+            if (searchQuery.Type == SearchQuery.MessageType.Customer)
             {
-                if (!currentDetectedModules.Contains(this.CurrentDetectedModule))
+                var currentDetectedModulesAndMatchScore = this._moduleDetector.DetectModuleList(searchQuery.Query);
+                var currentDetectedModules = from module in currentDetectedModulesAndMatchScore select module.Item1;
+                if (currentDetectedModules.Any())
                 {
-                    this.CurrentDetectedModule = currentDetectedModules.First();
-                    var previousConversationContext = this.ConversationContext;
-                    this.ConversationContext = new ConversationContext(
-                        previousConversationContext.ChatKey, previousConversationContext.StartDate);
+                    if (!currentDetectedModules.Contains(this.ConversationContext.CurrentDetectedModule))
+                    {
+                        this.ReplaceConversationContext(
+                            new ConversationContext(searchQuery.ChatKey.Value, DateTime.Now)
+                            {
+                                CurrentDetectedModule = currentDetectedModules.First()
+                            });
+                    }
                 }
             }
 
