@@ -431,7 +431,7 @@ namespace WhisperAPI.Tests.Integration
 
             var afterChangeContext = this._suggestionController.ConversationContext;
             Assert.AreEqual(beforeChangeContextWithDummyValues.ChatKey, afterChangeContext.ChatKey);
-            Assert.AreEqual(beforeChangeContextWithDummyValues.StartDate, afterChangeContext.StartDate);
+            Assert.AreNotEqual(beforeChangeContextWithDummyValues.StartDate, afterChangeContext.StartDate);
             Assert.AreEqual(1, afterChangeContext.SearchQueries.Count);
             Assert.AreEqual("simon says", afterChangeContext.SearchQueries.First().Query);
             Assert.IsFalse(afterChangeContext.SuggestedDocuments.Any());
