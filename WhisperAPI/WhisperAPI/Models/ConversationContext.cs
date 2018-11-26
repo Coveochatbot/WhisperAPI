@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using WhisperAPI.Models.MegaGenial;
 using WhisperAPI.Models.MLAPI;
 using WhisperAPI.Models.Queries;
 
@@ -24,7 +25,10 @@ namespace WhisperAPI.Models
             this.Questions = new HashSet<Question>();
             this.SelectedSuggestedDocuments = new HashSet<Document>();
             this.FilterDocumentsParameters = new FilterDocumentsParameters();
+            this.CurrentDetectedModule = Module.None;
         }
+
+        public Module CurrentDetectedModule { get; set; }
 
         public Guid ChatKey { get; set; }
 
