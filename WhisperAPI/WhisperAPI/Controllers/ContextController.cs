@@ -21,6 +21,11 @@ namespace WhisperAPI.Controllers
 
         public ConversationContext ConversationContext { get; set; }
 
+        protected void ReplaceConversationContext(Guid chatKey, ConversationContext conversationContext)
+        {
+            this.ConversationContext = this._contexts[chatKey] = conversationContext;
+        }
+
         public override void OnActionExecuting(ActionExecutingContext actionExecutingContext)
         {
             Query query = actionExecutingContext.ActionArguments.Values.OfType<Query>().FirstOrDefault();

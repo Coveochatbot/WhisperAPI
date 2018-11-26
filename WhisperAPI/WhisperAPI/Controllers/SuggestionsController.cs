@@ -40,9 +40,12 @@ namespace WhisperAPI.Controllers
                     if (!currentDetectedModules.Contains(this._contexts[searchQuery.ChatKey.Value].CurrentDetectedModule))
                     {
                         var previousConversationContext = this.ConversationContext;
-                        this._contexts[searchQuery.ChatKey.Value] = new ConversationContext(
-                            previousConversationContext.ChatKey, previousConversationContext.StartDate);
-                        this._contexts[searchQuery.ChatKey.Value].CurrentDetectedModule = currentDetectedModules.First();
+                        this.ReplaceConversationContext(
+                            searchQuery.ChatKey.Value,
+                            new ConversationContext(previousConversationContext.ChatKey, previousConversationContext.StartDate)
+                            {
+                                CurrentDetectedModule = currentDetectedModules.First()
+                            });
                     }
                 }
             }
